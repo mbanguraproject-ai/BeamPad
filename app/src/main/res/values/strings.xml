@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BeamPad</string>
+
+    <string name="tab_snippets">Snippets</string>
+    <string name="tab_keyboard">Keyboard</string>
+    <string name="tab_trackpad">Trackpad</string>
+
+    <string name="status_disconnected">Not connected</string>
+    <string name="status_ready">Ready to pair</string>
+    <string name="action_pair">Pair</string>
+    <string name="action_disconnect">Disconnect</string>
+
+    <string name="pair_instructions">On your TV, open Bluetooth settings and look for \"%1$s\"</string>
 </resources>
