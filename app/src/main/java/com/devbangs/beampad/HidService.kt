@@ -37,6 +37,21 @@ class HidService : Service() {
     var connectedDevice: BluetoothDevice? = null
         private set
 
+    private val prefs by lazy {
+        getSharedPreferences("beampad", Context.MODE_PRIVATE)
+    }
+
+    /** Layout of the receiving device. Persisted across restarts. */
+    var layout: HidReports.Layout
+        get() = runCatching {
+            HidReports.Layout.valueOf(
+                prefs.getString(KEY_LAYOUT, null) ?: HidReports.Layout.US.name
+            )
+        }.getOrDefault(HidReports.Layout.US)
+        set(value) {
+            prefs.edit().putString(KEY_LAYOUT, value.name).apply()
+        }
+
     /** Set by the Activity to receive status lines and state changes. */
     var listener: ((String) -> Unit)? = null
 
@@ -144,7 +159,7 @@ class HidService : Service() {
             var sent = 0
             var skipped = 0
             for (c in text) {
-                val enc = HidReports.encode(c)
+                val enc = HidReports.encode(c, layout)
                 if (enc == null) { skipped++; continue }
                 if (!tapKey(enc.first, enc.second)) break
                 sent++
@@ -216,6 +231,7 @@ class HidService : Service() {
     companion object {
         /** Gap between reports. Slower stacks drop keys sent back-to-back. */
         private const val KEY_DELAY_MS = 12L
+        private const val KEY_LAYOUT = "layout"
         private const val CHANNEL_ID = "beampad_connection"
         private const val NOTIF_ID = 1
     }

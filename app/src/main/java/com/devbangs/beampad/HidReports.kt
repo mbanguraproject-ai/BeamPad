@@ -14,6 +14,7 @@ object HidReports {
 
     const val MOD_NONE: Byte = 0x00
     const val MOD_LEFT_SHIFT: Byte = 0x02
+    const val MOD_RIGHT_ALT: Byte = 0x40   // AltGr, needed by continental layouts
 
     // Common control keys, by HID usage code.
     const val KEY_ENTER: Byte = 0x28
@@ -58,8 +59,41 @@ object HidReports {
 
     fun release(): ByteArray = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0)
 
-    /** Keyboard layout of the RECEIVING device. Only US is implemented. */
-    enum class Layout { US }
+    /**
+     * Keyboard layout of the RECEIVING device.
+     *
+     * Only layouts with a verified table belong here. Adding an entry whose
+     * mapping has not been tested against real hardware is worse than omitting
+     * it: the user selects it, trusts it, and gets silent corruption.
+     */
+    enum class Layout(val label: String) {
+        US("US QWERTY"),
+        UK("UK QWERTY")
+    }
+
+    /**
+     * Per-layout differences from US. Anything absent falls through to the US
+     * mapping, which is correct for letters and most punctuation on layouts
+     * that share the QWERTY letter block.
+     */
+    private val UK_OVERRIDES: Map<Char, Pair<Byte, Byte>> = mapOf(
+        '@' to (MOD_LEFT_SHIFT to 0x34.toByte()),   // apostrophe key
+        '"' to (MOD_LEFT_SHIFT to 0x1F.toByte()),   // the 2 key
+        '#' to (MOD_NONE to 0x32.toByte()),         // non-US hash
+        '~' to (MOD_LEFT_SHIFT to 0x32.toByte()),
+        '\\' to (MOD_NONE to 0x64.toByte()),        // non-US backslash
+        '|' to (MOD_LEFT_SHIFT to 0x64.toByte())
+    )
+
+    private fun overridesFor(layout: Layout): Map<Char, Pair<Byte, Byte>> =
+        when (layout) {
+            Layout.US -> emptyMap()
+            Layout.UK -> UK_OVERRIDES
+        }
+
+    /** String used to check what the receiver actually produces. */
+    const val PROBE = "@#2$~|"
+
 
     /**
      * Maps a character to (modifier, usage code), or null when unsupported.
@@ -68,7 +102,10 @@ object HidReports {
      * own layout. These codes are correct only when the receiver uses US QWERTY.
      * Letters survive most Latin layouts; symbols do not.
      */
-    fun encode(c: Char, layout: Layout = Layout.US): Pair<Byte, Byte>? = when (c) {
+    fun encode(c: Char, layout: Layout = Layout.US): Pair<Byte, Byte>? =
+        overridesFor(layout)[c] ?: encodeUs(c)
+
+    private fun encodeUs(c: Char): Pair<Byte, Byte>? = when (c) {
         in 'a'..'z' -> MOD_NONE to (0x04 + (c - 'a')).toByte()
         in 'A'..'Z' -> MOD_LEFT_SHIFT to (0x04 + (c - 'A')).toByte()
         in '1'..'9' -> MOD_NONE to (0x1E + (c - '1')).toByte()

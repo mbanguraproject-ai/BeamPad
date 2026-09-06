@@ -80,6 +80,23 @@ class HidSpikeActivity : ComponentActivity() {
                 text = "Send text"
                 setOnClickListener { sendText(input.text.toString()) }
             })
+            addView(Button(context).apply {
+                text = "Send probe"
+                setOnClickListener {
+                    val s = service
+                    if (s == null || !s.isReady()) {
+                        Toast.makeText(context, "not connected", Toast.LENGTH_SHORT).show()
+                    } else {
+                        log("probe: expect exactly  ${HidReports.PROBE}")
+                        sendText(HidReports.PROBE)
+                        log("compare on the other device - wrong? switch layout and retry")
+                    }
+                }
+            })
+            addView(Button(context).apply {
+                text = "Layout: ${HidReports.Layout.US.label}"
+                setOnClickListener { cycleLayout(this) }
+            })
             addView(ScrollView(context).apply {
                 addView(status)
                 layoutParams = LinearLayout.LayoutParams(
@@ -135,6 +152,15 @@ class HidSpikeActivity : ComponentActivity() {
                 log("sent $sent chars" + if (skipped > 0) ", $skipped unsupported" else "")
             }
         }
+    }
+
+    private fun cycleLayout(button: Button) {
+        val s = service ?: return
+        val all = HidReports.Layout.entries
+        val next = all[(all.indexOf(s.layout) + 1) % all.size]
+        s.layout = next
+        button.text = "Layout: ${next.label}"
+        log("layout set to ${next.label}")
     }
 
     private fun log(msg: String) {
