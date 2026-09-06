@@ -38,7 +38,20 @@ class SnippetStore(context: Context) {
         }.getOrDefault(emptyList())
     }
 
-    fun add(label: String, plaintext: String, secret: Boolean): Snippet {
+    /** Thrown when a secret snippet is saved on a device with no screen lock. */
+    class NoScreenLockException : IllegalStateException(Auth.NO_LOCK_MESSAGE)
+
+    /**
+     * @throws NoScreenLockException when [secret] is true and the device has no
+     * secure lock screen. Callers must surface the message, not swallow it.
+     */
+    fun add(
+        label: String,
+        plaintext: String,
+        secret: Boolean,
+        screenLockAvailable: Boolean = true
+    ): Snippet {
+        if (secret && !screenLockAvailable) throw NoScreenLockException()
         val snippet = Snippet(
             id = UUID.randomUUID().toString(),
             label = label,
