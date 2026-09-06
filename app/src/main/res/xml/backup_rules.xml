@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and below. Credentials must never leave the device: the
+     Keystore key is not exportable, so restored ciphertext is undecryptable
+     anyway, and uploading it serves no purpose. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="beampad_snippets.xml" />
+</full-backup-content>
