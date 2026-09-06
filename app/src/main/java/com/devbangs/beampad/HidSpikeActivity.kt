@@ -121,17 +121,20 @@ class HidSpikeActivity : ComponentActivity() {
     }
 
     private fun sendText(text: String) {
+        if (text.isEmpty()) {
+            Toast.makeText(this, "nothing to send", Toast.LENGTH_SHORT).show()
+            return
+        }
         val s = service
         if (s == null || !s.isReady()) {
             Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show()
             return
         }
-        var skipped = 0
-        text.forEach { c ->
-            val enc = HidReports.encode(c)
-            if (enc == null) skipped++ else s.tapKey(enc.first, enc.second)
+        s.typeText(text) { sent, skipped ->
+            runOnUiThread {
+                log("sent $sent chars" + if (skipped > 0) ", $skipped unsupported" else "")
+            }
         }
-        log("sent ${text.length - skipped} chars" + if (skipped > 0) ", $skipped unsupported" else "")
     }
 
     private fun log(msg: String) {

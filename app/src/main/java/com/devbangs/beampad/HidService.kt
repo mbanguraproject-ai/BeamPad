@@ -124,13 +124,33 @@ class HidService : Service() {
         if (!ok) report("HID Device profile unavailable on this phone")
     }
 
-    /** Sends a key press followed by a release. */
+    /** Sends a key press followed by a release. Call off the main thread. */
     fun tapKey(modifier: Byte, keyCode: Byte): Boolean {
         val dev = connectedDevice ?: return false
         val h = hid ?: return false
         h.sendReport(dev, HidReports.REPORT_ID, HidReports.press(modifier, keyCode))
+        Thread.sleep(KEY_DELAY_MS)
         h.sendReport(dev, HidReports.REPORT_ID, HidReports.release())
+        Thread.sleep(KEY_DELAY_MS)
         return true
+    }
+
+    /**
+     * Types a whole string on the send executor, one key at a time.
+     * [done] reports how many characters were sent and how many had no mapping.
+     */
+    fun typeText(text: String, done: (sent: Int, skipped: Int) -> Unit) {
+        exec.execute {
+            var sent = 0
+            var skipped = 0
+            for (c in text) {
+                val enc = HidReports.encode(c)
+                if (enc == null) { skipped++; continue }
+                if (!tapKey(enc.first, enc.second)) break
+                sent++
+            }
+            done(sent, skipped)
+        }
     }
 
     fun isReady(): Boolean = hid != null && connectedDevice != null
@@ -194,6 +214,8 @@ class HidService : Service() {
     }
 
     companion object {
+        /** Gap between reports. Slower stacks drop keys sent back-to-back. */
+        private const val KEY_DELAY_MS = 12L
         private const val CHANNEL_ID = "beampad_connection"
         private const val NOTIF_ID = 1
     }
