@@ -10,7 +10,12 @@ package com.devbangs.beampad
  */
 object HidReports {
 
-    const val REPORT_ID = 1
+    const val REPORT_ID = 1          // keyboard
+    const val REPORT_ID_MOUSE = 2    // mouse
+
+    const val BUTTON_NONE: Byte = 0x00
+    const val BUTTON_LEFT: Byte = 0x01
+    const val BUTTON_RIGHT: Byte = 0x02
 
     const val MOD_NONE: Byte = 0x00
     const val MOD_LEFT_SHIFT: Byte = 0x02
@@ -51,8 +56,47 @@ object HidReports {
         0x19, 0x00,                     //   Usage Min (0)
         0x29, 0x65,                     //   Usage Max (101)
         0x81.toByte(), 0x00,            //   Input (Data,Array)
+        0xC0.toByte(),                  // End Collection
+
+        // --- Mouse, Report ID 2 ---
+        0x05, 0x01,                     // Usage Page (Generic Desktop)
+        0x09, 0x02,                     // Usage (Mouse)
+        0xA1.toByte(), 0x01,            // Collection (Application)
+        0x85.toByte(), 0x02,            //   Report ID (2)
+        0x09, 0x01,                     //   Usage (Pointer)
+        0xA1.toByte(), 0x00,            //   Collection (Physical)
+        0x05, 0x09,                     //     Usage Page (Button)
+        0x19, 0x01,                     //     Usage Min (Button 1)
+        0x29, 0x03,                     //     Usage Max (Button 3)
+        0x15, 0x00,                     //     Logical Min (0)
+        0x25, 0x01,                     //     Logical Max (1)
+        0x95.toByte(), 0x03,            //     Report Count (3)
+        0x75, 0x01,                     //     Report Size (1)
+        0x81.toByte(), 0x02,            //     Input (Data,Var,Abs) - buttons
+        0x95.toByte(), 0x01,            //     Report Count (1)
+        0x75, 0x05,                     //     Report Size (5)
+        0x81.toByte(), 0x03,            //     Input (Const) - padding
+        0x05, 0x01,                     //     Usage Page (Generic Desktop)
+        0x09, 0x30,                     //     Usage (X)
+        0x09, 0x31,                     //     Usage (Y)
+        0x09, 0x38,                     //     Usage (Wheel)
+        0x15, 0x81.toByte(),            //     Logical Min (-127)
+        0x25, 0x7F,                     //     Logical Max (127)
+        0x75, 0x08,                     //     Report Size (8)
+        0x95.toByte(), 0x03,            //     Report Count (3)
+        0x81.toByte(), 0x06,            //     Input (Data,Var,Rel) - X,Y,wheel
+        0xC0.toByte(),                  //   End Collection
         0xC0.toByte()                   // End Collection
     )
+
+    /** Mouse report: buttons, then relative X, Y and wheel, each -127..127. */
+    fun mouse(buttons: Byte, dx: Int, dy: Int, wheel: Int = 0): ByteArray =
+        byteArrayOf(
+            buttons,
+            dx.coerceIn(-127, 127).toByte(),
+            dy.coerceIn(-127, 127).toByte(),
+            wheel.coerceIn(-127, 127).toByte()
+        )
 
     fun press(modifier: Byte, keyCode: Byte): ByteArray =
         byteArrayOf(modifier, 0, keyCode, 0, 0, 0, 0, 0)

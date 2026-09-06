@@ -101,9 +101,9 @@ class HidService : Service() {
             hid = proxy as BluetoothHidDevice
             val sdp = BluetoothHidDeviceAppSdpSettings(
                 "BeamPad",
-                "Phone as keyboard",
+                "Phone as keyboard and mouse",
                 "Dev_Bangs",
-                BluetoothHidDevice.SUBCLASS1_KEYBOARD,
+                BluetoothHidDevice.SUBCLASS1_COMBO,
                 HidReports.KEYBOARD_DESCRIPTOR
             )
             runCatching { hid?.registerApp(sdp, null, null, exec, hidCallback) }
@@ -165,6 +165,39 @@ class HidService : Service() {
                 sent++
             }
             done(sent, skipped)
+        }
+    }
+
+    /** Relative pointer movement. Safe to call at touch-event rate. */
+    fun moveMouse(dx: Int, dy: Int) {
+        val dev = connectedDevice ?: return
+        val h = hid ?: return
+        h.sendReport(
+            dev, HidReports.REPORT_ID_MOUSE,
+            HidReports.mouse(HidReports.BUTTON_NONE, dx, dy)
+        )
+    }
+
+    fun scroll(amount: Int) {
+        val dev = connectedDevice ?: return
+        val h = hid ?: return
+        h.sendReport(
+            dev, HidReports.REPORT_ID_MOUSE,
+            HidReports.mouse(HidReports.BUTTON_NONE, 0, 0, amount)
+        )
+    }
+
+    /** Press and release a mouse button in place. */
+    fun click(button: Byte) {
+        val dev = connectedDevice ?: return
+        val h = hid ?: return
+        exec.execute {
+            h.sendReport(dev, HidReports.REPORT_ID_MOUSE, HidReports.mouse(button, 0, 0))
+            Thread.sleep(KEY_DELAY_MS)
+            h.sendReport(
+                dev, HidReports.REPORT_ID_MOUSE,
+                HidReports.mouse(HidReports.BUTTON_NONE, 0, 0)
+            )
         }
     }
 
