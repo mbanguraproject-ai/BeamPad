@@ -20,7 +20,8 @@ class KeyboardFragment : Fragment() {
         _ui?.let { view ->
             listOf(
                 view.send, view.up, view.down, view.left, view.right,
-                view.enter, view.back, view.backspace
+                view.enter, view.back, view.backspace,
+                view.volUp, view.volDown, view.mute
             ).forEach { it.isEnabled = connected }
             view.input.isEnabled = connected
         }
@@ -34,11 +35,14 @@ class KeyboardFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, state: Bundle?) {
-        ui.send.setOnClickListener { sendInput() }
+        ui.send.setOnClickListener { sendInput(withEnter = false) }
 
+        // Pressing send on the phone's own keyboard also presses Enter on the
+        // TV, so a search box or password field submits. The Send button
+        // types the text without Enter, for fields that should not submit.
         ui.input.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-                sendInput()
+                sendInput(withEnter = true)
                 true
             } else false
         }
@@ -51,7 +55,15 @@ class KeyboardFragment : Fragment() {
         ui.back.setOnClickListener { key(HidReports.KEY_ESC) }
         ui.backspace.setOnClickListener { key(HidReports.KEY_BACKSPACE) }
 
+        ui.volUp.setOnClickListener { consumer(HidReports.CC_VOLUME_UP) }
+        ui.volDown.setOnClickListener { consumer(HidReports.CC_VOLUME_DOWN) }
+        ui.mute.setOnClickListener { consumer(HidReports.CC_MUTE) }
+
         host?.observeConnection(connectionObserver)
+    }
+
+    private fun consumer(usage: Int) {
+        host?.service?.consumerKey(usage)
     }
 
     private fun key(code: Byte) {
@@ -59,7 +71,7 @@ class KeyboardFragment : Fragment() {
         service.typeKey(HidReports.MOD_NONE, code)
     }
 
-    private fun sendInput() {
+    private fun sendInput(withEnter: Boolean) {
         val text = ui.input.text?.toString().orEmpty()
         if (text.isEmpty()) return
 
@@ -69,7 +81,7 @@ class KeyboardFragment : Fragment() {
             return
         }
 
-        service.typeText(text) { _, skipped ->
+        service.typeText(if (withEnter) text + "\n" else text) { _, skipped ->
             activity?.runOnUiThread {
                 ui.input.setText("")
                 if (skipped > 0) {

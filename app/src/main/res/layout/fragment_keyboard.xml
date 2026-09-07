@@ -124,6 +124,30 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/volDown"
+                style="@style/WideKey"
+                app:icon="@drawable/ic_speaker_low" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/mute"
+                style="@style/WideKey"
+                android:layout_marginStart="12dp"
+                app:icon="@drawable/ic_speaker_slash" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/volUp"
+                style="@style/WideKey"
+                android:layout_marginStart="12dp"
+                app:icon="@drawable/ic_speaker_high" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/back"
                 style="@style/WideKey"
                 android:text="@string/key_back"

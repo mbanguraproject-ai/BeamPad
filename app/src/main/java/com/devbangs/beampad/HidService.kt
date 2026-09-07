@@ -201,6 +201,20 @@ class HidService : Service() {
         }
     }
 
+    /**
+     * Sends a consumer control code: volume, mute, play/pause.
+     * A release report must follow or the receiver treats the key as held.
+     */
+    fun consumerKey(usage: Int) {
+        val dev = connectedDevice ?: return
+        val h = hid ?: return
+        exec.execute {
+            h.sendReport(dev, HidReports.REPORT_ID_CONSUMER, HidReports.consumer(usage))
+            Thread.sleep(KEY_DELAY_MS)
+            h.sendReport(dev, HidReports.REPORT_ID_CONSUMER, HidReports.consumerRelease())
+        }
+    }
+
     /** Sends a single key off the main thread. */
     fun typeKey(modifier: Byte, keyCode: Byte) {
         exec.execute { tapKey(modifier, keyCode) }

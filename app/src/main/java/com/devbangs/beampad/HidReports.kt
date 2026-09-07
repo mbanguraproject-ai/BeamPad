@@ -12,6 +12,13 @@ object HidReports {
 
     const val REPORT_ID = 1          // keyboard
     const val REPORT_ID_MOUSE = 2    // mouse
+    const val REPORT_ID_CONSUMER = 3 // volume and media keys
+
+    // Consumer Control usage codes (HID usage page 0x0C)
+    const val CC_VOLUME_UP = 0x00E9
+    const val CC_VOLUME_DOWN = 0x00EA
+    const val CC_MUTE = 0x00E2
+    const val CC_PLAY_PAUSE = 0x00CD
 
     const val BUTTON_NONE: Byte = 0x00
     const val BUTTON_LEFT: Byte = 0x01
@@ -86,8 +93,30 @@ object HidReports {
         0x95.toByte(), 0x03,            //     Report Count (3)
         0x81.toByte(), 0x06,            //     Input (Data,Var,Rel) - X,Y,wheel
         0xC0.toByte(),                  //   End Collection
+        0xC0.toByte(),                  // End Collection
+
+        // --- Consumer Control, Report ID 3 ---
+        // Volume lives on the consumer page, not the keyboard page, so it
+        // needs its own collection.
+        0x05, 0x0C,                     // Usage Page (Consumer)
+        0x09, 0x01,                     // Usage (Consumer Control)
+        0xA1.toByte(), 0x01,            // Collection (Application)
+        0x85.toByte(), 0x03,            //   Report ID (3)
+        0x15, 0x00,                     //   Logical Min (0)
+        0x26, 0xFF.toByte(), 0x03,      //   Logical Max (1023)
+        0x19, 0x00,                     //   Usage Min (0)
+        0x2A, 0xFF.toByte(), 0x03,      //   Usage Max (1023)
+        0x75, 0x10,                     //   Report Size (16)
+        0x95.toByte(), 0x01,            //   Report Count (1)
+        0x81.toByte(), 0x00,            //   Input (Data,Array)
         0xC0.toByte()                   // End Collection
     )
+
+    /** Consumer report: one 16-bit usage code, little endian. */
+    fun consumer(usage: Int): ByteArray =
+        byteArrayOf((usage and 0xFF).toByte(), ((usage shr 8) and 0xFF).toByte())
+
+    fun consumerRelease(): ByteArray = byteArrayOf(0, 0)
 
     /** Mouse report: buttons, then relative X, Y and wheel, each -127..127. */
     fun mouse(buttons: Byte, dx: Int, dy: Int, wheel: Int = 0): ByteArray =

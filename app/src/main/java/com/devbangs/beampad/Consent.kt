@@ -34,12 +34,10 @@ object Consent {
                     // A form error is not fatal: canRequestAds still reflects
                     // whatever consent state the SDK settled on.
                     canRequestAds = info.canRequestAds()
-                    android.util.Log.i("BeamPadAds", "form done err=${error?.message} canRequest=$canRequestAds")
                     if (canRequestAds) onReady()
                 }
             },
             {
-                android.util.Log.w("BeamPadAds", "consent update failed: ${it.message}")
                 canRequestAds = false
             }
         )
