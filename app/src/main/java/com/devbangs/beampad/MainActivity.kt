@@ -69,6 +69,12 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        if (OnboardingActivity.shouldShow(this)) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+            finish()
+            return
+        }
+
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
