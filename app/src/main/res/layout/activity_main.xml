@@ -148,11 +148,19 @@
          and a banner below it would collect accidental clicks, which AdMob
          treats as invalid traffic. Collapsed to zero height until an ad
          actually loads, so there is no empty gap. -->
+    <!-- AdMob forbids altering the ad itself, so only the container is
+         styled: side margins and a rounded clip so the creative does not
+         run edge to edge against the dark surface. -->
     <FrameLayout
         android:id="@+id/adSlot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_ad_slot"
+        android:clipToOutline="true" />
 
     <FrameLayout
         android:id="@+id/tabContent"

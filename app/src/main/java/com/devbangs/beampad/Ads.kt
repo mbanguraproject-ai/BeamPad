@@ -4,10 +4,13 @@ import android.app.Activity
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.window.layout.WindowMetricsCalculator
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 
 /**
  * Banner loading, gated on consent and on the remove-ads entitlement.
@@ -17,10 +20,17 @@ import com.google.android.gms.ads.MobileAds
  */
 object Ads {
 
-    // Google's public test unit. Replace with the real unit before release;
-    // serving live ads on a test unit earns nothing, and testing against a
-    // live unit is an invalid-traffic violation.
-    private const val BANNER_UNIT = "ca-app-pub-3940256099942544/9214589741"
+    private const val BANNER_UNIT = "ca-app-pub-9121922395304175/7354060579"
+
+    /**
+     * Devices that receive test ads instead of live ones.
+     *
+     * Live ads on a development device count as invalid traffic and are the
+     * usual reason AdMob accounts get suspended before launch. Add the hash
+     * that the SDK logs on first ad request: look for "Use RequestConfiguration"
+     * in logcat.
+     */
+    private val TEST_DEVICES = listOf("072B81DAA6F3356B9674DB7F001A957F")
 
     private var sdkStarted = false
     private var view: AdView? = null
@@ -33,6 +43,13 @@ object Ads {
 
         Consent.gather(activity) {
             if (!sdkStarted) {
+                if (TEST_DEVICES.isNotEmpty()) {
+                    MobileAds.setRequestConfiguration(
+                        RequestConfiguration.Builder()
+                            .setTestDeviceIds(TEST_DEVICES)
+                            .build()
+                    )
+                }
                 MobileAds.initialize(activity) { }
                 sdkStarted = true
             }
@@ -57,6 +74,14 @@ object Ads {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
+        banner.adListener = object : AdListener() {
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                // Collapse the slot: an empty banner frame looks like a bug.
+                slot.removeAllViews()
+                view?.destroy()
+                view = null
+            }
+        }
         banner.loadAd(AdRequest.Builder().build())
     }
 
