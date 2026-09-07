@@ -7,10 +7,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.widget.Toast
 import android.os.IBinder
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -68,6 +70,18 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // Must run before super.onCreate: it swaps the splash theme out for
+        // the real one and hands the window over.
+        //
+        // The app starts faster than the ring animation runs, so without a
+        // hold the splash flashes past and reads as a glitch. Held just long
+        // enough to register as deliberate, not long enough to feel like a
+        // stall.
+        val splashShownAt = SystemClock.uptimeMillis()
+        installSplashScreen().setKeepOnScreenCondition {
+            SystemClock.uptimeMillis() - splashShownAt < SPLASH_HOLD_MS
+        }
 
         if (OnboardingActivity.shouldShow(this)) {
             startActivity(Intent(this, OnboardingActivity::class.java))
@@ -182,6 +196,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private companion object {
+        const val SPLASH_HOLD_MS = 2000L
         const val POST_NOTIF = "android.permission.POST_NOTIFICATIONS"
     }
 }
