@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -70,9 +71,25 @@ class MainActivity : FragmentActivity() {
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, insets ->
+        // Some OEM skins ignore the theme flag, so set bar icon appearance
+        // directly: dark background needs light icons.
+        WindowInsetsControllerCompat(window, ui.root).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
+
+        // Top inset on the content column, bottom inset on the nav itself:
+        // padding the whole column would leave dead space under the nav and
+        // stop its background short of the screen edge.
+        ViewCompat.setOnApplyWindowInsetsListener(ui.contentColumn) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bars.left, bars.top, bars.right, bars.bottom)
+            v.updatePadding(bars.left, bars.top, bars.right, 0)
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(ui.bottomNav) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = bars.bottom)
             insets
         }
 
@@ -85,6 +102,10 @@ class MainActivity : FragmentActivity() {
                 }
             )
             true
+        }
+
+        ui.settings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         ui.statusAction.setOnClickListener {
@@ -124,11 +145,13 @@ class MainActivity : FragmentActivity() {
         if (connected && device != null) {
             ui.statusIcon.setImageResource(R.drawable.ic_bluetooth_connected)
             ui.statusTitle.text = s.deviceLabel(device)
+            ui.statusDot.visibility = View.VISIBLE
             ui.statusDetail.visibility = View.GONE
             ui.statusAction.setText(R.string.action_disconnect)
         } else {
             ui.statusIcon.setImageResource(R.drawable.ic_bluetooth_slash)
             ui.statusTitle.setText(R.string.status_ready)
+            ui.statusDot.visibility = View.GONE
             ui.statusDetail.text =
                 getString(R.string.pair_instructions, s?.localBluetoothName() ?: "this phone")
             ui.statusDetail.visibility = View.VISIBLE

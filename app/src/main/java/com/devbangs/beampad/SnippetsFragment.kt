@@ -1,5 +1,8 @@
 package com.devbangs.beampad
 
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +17,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.devbangs.beampad.databinding.FragmentSnippetsBinding
 import com.devbangs.beampad.databinding.ItemSnippetBinding
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputLayout
@@ -93,7 +97,7 @@ class SnippetsFragment : Fragment() {
     }
 
     private fun confirmDelete(snippet: Snippet) {
-        MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_BeamPad_Dialog)
             .setTitle(snippet.label)
             .setMessage("Delete this snippet?")
             .setNegativeButton(R.string.cancel, null)
@@ -105,55 +109,48 @@ class SnippetsFragment : Fragment() {
     }
 
     private fun showAddDialog() {
-        val pad = (20 * resources.displayMetrics.density).toInt()
+        val view = layoutInflater.inflate(R.layout.dialog_add_snippet, null)
+        val label = view.findViewById<EditText>(R.id.label)
+        val value = view.findViewById<EditText>(R.id.value)
+        val protect = view.findViewById<MaterialSwitch>(R.id.protect)
 
-        val label = EditText(requireContext()).apply {
-            hint = getString(R.string.snippet_label)
-            isSingleLine = true
-        }
-        val value = EditText(requireContext()).apply {
-            hint = getString(R.string.snippet_value)
-        }
-        val protect = MaterialSwitch(requireContext()).apply {
-            text = getString(R.string.snippet_protect)
-        }
-
-        val body = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(pad, pad / 2, pad, 0)
-            addView(label)
-            addView(value)
-            addView(protect)
+        // Transparent window: the layout draws its own rounded surface, so
+        // the platform dialog background must not sit behind it.
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(view)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            window?.setLayout(
+                (resources.displayMetrics.widthPixels * 0.92f).toInt(),
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
         }
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.snippet_add)
-            .setView(body)
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.save) { _, _ ->
-                val l = label.text.toString().trim()
-                val v = value.text.toString()
-                if (l.isEmpty() || v.isEmpty()) {
-                    toast("label and text are both required")
-                    return@setPositiveButton
-                }
-                try {
-                    store.add(
-                        label = l,
-                        plaintext = v,
-                        secret = protect.isChecked,
-                        screenLockAvailable = Auth.isAvailable(requireActivity())
-                    )
-                    refresh()
-                } catch (e: SnippetStore.NoScreenLockException) {
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.snippet_protect)
-                        .setMessage(e.message)
-                        .setPositiveButton("OK", null)
-                        .show()
-                }
+        view.findViewById<MaterialButton>(R.id.cancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        view.findViewById<MaterialButton>(R.id.save).setOnClickListener {
+            val l = label.text.toString().trim()
+            val v = value.text.toString()
+            if (l.isEmpty() || v.isEmpty()) {
+                toast("Label and text are both required")
+                return@setOnClickListener
             }
-            .show()
+            try {
+                store.add(
+                    label = l,
+                    plaintext = v,
+                    secret = protect.isChecked,
+                    screenLockAvailable = Auth.isAvailable(requireActivity())
+                )
+                refresh()
+                dialog.dismiss()
+            } catch (e: SnippetStore.NoScreenLockException) {
+                toast(e.message ?: Auth.NO_LOCK_MESSAGE)
+            }
+        }
+
+        dialog.show()
     }
 
     private fun toast(msg: String) =

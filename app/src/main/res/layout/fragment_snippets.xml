@@ -9,29 +9,49 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="88dp" />
+        android:paddingBottom="96dp" />
 
-    <ImageView
-        android:id="@+id/emptyArt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:maxWidth="300dp"
-        android:adjustViewBounds="true"
-        android:src="@drawable/il_tv_scene"
-        android:contentDescription="@null" />
-
-    <TextView
+    <!-- Empty state sits in the lower third, clear of the TV in the
+         background image. Weighted spacer rather than a fixed margin so
+         it holds position across screen heights. -->
+    <LinearLayout
         android:id="@+id/empty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="32dp"
-        android:gravity="center"
-        android:text="@string/snippets_empty"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:alpha="0.6"
-        android:visibility="gone" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="72" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/snippets_empty_title"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textStyle="bold"
+            android:textColor="@color/bp_text" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/snippets_empty_body"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/bp_text_dim" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="28" />
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add"
@@ -40,6 +60,10 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
         android:src="@drawable/ic_plus"
+        app:backgroundTint="@color/bp_accent"
+        app:tint="@color/bp_text"
+        app:fabSize="normal"
+        app:shapeAppearanceOverlay="@style/Shape.Fab.Squircle"
         android:contentDescription="@string/snippet_add" />
 
 </FrameLayout>

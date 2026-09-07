@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bp_bg">
+
+    <include
+        android:id="@+id/bar"
+        layout="@layout/view_topbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <TextView
+                style="@style/SectionHeader"
+                android:text="@string/settings_typing" />
+
+            <LinearLayout
+                android:id="@+id/rowLayout"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/RowTitle" android:text="@string/settings_layout" />
+                    <TextView
+                        android:id="@+id/layoutValue"
+                        style="@style/RowSubtitle" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowProbe"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/RowTitle" android:text="@string/settings_probe" />
+                    <TextView style="@style/RowSubtitle" android:text="@string/settings_probe_hint" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                style="@style/SectionHeader"
+                android:text="@string/settings_about" />
+
+            <LinearLayout
+                android:id="@+id/rowPrivacy"
+                style="@style/SettingsRow">
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/RowTitle" android:text="@string/privacy_title" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowTerms"
+                style="@style/SettingsRow">
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/RowTitle" android:text="@string/terms_title" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowLicences"
+                style="@style/SettingsRow">
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/RowTitle" android:text="@string/licences_title" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/version"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/bp_text_dim" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

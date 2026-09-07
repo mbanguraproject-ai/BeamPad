@@ -1,0 +1,33 @@
+BeamPad Terms of Use
+
+Last updated: September 2026
+
+By using BeamPad you agree to these terms.
+
+WHAT BEAMPAD IS
+
+BeamPad turns your phone into a Bluetooth keyboard, trackpad and remote for televisions, set-top boxes and computers. It is provided free of charge.
+
+NO WARRANTY
+
+BeamPad is provided as is, without warranty of any kind. Bluetooth support varies between devices and manufacturers. Some televisions and set-top boxes may not accept a Bluetooth keyboard, may pair unreliably, or may interpret keys differently from what you typed. Dev_Bangs does not guarantee that BeamPad will work with any particular device.
+
+KEYBOARD LAYOUTS
+
+The device you type into interprets keystrokes using its own keyboard layout. If that layout does not match the one selected in BeamPad, symbols and numbers can arrive incorrectly. Use the test characters option in Settings to check before entering anything important.
+
+YOUR SAVED SNIPPETS
+
+Snippets are stored only on your device and are encrypted. Because the encryption key never leaves the device and snippets are excluded from backup, they cannot be recovered if you uninstall the app, clear its data, reset the device, or lose the phone. Keep your own record of any password you save.
+
+RESPONSIBLE USE
+
+Use BeamPad only with devices you own or have permission to control.
+
+LIMITATION OF LIABILITY
+
+To the extent permitted by law, Dev_Bangs is not liable for any loss or damage arising from the use of BeamPad, including lost data or unrecoverable saved snippets.
+
+CONTACT
+
+Dev_Bangs, Freetown, Sierra Leone.

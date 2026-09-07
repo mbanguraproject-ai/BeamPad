@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Darkens top and bottom so the status card and nav stay legible over
+     the room photo, while leaving the TV in the middle visible. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#F2070B1A"
+                android:centerColor="#00070B1A"
+                android:endColor="#00070B1A" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="90"
+                android:startColor="#F5070B1A"
+                android:centerColor="#00070B1A"
+                android:endColor="#00070B1A" />
+        </shape>
+    </item>
+</layer-list>

@@ -11,9 +11,10 @@
     <string name="action_pair">Pair</string>
     <string name="action_disconnect">Disconnect</string>
 
-    <string name="pair_instructions">On your TV, open Bluetooth settings and look for \"%1$s\"</string>
+    <string name="pair_instructions">On your TV, look for \"%1$s\"</string>
 
-    <string name="snippets_empty">No snippets yet.\n\nSave a wifi password or login and send it to your TV with one tap.</string>
+    <string name="snippets_empty_title">No snippets yet</string>
+    <string name="snippets_empty_body">Save a wifi password or login and send it\nto your TV with one tap.</string>
     <string name="snippet_add">Add snippet</string>
     <string name="snippet_send">Send</string>
     <string name="snippet_delete">Delete</string>
@@ -36,4 +37,22 @@
     <string name="key_ok">OK</string>
     <string name="key_back">Back</string>
     <string name="key_backspace">Backspace</string>
+    <string name="tagline">Type on your TV</string>
+    <string name="settings">Settings</string>
+    <string name="settings_layout">Keyboard layout</string>
+    <string name="settings_layout_hint">Set this to match the device you are typing into. Symbols land wrong if it does not match.</string>
+    <string name="settings_probe">Send test characters</string>
+    <string name="settings_about">About</string>
+    <string name="licences">Phosphor Icons — MIT License — phosphoricons.com\n\nAndroidX, Material Components and Kotlin — Apache License 2.0\n\nFull licence texts are available from each project.</string>
+    <string name="version_format">BeamPad %1$s</string>
+    <string name="probe_sent">Check the other device shows exactly: %1$s</string>
+    <string name="snippet_label_hint">e.g. Home wifi, Netflix login</string>
+    <string name="snippet_value_hint">The text to type on your TV</string>
+    <string name="back">Back</string>
+    <string name="settings_typing">Typing</string>
+    <string name="settings_probe_hint">Check that symbols arrive correctly</string>
+    <string name="privacy_title">Privacy policy</string>
+    <string name="terms_title">Terms of use</string>
+    <string name="licences_title">Open source licences</string>
+    <string name="probe_from_keyboard">Pair a device, then use Send test characters from the Keyboard tab.</string>
 </resources>

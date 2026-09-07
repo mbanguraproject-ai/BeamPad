@@ -1,0 +1,39 @@
+BeamPad Privacy Policy
+
+Last updated: September 2026
+
+BeamPad does not collect, transmit, or share any personal data.
+
+WHAT THE APP DOES NOT DO
+
+BeamPad has no internet permission. It cannot send data anywhere, and it does not contain analytics, advertising, crash reporting, or tracking of any kind. There are no accounts and no sign-in. Nothing you type or save is seen by Dev_Bangs or anyone else.
+
+WHAT STAYS ON YOUR DEVICE
+
+Snippets. Text you save, including wifi passwords and logins, is stored only on this phone. Every snippet value is encrypted using a key generated inside the Android Keystore. That key cannot be exported from the device. Snippets are excluded from Android cloud backup and from device-to-device transfer, so they do not leave this phone even when you back it up or move to a new one.
+
+Settings. Your keyboard layout choice is stored locally.
+
+PERMISSIONS AND WHY THEY ARE NEEDED
+
+Bluetooth (connect and advertise). Required for the phone to present itself as a Bluetooth keyboard and mouse to your TV. BeamPad does not scan for or collect information about nearby devices beyond the one you choose to pair with.
+
+Notifications. Used only for the ongoing notification that keeps the keyboard connection alive while you use it.
+
+Biometric or device credential. Used only to confirm it is you before a protected snippet is sent. BeamPad never receives your fingerprint or PIN; the Android system performs the check and reports only success or failure.
+
+WHAT IS SENT TO YOUR TV
+
+When you send text or move the pointer, that input goes over Bluetooth to the device you paired with, exactly as a physical keyboard or mouse would. It is not stored anywhere by BeamPad.
+
+CHILDREN
+
+BeamPad is not directed at children and collects no data from anyone.
+
+CHANGES
+
+If this policy changes, the updated version will appear in the app.
+
+CONTACT
+
+Dev_Bangs, Freetown, Sierra Leone.
