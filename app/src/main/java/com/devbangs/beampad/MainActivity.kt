@@ -30,6 +30,15 @@ class MainActivity : FragmentActivity() {
     var service: HidService? = null
         private set
 
+    private val app get() = application as BeamPadApp
+
+    private val entitlementObserver: () -> Unit = {
+        runOnUiThread {
+            Ads.detach(ui.adSlot)
+            Toast.makeText(this, R.string.ads_removed, Toast.LENGTH_LONG).show()
+        }
+    }
+
     /** Fragments observe this to enable or disable their controls. */
     private val connectionObservers = mutableSetOf<(Boolean) -> Unit>()
 
@@ -144,6 +153,11 @@ class MainActivity : FragmentActivity() {
             ui.bottomNav.selectedItemId = R.id.tab_snippets
         }
 
+        app.observeEntitlement(entitlementObserver)
+        if (!app.entitlements.adsRemoved) {
+            Ads.attach(this, ui.adSlot, app.entitlements)
+        }
+
         permissions.launch(
             buildList {
                 add(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -189,8 +203,19 @@ class MainActivity : FragmentActivity() {
         connectionObservers.forEach { it(connected) }
     }
 
+    override fun onPause() {
+        super.onPause()
+        Ads.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Ads.resume()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        app.stopObservingEntitlement(entitlementObserver)
         service?.listener = null
         runCatching { unbindService(connection) }
     }

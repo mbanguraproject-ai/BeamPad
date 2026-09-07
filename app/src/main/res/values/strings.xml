@@ -70,4 +70,9 @@
 
     <string name="ob3_title">Check your symbols</string>
     <string name="ob3_body">Your TV decides what each key means. If symbols arrive wrong, change the keyboard layout in Settings and test again.</string>
+    <string name="ads_removed">Ads removed. Thank you.</string>
+    <string name="remove_ads">Remove ads</string>
+    <string name="remove_ads_hint">One payment, no ads ever again</string>
+    <string name="privacy_options">Ad privacy options</string>
+    <string name="billing_unavailable">Purchases are not available right now</string>
 </resources>

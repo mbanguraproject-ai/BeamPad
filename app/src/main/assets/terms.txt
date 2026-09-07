@@ -20,6 +20,10 @@ YOUR SAVED SNIPPETS
 
 Snippets are stored only on your device and are encrypted. Because the encryption key never leaves the device and snippets are excluded from backup, they cannot be recovered if you uninstall the app, clear its data, reset the device, or lose the phone. Keep your own record of any password you save.
 
+ADS AND PURCHASES
+
+BeamPad is free and supported by advertising. You may remove ads with a one-time purchase through Google Play. Purchases are handled by Google Play and are subject to its terms and refund policy. The purchase applies to the Google account that made it.
+
 RESPONSIBLE USE
 
 Use BeamPad only with devices you own or have permission to control.

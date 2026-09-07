@@ -144,6 +144,16 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Banner sits here, not above the nav: the trackpad is a drag surface
+         and a banner below it would collect accidental clicks, which AdMob
+         treats as invalid traffic. Collapsed to zero height until an ad
+         actually loads, so there is no empty gap. -->
+    <FrameLayout
+        android:id="@+id/adSlot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp" />
+
     <FrameLayout
         android:id="@+id/tabContent"
         android:layout_width="match_parent"

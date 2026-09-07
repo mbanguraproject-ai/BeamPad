@@ -49,6 +49,34 @@
 
             <TextView
                 style="@style/SectionHeader"
+                android:text="@string/remove_ads" />
+
+            <LinearLayout
+                android:id="@+id/rowRemoveAds"
+                style="@style/SettingsRow">
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView
+                        android:id="@+id/removeAdsTitle"
+                        style="@style/RowTitle"
+                        android:text="@string/remove_ads" />
+                    <TextView
+                        android:id="@+id/removeAdsSubtitle"
+                        style="@style/RowSubtitle"
+                        android:text="@string/remove_ads_hint" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowPrivacyOptions"
+                style="@style/SettingsRow"
+                android:visibility="gone">
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/RowTitle" android:text="@string/privacy_options" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                style="@style/SectionHeader"
                 android:text="@string/settings_about" />
 
             <LinearLayout

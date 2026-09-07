@@ -2,33 +2,51 @@ BeamPad Privacy Policy
 
 Last updated: September 2026
 
-BeamPad does not collect, transmit, or share any personal data.
+BeamPad does not collect your personal data. It does show ads, and this policy explains exactly what that involves.
 
-WHAT THE APP DOES NOT DO
+WHAT BEAMPAD ITSELF COLLECTS
 
-BeamPad has no internet permission. It cannot send data anywhere, and it does not contain analytics, advertising, crash reporting, or tracking of any kind. There are no accounts and no sign-in. Nothing you type or save is seen by Dev_Bangs or anyone else.
+Nothing. BeamPad has no accounts, no sign-in, no analytics and no crash reporting. Nothing you type, save or send is transmitted to Dev_Bangs, and we cannot see it.
+
+ADVERTISING
+
+BeamPad shows a banner ad, provided by Google AdMob. To serve it, the Google Mobile Ads SDK receives your device's advertising ID, approximate location derived from your IP address, and general device information. That data goes to Google, not to Dev_Bangs, and is handled under Google's own privacy policy at policies.google.com/privacy.
+
+Where the law requires it, BeamPad asks for your consent before requesting any ad, and you can change that choice at any time under Settings, Ad privacy options.
+
+If you purchase the ad removal, the ad SDK stops requesting ads and the banner is removed.
+
+PURCHASES
+
+Ad removal is a one-time purchase handled entirely by Google Play. Dev_Bangs never sees your payment details. BeamPad stores only a local flag recording that the purchase was made.
 
 WHAT STAYS ON YOUR DEVICE
 
-Snippets. Text you save, including wifi passwords and logins, is stored only on this phone. Every snippet value is encrypted using a key generated inside the Android Keystore. That key cannot be exported from the device. Snippets are excluded from Android cloud backup and from device-to-device transfer, so they do not leave this phone even when you back it up or move to a new one.
+Snippets. Text you save, including wifi passwords and logins, is stored only on your phone. Every snippet value is encrypted using a key generated inside the Android Keystore, which cannot be exported from the device. Snippets are excluded from Android cloud backup and from device-to-device transfer.
+
+Snippets are never sent over the network. They are not shared with the advertising SDK, with Google Play, or with anyone else. They leave your phone only as keystrokes to the device you paired with.
 
 Settings. Your keyboard layout choice is stored locally.
 
 PERMISSIONS AND WHY THEY ARE NEEDED
 
-Bluetooth (connect and advertise). Required for the phone to present itself as a Bluetooth keyboard and mouse to your TV. BeamPad does not scan for or collect information about nearby devices beyond the one you choose to pair with.
+Internet and network state. Required by the advertising SDK and by Google Play billing. BeamPad's own features do not use the network.
 
-Notifications. Used only for the ongoing notification that keeps the keyboard connection alive while you use it.
+Advertising ID. Used by the advertising SDK to serve and measure ads.
+
+Bluetooth (connect and advertise). Required for the phone to present itself as a Bluetooth keyboard and mouse to your TV. BeamPad does not collect information about nearby devices beyond the one you choose to pair with.
+
+Notifications. Used only for the ongoing notification that keeps the keyboard connection alive.
 
 Biometric or device credential. Used only to confirm it is you before a protected snippet is sent. BeamPad never receives your fingerprint or PIN; the Android system performs the check and reports only success or failure.
 
 WHAT IS SENT TO YOUR TV
 
-When you send text or move the pointer, that input goes over Bluetooth to the device you paired with, exactly as a physical keyboard or mouse would. It is not stored anywhere by BeamPad.
+When you send text or move the pointer, that input goes over Bluetooth to the device you paired with, exactly as a physical keyboard or mouse would. It is not stored by BeamPad.
 
 CHILDREN
 
-BeamPad is not directed at children and collects no data from anyone.
+BeamPad is not directed at children.
 
 CHANGES
 

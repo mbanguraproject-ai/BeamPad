@@ -14,6 +14,9 @@ import com.devbangs.beampad.databinding.ActivitySettingsBinding
 class SettingsActivity : FragmentActivity() {
 
     private lateinit var ui: ActivitySettingsBinding
+    private val app get() = application as BeamPadApp
+
+    private val entitlementObserver: () -> Unit = { runOnUiThread { renderPurchaseRow() } }
     private val prefs by lazy { getSharedPreferences("beampad", MODE_PRIVATE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +55,23 @@ class SettingsActivity : FragmentActivity() {
             Toast.makeText(this, R.string.probe_from_keyboard, Toast.LENGTH_LONG).show()
         }
 
+        app.observeEntitlement(entitlementObserver)
+        renderPurchaseRow()
+
+        ui.rowRemoveAds.setOnClickListener {
+            if (app.entitlements.adsRemoved) return@setOnClickListener
+            if (!app.billing.launch(this)) {
+                Toast.makeText(this, R.string.billing_unavailable, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // AdMob requires a way to revisit the consent choice, but only where
+        // a consent form applies in the first place.
+        if (Consent.privacyOptionsRequired(this)) {
+            ui.rowPrivacyOptions.visibility = android.view.View.VISIBLE
+            ui.rowPrivacyOptions.setOnClickListener { Consent.showPrivacyOptions(this) }
+        }
+
         ui.rowPrivacy.setOnClickListener { openDoc("privacy.txt", R.string.privacy_title) }
         ui.rowTerms.setOnClickListener { openDoc("terms.txt", R.string.terms_title) }
         ui.rowLicences.setOnClickListener { openDoc("licences.txt", R.string.licences_title) }
@@ -69,6 +89,23 @@ class SettingsActivity : FragmentActivity() {
 
     private fun updateLayoutRow() {
         ui.layoutValue.text = currentLayout().label
+    }
+
+    private fun renderPurchaseRow() {
+        if (app.entitlements.adsRemoved) {
+            ui.removeAdsTitle.setText(R.string.ads_removed)
+            ui.removeAdsSubtitle.visibility = android.view.View.GONE
+            ui.rowRemoveAds.isEnabled = false
+            ui.rowRemoveAds.alpha = 0.6f
+        } else {
+            ui.removeAdsSubtitle.text =
+                app.billing.priceText ?: getString(R.string.remove_ads_hint)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        app.stopObservingEntitlement(entitlementObserver)
     }
 
     private fun openDoc(asset: String, titleRes: Int) {
