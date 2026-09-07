@@ -149,7 +149,7 @@ class MainActivity : FragmentActivity() {
             ui.statusDetail.visibility = View.GONE
             ui.statusAction.setText(R.string.action_disconnect)
         } else {
-            ui.statusIcon.setImageResource(R.drawable.ic_bluetooth_slash)
+            ui.statusIcon.setImageResource(R.drawable.ic_bluetooth)
             ui.statusTitle.setText(R.string.status_ready)
             ui.statusDot.visibility = View.GONE
             ui.statusDetail.text =
