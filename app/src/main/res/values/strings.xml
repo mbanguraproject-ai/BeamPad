@@ -55,4 +55,6 @@
     <string name="terms_title">Terms of use</string>
     <string name="licences_title">Open source licences</string>
     <string name="probe_from_keyboard">Pair a device, then use Send test characters from the Keyboard tab.</string>
+    <string name="trackpad_title">Use the trackpad</string>
+    <string name="trackpad_hint">Move your finger to control the cursor\non your TV. Tap to click.</string>
 </resources>

@@ -4,6 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Room scene belongs to this tab only: behind the trackpad or
+         keyboard it competes with the controls. -->
+    <ImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/bg_room"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null" />
+
+    <View
+        android:id="@+id/backdropScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim_vertical" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="match_parent"

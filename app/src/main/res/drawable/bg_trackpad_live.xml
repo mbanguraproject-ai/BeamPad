@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Connected state. Layered strokes at falling alpha stand in for a blur:
+     shape drawables have no blur filter. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+            <stroke android:width="1dp" android:color="#1F4F46E5" />
+            <corners android:radius="28dp" />
+        </shape>
+    </item>
+    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+            <stroke android:width="1dp" android:color="#3D4F46E5" />
+            <corners android:radius="27dp" />
+        </shape>
+    </item>
+    <item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:gradientRadius="70%p"
+                android:startColor="#4D24308A"
+                android:endColor="#141232" />
+            <stroke android:width="1.5dp" android:color="@color/bp_accent_2" />
+            <corners android:radius="26dp" />
+        </shape>
+    </item>
+</layer-list>

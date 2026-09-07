@@ -5,18 +5,6 @@
     android:layout_height="match_parent"
     android:background="@color/bp_bg">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/bg_room"
-        android:scaleType="centerCrop"
-        android:contentDescription="@null" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/scrim_vertical" />
-
 <LinearLayout
     android:id="@+id/contentColumn"
     android:layout_width="match_parent"

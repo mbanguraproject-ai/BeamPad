@@ -1,118 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="24dp">
 
-        <com.google.android.material.textfield.TextInputLayout
+        <LinearLayout
+            android:id="@+id/inputRow"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/keyboard_hint">
+            android:layout_height="62dp"
+            android:background="@drawable/bg_input"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-            <com.google.android.material.textfield.TextInputEditText
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="14dp"
+                android:src="@drawable/ic_chat_text"
+                app:tint="@color/bp_text_dim"
+                android:contentDescription="@null" />
+
+            <EditText
                 android:id="@+id/input"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="@string/keyboard_hint"
                 android:imeOptions="actionSend"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/bp_text"
+                android:textColorHint="@color/bp_text_dim"
+                android:textSize="15sp"
+                android:importantForAutofill="no" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/send"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_height="58dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_send"
+            android:backgroundTint="@null"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
             android:text="@string/keyboard_send"
+            android:textStyle="bold"
+            android:textColor="@color/bp_text"
             app:icon="@drawable/ic_paper_plane_right"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+            app:iconGravity="textStart"
+            app:iconTint="@color/bp_text"
+            app:cornerRadius="26dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginTop="30dp"
             android:text="@string/keyboard_navigation"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:alpha="0.7" />
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/bp_text_dim" />
+
+        <View
+            android:layout_width="34dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/accent_underline" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
             android:orientation="vertical"
             android:gravity="center">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/up"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="88dp"
-                android:layout_height="56dp"
-                android:text="@string/key_up" />
+                style="@style/DpadKey"
+                app:icon="@drawable/ic_arrow_up" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/left"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="88dp"
-                    android:layout_height="56dp"
-                    android:text="@string/key_left" />
+                    style="@style/DpadKey"
+                    app:icon="@drawable/ic_arrow_left" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/enter"
-                    android:layout_width="88dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="6dp"
-                    android:layout_marginEnd="6dp"
-                    android:text="@string/key_ok" />
+                    style="@style/DpadKey"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_key_ok"
+                    android:text="@string/key_ok"
+                    android:textStyle="bold"
+                    android:textColor="@color/bp_text" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/right"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="88dp"
-                    android:layout_height="56dp"
-                    android:text="@string/key_right" />
+                    style="@style/DpadKey"
+                    app:icon="@drawable/ic_arrow_right" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/down"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="88dp"
-                android:layout_height="56dp"
-                android:text="@string/key_down" />
+                style="@style/DpadKey"
+                android:layout_marginTop="8dp"
+                app:icon="@drawable/ic_arrow_down" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="26dp"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/back"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="@string/key_back" />
+                style="@style/WideKey"
+                android:text="@string/key_back"
+                app:icon="@drawable/ic_arrow_u_up_left" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/backspace"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/key_backspace" />
+                style="@style/WideKey"
+                android:layout_marginStart="12dp"
+                android:text="@string/key_backspace"
+                app:icon="@drawable/ic_backspace" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

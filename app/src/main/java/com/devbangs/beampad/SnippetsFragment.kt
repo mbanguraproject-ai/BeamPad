@@ -60,7 +60,11 @@ class SnippetsFragment : Fragment() {
     private fun refresh() {
         val items = store.all()
         adapter.submitList(items)
-        ui.empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        val empty = items.isEmpty()
+        ui.empty.visibility = if (empty) View.VISIBLE else View.GONE
+        // The scene is the empty state's artwork; behind a list it is clutter.
+        ui.backdrop.visibility = if (empty) View.VISIBLE else View.GONE
+        ui.backdropScrim.visibility = if (empty) View.VISIBLE else View.GONE
     }
 
     private fun send(snippet: Snippet) {

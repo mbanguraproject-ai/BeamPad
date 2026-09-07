@@ -2,9 +2,7 @@ package com.devbangs.beampad
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -16,7 +14,10 @@ import kotlin.math.abs
  * One finger drags the pointer, a short tap left-clicks, two fingers scroll,
  * and a two-finger tap right-clicks.
  */
-class TrackpadView(context: Context) : View(context) {
+class TrackpadView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null
+) : View(context, attrs) {
 
     var onMove: ((dx: Int, dy: Int) -> Unit)? = null
     var onScroll: ((amount: Int) -> Unit)? = null
@@ -34,19 +35,6 @@ class TrackpadView(context: Context) : View(context) {
 
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private val tapTimeout = ViewConfiguration.getTapTimeout().toLong()
-
-    private val hint = Paint().apply {
-        color = Color.GRAY
-        textSize = 32f
-        isAntiAlias = true
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val label = "trackpad"
-        val w = hint.measureText(label)
-        canvas.drawText(label, (width - w) / 2f, height / 2f, hint)
-    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- OK is the one key that carries accent weight. Layered strokes fake the
+     outer glow: VectorDrawable and shapes have no blur filter. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="#14121A38" />
+            <stroke android:width="1dp" android:color="#1F2C4A" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#00000000" />
+                    <stroke android:width="1dp" android:color="#334F46E5" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+            <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#3D4F46E5" />
+                    <stroke android:width="1.5dp" android:color="@color/bp_accent_2" />
+                    <corners android:radius="22dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>
