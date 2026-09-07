@@ -1,10 +1,17 @@
-# Views inflated from XML are constructed reflectively.
--keep class com.devbangs.beampad.TrackpadView { *; }
+# Views inflated from XML are constructed reflectively by name.
+-keep class com.devbangs.beampad.TrackpadView {
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
 
-# BiometricPrompt callbacks are invoked from the framework.
--keep class androidx.biometric.** { *; }
+# Activities, fragments, the service and the application are kept
+# automatically from the manifest, so they need no rules here.
 
-# Keep line numbers so crash reports stay readable, but hide the
+# Keep line numbers so Play crash reports stay readable, but hide the
 # original file names.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Ads and billing ship their own consumer rules inside their AARs; R8
+# applies those automatically. Adding blanket keeps here would only
+# disable shrinking on large libraries for no benefit.
