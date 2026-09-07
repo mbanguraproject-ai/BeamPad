@@ -206,6 +206,16 @@ class HidService : Service() {
         exec.execute { tapKey(modifier, keyCode) }
     }
 
+    /**
+     * Drops the current connection. The HID app stays registered, so the
+     * device can pair again without reopening the app.
+     */
+    fun disconnect(): Boolean {
+        val dev = connectedDevice ?: return false
+        val h = hid ?: return false
+        return runCatching { h.disconnect(dev) }.getOrDefault(false)
+    }
+
     fun isReady(): Boolean = hid != null && connectedDevice != null
 
     fun deviceLabel(device: BluetoothDevice): String =

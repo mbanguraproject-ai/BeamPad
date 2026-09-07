@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import android.os.IBinder
 import android.view.View
 import androidx.activity.enableEdgeToEdge
@@ -109,7 +110,14 @@ class MainActivity : FragmentActivity() {
         }
 
         ui.statusAction.setOnClickListener {
-            discoverable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
+            val s = service
+            if (s?.isReady() == true) {
+                if (!s.disconnect()) {
+                    Toast.makeText(this, R.string.disconnect_failed, Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                discoverable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
+            }
         }
 
         if (savedInstanceState == null) {
