@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bp_bg">#070B1A</color>
+    <color name="bp_surface">#0E1428</color>
+    <color name="bp_surface_raised">#141C36</color>
+    <color name="bp_stroke">#232C52</color>
+    <color name="bp_accent">#6D5BF7</color>
+    <color name="bp_accent_2">#9B6BFF</color>
+    <color name="bp_text">#EEF1FF</color>
+    <color name="bp_text_dim">#9BA4CC</color>
+    <color name="bp_online">#3DDC84</color>
+</resources>

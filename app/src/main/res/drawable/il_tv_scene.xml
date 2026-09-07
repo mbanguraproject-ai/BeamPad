@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="300dp"
+    android:height="200dp"
+    android:viewportWidth="300"
+    android:viewportHeight="200">
+
+    <!-- ambient floor glow: faked blur via wide radial falloff -->
+    <path android:pathData="M20,150 H280 V190 H20 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="150"
+                android:centerY="152"
+                android:gradientRadius="130">
+                <item android:offset="0.0" android:color="#5A5B3BF5" />
+                <item android:offset="0.55" android:color="#1F7C6BFF" />
+                <item android:offset="1.0" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- screen halo -->
+    <path android:pathData="M52,26 H248 V132 H52 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="150"
+                android:centerY="76"
+                android:gradientRadius="120">
+                <item android:offset="0.0" android:color="#4D6D5BF7" />
+                <item android:offset="1.0" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- TV bezel -->
+    <path
+        android:pathData="M74,34 H226 A6,6 0 0 1 232,40 V116 A6,6 0 0 1 226,122 H74 A6,6 0 0 1 68,116 V40 A6,6 0 0 1 74,34 Z"
+        android:fillColor="#131A33"
+        android:strokeColor="#3A4478"
+        android:strokeWidth="1.5" />
+
+    <!-- screen -->
+    <path android:pathData="M76,42 H224 A2,2 0 0 1 226,44 V112 A2,2 0 0 1 224,114 H76 A2,2 0 0 1 74,112 V44 A2,2 0 0 1 76,42 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="74" android:startY="42"
+                android:endX="226" android:endY="114">
+                <item android:offset="0.0" android:color="#FF1B1F4A" />
+                <item android:offset="0.5" android:color="#FF3B2E8C" />
+                <item android:offset="1.0" android:color="#FF6D4BC4" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- wave on screen -->
+    <path
+        android:pathData="M74,96 C104,72 122,104 152,84 C182,64 200,92 226,74 V114 H74 Z"
+        android:fillAlpha="0.55">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="74" android:startY="74"
+                android:endX="226" android:endY="114">
+                <item android:offset="0.0" android:color="#FF7C6BFF" />
+                <item android:offset="1.0" android:color="#FF3D2E7A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- stand -->
+    <path android:pathData="M144,122 H156 V134 H144 Z" android:fillColor="#2A3157" />
+    <path android:pathData="M126,134 H174 A3,3 0 0 1 174,140 H126 A3,3 0 0 1 126,134 Z"
+        android:fillColor="#2A3157" />
+
+    <!-- console -->
+    <path
+        android:pathData="M46,142 H254 A5,5 0 0 1 259,147 V166 A5,5 0 0 1 254,171 H46 A5,5 0 0 1 41,166 V147 A5,5 0 0 1 46,142 Z"
+        android:fillColor="#0F1428"
+        android:strokeColor="#293154"
+        android:strokeWidth="1.2" />
+    <path android:pathData="M150,142 V171" android:strokeColor="#293154" android:strokeWidth="1.2" />
+
+</vector>

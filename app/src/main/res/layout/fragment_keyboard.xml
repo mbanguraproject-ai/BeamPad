@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/keyboard_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSend"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/keyboard_send"
+            app:icon="@drawable/ic_paper_plane_right"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/keyboard_navigation"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:alpha="0.7" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/up"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="88dp"
+                android:layout_height="56dp"
+                android:text="@string/key_up" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/left"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="88dp"
+                    android:layout_height="56dp"
+                    android:text="@string/key_left" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/enter"
+                    android:layout_width="88dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="@string/key_ok" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/right"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="88dp"
+                    android:layout_height="56dp"
+                    android:text="@string/key_right" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/down"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="88dp"
+                android:layout_height="56dp"
+                android:text="@string/key_down" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/back"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/key_back" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backspace"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/key_backspace" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

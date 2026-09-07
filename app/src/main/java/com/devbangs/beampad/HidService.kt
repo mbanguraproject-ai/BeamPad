@@ -201,6 +201,11 @@ class HidService : Service() {
         }
     }
 
+    /** Sends a single key off the main thread. */
+    fun typeKey(modifier: Byte, keyCode: Byte) {
+        exec.execute { tapKey(modifier, keyCode) }
+    }
+
     fun isReady(): Boolean = hid != null && connectedDevice != null
 
     fun deviceLabel(device: BluetoothDevice): String =
@@ -235,7 +240,7 @@ class HidService : Service() {
     private fun buildNotification(text: String): Notification {
         val open = PendingIntent.getActivity(
             this, 0,
-            Intent(this, HidSpikeActivity::class.java),
+            Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE
         )
         return Notification.Builder(this, CHANNEL_ID)

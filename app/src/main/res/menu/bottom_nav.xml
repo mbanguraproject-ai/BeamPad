@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/tab_snippets"
-        android:icon="@android:drawable/ic_menu_save"
+        android:icon="@drawable/ic_vault"
         android:title="@string/tab_snippets" />
     <item
         android:id="@+id/tab_keyboard"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:icon="@drawable/ic_keyboard"
         android:title="@string/tab_keyboard" />
     <item
         android:id="@+id/tab_trackpad"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@drawable/ic_cursor"
         android:title="@string/tab_trackpad" />
 </menu>

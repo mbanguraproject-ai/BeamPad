@@ -12,4 +12,28 @@
     <string name="action_disconnect">Disconnect</string>
 
     <string name="pair_instructions">On your TV, open Bluetooth settings and look for \"%1$s\"</string>
+
+    <string name="snippets_empty">No snippets yet.\n\nSave a wifi password or login and send it to your TV with one tap.</string>
+    <string name="snippet_add">Add snippet</string>
+    <string name="snippet_send">Send</string>
+    <string name="snippet_delete">Delete</string>
+    <string name="snippet_label">Label</string>
+    <string name="snippet_value">Text to type</string>
+    <string name="snippet_protect">Protect this snippet</string>
+    <string name="snippet_protect_hint">Requires unlock before sending</string>
+    <string name="auth_reason">Unlock to send this snippet</string>
+    <string name="not_connected">Not connected</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="keyboard_hint">Type here, sends to the paired device</string>
+    <string name="keyboard_send">Send</string>
+    <string name="keyboard_navigation">Navigation</string>
+    <string name="key_up">\u2191</string>
+    <string name="key_down">\u2193</string>
+    <string name="key_left">\u2190</string>
+    <string name="key_right">\u2192</string>
+    <string name="key_ok">OK</string>
+    <string name="key_back">Back</string>
+    <string name="key_backspace">Backspace</string>
 </resources>

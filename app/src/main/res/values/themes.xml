@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.BeamPad" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Fixed dark identity. Dynamic colour is deliberately not used: the
+         brand should not change with the user's wallpaper. -->
+    <style name="Theme.BeamPad" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/bp_accent</item>
+        <item name="colorOnPrimary">@color/bp_text</item>
+        <item name="colorSurface">@color/bp_surface</item>
+        <item name="colorOnSurface">@color/bp_text</item>
+        <item name="colorSurfaceVariant">@color/bp_surface_raised</item>
+        <item name="colorOnSurfaceVariant">@color/bp_text_dim</item>
+        <item name="colorOutline">@color/bp_stroke</item>
+        <item name="android:colorBackground">@color/bp_bg</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>
