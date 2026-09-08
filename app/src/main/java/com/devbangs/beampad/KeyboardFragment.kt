@@ -18,13 +18,11 @@ class KeyboardFragment : Fragment() {
 
     private val connectionObserver: (Boolean) -> Unit = { connected ->
         _ui?.let { view ->
-            listOf(
-                view.send, view.home, view.back, view.menu,
-                view.backspace, view.volUp, view.volDown, view.mute,
-                view.rewind, view.playPause, view.forward
-            ).forEach { it.isEnabled = connected }
-            view.dpad.isEnabled = connected
-            view.dpad.invalidate()
+            // Controls stay live-looking in both states: a greyed screen on
+            // first launch reads as broken rather than as not-yet-paired.
+            // The press is where the difference shows.
+            view.send.isEnabled = connected
+            view.dpad.connected = connected
             view.input.isEnabled = connected
         }
     }
@@ -77,24 +75,38 @@ class KeyboardFragment : Fragment() {
         host?.observeConnection(connectionObserver)
     }
 
+    private var lastNudge = 0L
+
+    /**
+     * Controls look live whether or not anything is paired, so a press with
+     * no connection has to say so. Rate-limited: one nudge per few seconds,
+     * not one per key.
+     */
+    private fun requireConnection(): HidService? {
+        val service = host?.service
+        if (service != null && service.isReady()) return service
+
+        val now = android.os.SystemClock.uptimeMillis()
+        if (now - lastNudge > NUDGE_INTERVAL_MS) {
+            lastNudge = now
+            Toast.makeText(requireContext(), R.string.not_connected, Toast.LENGTH_SHORT).show()
+        }
+        return null
+    }
+
     private fun consumer(usage: Int) {
-        host?.service?.consumerKey(usage)
+        requireConnection()?.consumerKey(usage)
     }
 
     private fun key(code: Byte) {
-        val service = host?.service ?: return
-        service.typeKey(HidReports.MOD_NONE, code)
+        requireConnection()?.typeKey(HidReports.MOD_NONE, code)
     }
 
     private fun sendInput(withEnter: Boolean) {
         val text = ui.input.text?.toString().orEmpty()
         if (text.isEmpty()) return
 
-        val service = host?.service
-        if (service == null || !service.isReady()) {
-            Toast.makeText(requireContext(), R.string.not_connected, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val service = requireConnection() ?: return
 
         service.typeText(if (withEnter) text + "\n" else text) { _, skipped ->
             activity?.runOnUiThread {
@@ -114,5 +126,9 @@ class KeyboardFragment : Fragment() {
         super.onDestroyView()
         host?.stopObserving(connectionObserver)
         _ui = null
+    }
+
+    private companion object {
+        const val NUDGE_INTERVAL_MS = 3000L
     }
 }

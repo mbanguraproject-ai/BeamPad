@@ -31,6 +31,10 @@ class DpadView @JvmOverloads constructor(
 
     var onKey: ((Key) -> Unit)? = null
 
+    /** Drives the press glow only; the resting face is identical either way. */
+    var connected: Boolean = false
+        set(value) { field = value; invalidate() }
+
     private var pressed: Key? = null
 
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -143,7 +147,7 @@ class DpadView @JvmOverloads constructor(
         applyFace(down)
         canvas.drawPath(wedge, fill)
 
-        stroke.color = if (isEnabled && down) colAccent else if (isEnabled) colEdge else colStrokeDim
+        stroke.color = if (down && connected) colAccent else colEdge
         canvas.drawPath(wedge, stroke)
 
         drawArrow(canvas, cx, cy, (inner + outer) / 2f, key)
@@ -158,7 +162,7 @@ class DpadView @JvmOverloads constructor(
             Key.RIGHT -> cx + radius to cy
             Key.OK -> return
         }
-        glyph.color = if (isEnabled) colText else colTextDim
+        glyph.color = colText
 
         val p = Path()
         when (key) {
@@ -178,10 +182,10 @@ class DpadView @JvmOverloads constructor(
         applyFace(down)
         canvas.drawCircle(cx, cy, r, fill)
 
-        stroke.color = if (isEnabled && down) colAccent else if (isEnabled) colEdge else colStrokeDim
+        stroke.color = if (down && connected) colAccent else colEdge
         canvas.drawCircle(cx, cy, r, stroke)
 
-        label.color = if (isEnabled) colText else colTextDim
+        label.color = colText
         label.textSize = r * 0.46f
         val baseline = cy - (label.descent() + label.ascent()) / 2f
         canvas.drawText("OK", cx, baseline, label)
@@ -189,19 +193,12 @@ class DpadView @JvmOverloads constructor(
 
     /** Face fill: gradient when live, flat when disabled. */
     private fun applyFace(down: Boolean) {
-        if (!isEnabled) {
-            fill.shader = null
-            fill.color = colSurfaceDim
-            return
-        }
-        fill.shader = if (down) pressedShader else faceShader
+        fill.shader = if (down && connected) pressedShader else faceShader
         fill.color = Color.WHITE
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!isEnabled) return false
-
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 pressed = keyAt(event.x, event.y)
