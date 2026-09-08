@@ -1,24 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Buttons read as physical when the fill has a top-to-bottom gradient and
+     a light top edge: flat fills with a hairline read as outlines on glass. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="#332F3A80" />
-            <stroke android:width="1.5dp" android:color="@color/bp_accent_2" />
-            <corners android:radius="22dp" />
-        </shape>
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:type="linear"
+                        android:angle="270"
+                        android:startColor="#4A3F9E"
+                        android:endColor="#2A2470" />
+                    <stroke android:width="1dp" android:color="@color/bp_accent_2" />
+                    <corners android:radius="18dp" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
+
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
-            <solid android:color="#14121A38" />
-            <stroke android:width="1dp" android:color="#1F2C4A" />
-            <corners android:radius="22dp" />
+            <solid android:color="#131A33" />
+            <stroke android:width="1dp" android:color="#1F2647" />
+            <corners android:radius="18dp" />
         </shape>
     </item>
+
     <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#2E141C3D" />
-            <stroke android:width="1dp" android:color="@color/bp_stroke" />
-            <corners android:radius="22dp" />
-        </shape>
+        <layer-list>
+            <!-- Bottom edge: a dark sliver showing under the face. -->
+            <item android:top="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="#0C1128" />
+                    <corners android:radius="18dp" />
+                </shape>
+            </item>
+            <!-- Face. -->
+            <item android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:type="linear"
+                        android:angle="270"
+                        android:startColor="#2C3465"
+                        android:endColor="#1A2044" />
+                    <stroke android:width="1dp" android:color="#4A5299" />
+                    <corners android:radius="18dp" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
 </selector>

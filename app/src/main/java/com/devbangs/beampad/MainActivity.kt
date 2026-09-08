@@ -142,8 +142,16 @@ class MainActivity : FragmentActivity() {
 
         ui.connectedChip.setOnClickListener {
             val s = service ?: return@setOnClickListener
+            val worked = s.sentThisSession
             if (!s.disconnect()) {
                 Toast.makeText(this, R.string.disconnect_failed, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            // Only after a session that actually did something. Asking after
+            // a failed pairing is exactly what Play penalises.
+            if (worked) {
+                Reviews.recordGoodSession(this)
+                ui.connectedChip.postDelayed({ Reviews.ask(this) }, 600)
             }
         }
 

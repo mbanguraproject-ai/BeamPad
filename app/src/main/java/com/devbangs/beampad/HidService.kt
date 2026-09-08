@@ -83,6 +83,7 @@ class HidService : Service() {
             when (state) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     connectedDevice = device
+                    sentThisSession = false
                     report("connected: ${deviceLabel(device)}")
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
@@ -143,6 +144,7 @@ class HidService : Service() {
     fun tapKey(modifier: Byte, keyCode: Byte): Boolean {
         val dev = connectedDevice ?: return false
         val h = hid ?: return false
+        sentThisSession = true
         h.sendReport(dev, HidReports.REPORT_ID, HidReports.press(modifier, keyCode))
         Thread.sleep(KEY_DELAY_MS)
         h.sendReport(dev, HidReports.REPORT_ID, HidReports.release())
@@ -229,6 +231,10 @@ class HidService : Service() {
         val h = hid ?: return false
         return runCatching { h.disconnect(dev) }.getOrDefault(false)
     }
+
+    /** True once anything has actually been sent this connection. */
+    var sentThisSession: Boolean = false
+        private set
 
     fun isReady(): Boolean = hid != null && connectedDevice != null
 

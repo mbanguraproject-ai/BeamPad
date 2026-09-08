@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -32,6 +34,10 @@ class DpadView @JvmOverloads constructor(
     private var pressed: Key? = null
 
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+
+    /** Rebuilt on size change: gradients need the view's height. */
+    private var faceShader: LinearGradient? = null
+    private var pressedShader: LinearGradient? = null
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = dp(1.5f)
@@ -52,6 +58,11 @@ class DpadView @JvmOverloads constructor(
 
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
+    private val colFaceTop = Color.parseColor("#2C3465")
+    private val colFaceBottom = Color.parseColor("#1A2044")
+    private val colPressTop = Color.parseColor("#4A3F9E")
+    private val colPressBottom = Color.parseColor("#2A2470")
+    private val colEdge = Color.parseColor("#4A5299")
     private val colSurface = Color.parseColor("#2E141C3D")
     private val colSurfaceDim = Color.parseColor("#14121A38")
     private val colPressed = Color.parseColor("#4D4F46E5")
@@ -71,6 +82,18 @@ class DpadView @JvmOverloads constructor(
                 MeasureSpec.getSize(widthSpec) else MeasureSpec.getSize(heightSpec)
         )
         setMeasuredDimension(size, size)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        faceShader = LinearGradient(
+            0f, 0f, 0f, h.toFloat(),
+            colFaceTop, colFaceBottom, Shader.TileMode.CLAMP
+        )
+        pressedShader = LinearGradient(
+            0f, 0f, 0f, h.toFloat(),
+            colPressTop, colPressBottom, Shader.TileMode.CLAMP
+        )
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -117,14 +140,10 @@ class DpadView @JvmOverloads constructor(
         wedge.arcTo(bounds, start + sweep, -sweep, false)
         wedge.close()
 
-        fill.color = when {
-            !isEnabled -> colSurfaceDim
-            down -> colPressed
-            else -> colSurface
-        }
+        applyFace(down)
         canvas.drawPath(wedge, fill)
 
-        stroke.color = if (isEnabled && down) colAccent else if (isEnabled) colStroke else colStrokeDim
+        stroke.color = if (isEnabled && down) colAccent else if (isEnabled) colEdge else colStrokeDim
         canvas.drawPath(wedge, stroke)
 
         drawArrow(canvas, cx, cy, (inner + outer) / 2f, key)
@@ -156,20 +175,27 @@ class DpadView @JvmOverloads constructor(
         val down = pressed == Key.OK
         val r = inner - dp(4f)
 
-        fill.color = when {
-            !isEnabled -> colSurfaceDim
-            down -> colPressed
-            else -> colSurface
-        }
+        applyFace(down)
         canvas.drawCircle(cx, cy, r, fill)
 
-        stroke.color = if (isEnabled && down) colAccent else if (isEnabled) colStroke else colStrokeDim
+        stroke.color = if (isEnabled && down) colAccent else if (isEnabled) colEdge else colStrokeDim
         canvas.drawCircle(cx, cy, r, stroke)
 
         label.color = if (isEnabled) colText else colTextDim
         label.textSize = r * 0.46f
         val baseline = cy - (label.descent() + label.ascent()) / 2f
         canvas.drawText("OK", cx, baseline, label)
+    }
+
+    /** Face fill: gradient when live, flat when disabled. */
+    private fun applyFace(down: Boolean) {
+        if (!isEnabled) {
+            fill.shader = null
+            fill.color = colSurfaceDim
+            return
+        }
+        fill.shader = if (down) pressedShader else faceShader
+        fill.color = Color.WHITE
     }
 
     @SuppressLint("ClickableViewAccessibility")

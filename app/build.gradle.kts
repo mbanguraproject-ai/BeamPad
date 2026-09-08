@@ -82,4 +82,8 @@ dependencies {
 
     // Billing. v8+ is a Play publishing requirement as of Aug 2026.
     implementation("com.android.billingclient:billing:9.1.0")
+
+    // In-app review. Play decides whether the dialog appears at all, so the
+    // caller must treat "nothing happened" as the normal outcome.
+    implementation("com.google.android.play:review:2.0.2")
 }
