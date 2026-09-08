@@ -26,6 +26,9 @@ class TrackpadView @JvmOverloads constructor(
     /** Pointer travel per unit of finger travel. */
     var sensitivity: Float = 1.6f
 
+    /** Fires true while a finger is down, false when it lifts. */
+    var onTouchActive: ((Boolean) -> Unit)? = null
+
     private var lastX = 0f
     private var lastY = 0f
     private var downTime = 0L
@@ -47,6 +50,7 @@ class TrackpadView @JvmOverloads constructor(
                 pointerCount = 1
                 scrollAccum = 0f
                 parent?.requestDisallowInterceptTouchEvent(true)
+                onTouchActive?.invoke(true)
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
@@ -85,7 +89,10 @@ class TrackpadView @JvmOverloads constructor(
                     onClick?.invoke(button)
                 }
                 pointerCount = 0
+                onTouchActive?.invoke(false)
             }
+
+            MotionEvent.ACTION_CANCEL -> onTouchActive?.invoke(false)
         }
         return true
     }

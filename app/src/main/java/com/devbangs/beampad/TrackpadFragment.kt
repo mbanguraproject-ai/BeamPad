@@ -25,6 +25,7 @@ class TrackpadFragment : Fragment() {
             view.pad.setBackgroundResource(
                 if (isConnected) R.drawable.bg_trackpad_live else R.drawable.bg_trackpad
             )
+            if (!isConnected) view.padGlow.animate().alpha(0f).setDuration(160L).start()
             view.hint.alpha = if (isConnected) 0.6f else 0.85f
 
             // One pulse on the transition only. Repeating it would turn a
@@ -75,6 +76,17 @@ class TrackpadFragment : Fragment() {
         ui.pad.onMove = { dx, dy -> if (connected) host?.service?.moveMouse(dx, dy) }
         ui.pad.onScroll = { if (connected) host?.service?.scroll(it) }
         ui.pad.onClick = { if (nudgeIfDisconnected()) host?.service?.click(it) }
+
+        // Glow only while a finger is down, and only when paired: a surface
+        // that lights up with nothing connected is a lie. Fading out is
+        // slower than fading in so the release feels like a decay.
+        ui.pad.onTouchActive = { active ->
+            val target = if (active && connected) 1f else 0f
+            ui.padGlow.animate()
+                .alpha(target)
+                .setDuration(if (active) 90L else 260L)
+                .start()
+        }
 
         // The hint is guidance, not a control: it must not eat touches
         // meant for the pad underneath.

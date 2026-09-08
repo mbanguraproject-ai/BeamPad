@@ -42,6 +42,7 @@ class DpadView @JvmOverloads constructor(
     /** Rebuilt on size change: gradients need the view's height. */
     private var faceShader: LinearGradient? = null
     private var pressedShader: LinearGradient? = null
+    private var bezelShader: LinearGradient? = null
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = dp(1.5f)
@@ -67,6 +68,9 @@ class DpadView @JvmOverloads constructor(
     private val colPressTop = Color.parseColor("#4A3F9E")
     private val colPressBottom = Color.parseColor("#2A2470")
     private val colEdge = Color.parseColor("#4A5299")
+    private val colBezelTop = Color.parseColor("#3A3F86")
+    private val colBezelBottom = Color.parseColor("#20264F")
+    private val colBezelShadow = Color.parseColor("#0C1128")
     private val colSurface = Color.parseColor("#2E141C3D")
     private val colSurfaceDim = Color.parseColor("#14121A38")
     private val colPressed = Color.parseColor("#4D4F46E5")
@@ -98,12 +102,16 @@ class DpadView @JvmOverloads constructor(
             0f, 0f, 0f, h.toFloat(),
             colPressTop, colPressBottom, Shader.TileMode.CLAMP
         )
+        bezelShader = LinearGradient(
+            0f, 0f, 0f, h.toFloat(),
+            colBezelTop, colBezelBottom, Shader.TileMode.CLAMP
+        )
     }
 
     override fun onDraw(canvas: Canvas) {
         val cx = width / 2f
         val cy = height / 2f
-        val outer = min(width, height) / 2f - dp(6f)
+        val outer = min(width, height) / 2f - dp(13f)
         val inner = outer * 0.42f
 
         drawHalo(canvas, cx, cy, outer)
@@ -119,15 +127,33 @@ class DpadView @JvmOverloads constructor(
         drawCentre(canvas, cx, cy, inner)
     }
 
+    /**
+     * The bezel the wedges sit in. Drawn as a filled ring with the same
+     * gradient face as the keys, so the pad reads as one physical piece
+     * rather than an outline floating around a separate object.
+     */
     private fun drawHalo(canvas: Canvas, cx: Float, cy: Float, outer: Float) {
-        // Layered rings at falling alpha: Canvas has no cheap blur here.
-        val steps = listOf(dp(5f) to 0x22, dp(3f) to 0x55, dp(1f) to 0xAA)
-        steps.forEach { (offset, alpha) ->
-            stroke.color = colAccent
-            stroke.alpha = alpha
-            stroke.strokeWidth = dp(2f)
-            canvas.drawCircle(cx, cy, outer + offset, stroke)
-        }
+        val bezel = outer + dp(9f)
+
+        // Dark sliver under the bezel's lower edge, as on the keys.
+        fill.shader = null
+        fill.color = colBezelShadow
+        canvas.drawCircle(cx, cy + dp(2f), bezel, fill)
+
+        fill.shader = bezelShader
+        fill.color = Color.WHITE
+        canvas.drawCircle(cx, cy, bezel, fill)
+
+        stroke.shader = null
+        stroke.color = colEdge
+        stroke.strokeWidth = dp(1.5f)
+        canvas.drawCircle(cx, cy, bezel, stroke)
+
+        // Inner lip where the bezel meets the wedges.
+        stroke.color = colAccent
+        stroke.alpha = 0x66
+        stroke.strokeWidth = dp(1.5f)
+        canvas.drawCircle(cx, cy, outer + dp(1f), stroke)
         stroke.alpha = 255
     }
 
@@ -231,7 +257,7 @@ class DpadView @JvmOverloads constructor(
     private fun keyAt(x: Float, y: Float): Key? {
         val cx = width / 2f
         val cy = height / 2f
-        val outer = min(width, height) / 2f - dp(6f)
+        val outer = min(width, height) / 2f - dp(13f)
         val inner = outer * 0.42f
 
         val dx = x - cx

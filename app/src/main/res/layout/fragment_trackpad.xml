@@ -11,6 +11,18 @@
         android:layout_height="match_parent"
         android:background="@drawable/bg_trackpad" />
 
+    <!-- The glow is a separate view over the pad rather than a background
+         swap: a drawable change cannot animate, so it would snap. This fades.
+         Not clickable, so touches still reach the pad underneath. -->
+    <View
+        android:id="@+id/padGlow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_trackpad_active"
+        android:alpha="0"
+        android:clickable="false"
+        android:focusable="false" />
+
     <LinearLayout
         android:id="@+id/hint"
         android:layout_width="match_parent"
