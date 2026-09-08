@@ -58,7 +58,17 @@ object Ads {
     }
 
     private fun show(activity: Activity, slot: FrameLayout) {
-        if (view != null) return
+        // The AdView belongs to the Activity that created it. This object
+        // outlives that Activity, so a view held from a previous instance is
+        // attached to a dead slot and renders nothing. Rebuild it instead of
+        // returning early.
+        val existing = view
+        if (existing != null) {
+            if (existing.parent === slot) return
+            (existing.parent as? android.view.ViewGroup)?.removeView(existing)
+            existing.destroy()
+            view = null
+        }
 
         val banner = AdView(activity).apply {
             adUnitId = BANNER_UNIT
@@ -75,7 +85,12 @@ object Ads {
             )
         )
         banner.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                android.util.Log.i("BeamPadAds", "loaded")
+            }
+
             override fun onAdFailedToLoad(error: LoadAdError) {
+                android.util.Log.w("BeamPadAds", "failed ${error.code}: ${error.message}")
                 // Collapse the slot: an empty banner frame looks like a bug.
                 slot.removeAllViews()
                 view?.destroy()

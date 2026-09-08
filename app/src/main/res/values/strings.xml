@@ -85,4 +85,5 @@
     <string name="key_vol_down">Volume down</string>
     <string name="vol">VOL</string>
     <string name="del">DEL</string>
+    <string name="delete_message">This snippet will be removed from this device and cannot be recovered.</string>
 </resources>

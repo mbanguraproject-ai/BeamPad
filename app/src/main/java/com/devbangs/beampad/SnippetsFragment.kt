@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DiffUtil
@@ -101,15 +102,30 @@ class SnippetsFragment : Fragment() {
     }
 
     private fun confirmDelete(snippet: Snippet) {
-        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_BeamPad_Dialog)
-            .setTitle(snippet.label)
-            .setMessage("Delete this snippet?")
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.snippet_delete) { _, _ ->
-                store.delete(snippet.id)
-                refresh()
-            }
-            .show()
+        val view = layoutInflater.inflate(R.layout.dialog_confirm, null)
+        view.findViewById<TextView>(R.id.title).text = snippet.label
+        view.findViewById<TextView>(R.id.message).setText(R.string.delete_message)
+
+        val confirm = view.findViewById<MaterialButton>(R.id.confirm)
+        confirm.setText(R.string.snippet_delete)
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(view)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            window?.setLayout(
+                (resources.displayMetrics.widthPixels * 0.92f).toInt(),
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        view.findViewById<MaterialButton>(R.id.cancel).setOnClickListener { dialog.dismiss() }
+        confirm.setOnClickListener {
+            store.delete(snippet.id)
+            refresh()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun showAddDialog() {
