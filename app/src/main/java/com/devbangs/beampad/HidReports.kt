@@ -19,6 +19,15 @@ object HidReports {
     const val CC_VOLUME_DOWN = 0x00EA
     const val CC_MUTE = 0x00E2
     const val CC_PLAY_PAUSE = 0x00CD
+    const val CC_SCAN_NEXT = 0x00B5      // fast forward / next
+    const val CC_SCAN_PREV = 0x00B6      // rewind / previous
+    const val CC_HOME = 0x0223           // AC Home
+    const val CC_BACK = 0x0224           // AC Back
+    const val CC_MENU = 0x0040           // Menu
+
+    // Deliberately absent: input/source switching has no HID usage at all
+    // (it is IR, CEC or vendor protocol), and channel up/down only works on
+    // a real tuner, so it is dead on the streaming boxes most users have.
 
     const val BUTTON_NONE: Byte = 0x00
     const val BUTTON_LEFT: Byte = 0x01

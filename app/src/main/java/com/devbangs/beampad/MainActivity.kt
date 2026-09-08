@@ -8,6 +8,8 @@ import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.widget.Toast
 import android.os.IBinder
 import android.view.View
@@ -138,6 +140,13 @@ class MainActivity : FragmentActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        ui.connectedChip.setOnClickListener {
+            val s = service ?: return@setOnClickListener
+            if (!s.disconnect()) {
+                Toast.makeText(this, R.string.disconnect_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+
         ui.statusAction.setOnClickListener {
             val s = service
             if (s?.isReady() == true) {
@@ -184,13 +193,20 @@ class MainActivity : FragmentActivity() {
         val connected = s?.isReady() == true
         val device = s?.connectedDevice
 
+        // Connected: the pairing card has nothing left to say, so it goes and
+        // its row is returned to the content. A chip in the header carries
+        // the peer name and the disconnect action.
+        TransitionManager.beginDelayedTransition(ui.contentColumn, AutoTransition().apply {
+            duration = 220
+        })
+
         if (connected && device != null) {
-            ui.statusIcon.setImageResource(R.drawable.ic_bluetooth_connected)
-            ui.statusTitle.text = s.deviceLabel(device)
-            ui.statusDot.visibility = View.VISIBLE
-            ui.statusDetail.visibility = View.GONE
-            ui.statusAction.setText(R.string.action_disconnect)
+            ui.statusCard.visibility = View.GONE
+            ui.connectedChip.visibility = View.VISIBLE
+            ui.chipLabel.text = s.deviceLabel(device)
         } else {
+            ui.statusCard.visibility = View.VISIBLE
+            ui.connectedChip.visibility = View.GONE
             ui.statusIcon.setImageResource(R.drawable.ic_bluetooth)
             ui.statusTitle.setText(R.string.status_ready)
             ui.statusDot.visibility = View.GONE
@@ -221,7 +237,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private companion object {
-        const val SPLASH_HOLD_MS = 2000L
+        const val SPLASH_HOLD_MS = 1300L
         const val POST_NOTIF = "android.permission.POST_NOTIFICATIONS"
     }
 }

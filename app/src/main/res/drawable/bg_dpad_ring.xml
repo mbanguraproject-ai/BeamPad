@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ring behind the D-pad. Layered strokes at falling alpha stand in for a
+     blur: shape drawables have no blur filter. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#00000000" />
+            <stroke android:width="2dp" android:color="#334F46E5" />
+        </shape>
+    </item>
+    <item android:left="3dp" android:top="3dp" android:right="3dp" android:bottom="3dp">
+        <shape android:shape="oval">
+            <solid android:color="#00000000" />
+            <stroke android:width="2dp" android:color="#804F46E5" />
+        </shape>
+    </item>
+    <item android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp">
+        <shape android:shape="oval">
+            <solid android:color="#331B2350" />
+            <stroke android:width="1.5dp" android:color="@color/bp_accent_2" />
+        </shape>
+    </item>
+</layer-list>

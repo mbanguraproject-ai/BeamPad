@@ -75,4 +75,14 @@
     <string name="remove_ads_hint">One payment, no ads ever again</string>
     <string name="privacy_options">Ad privacy options</string>
     <string name="billing_unavailable">Purchases are not available right now</string>
+    <string name="key_home">Home</string>
+    <string name="key_menu">Menu</string>
+    <string name="key_rewind">Rewind</string>
+    <string name="key_forward">Forward</string>
+    <string name="key_play_pause">Play / pause</string>
+    <string name="key_mute">Mute</string>
+    <string name="key_vol_up">Volume up</string>
+    <string name="key_vol_down">Volume down</string>
+    <string name="vol">VOL</string>
+    <string name="del">DEL</string>
 </resources>

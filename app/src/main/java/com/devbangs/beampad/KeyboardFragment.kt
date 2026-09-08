@@ -19,10 +19,12 @@ class KeyboardFragment : Fragment() {
     private val connectionObserver: (Boolean) -> Unit = { connected ->
         _ui?.let { view ->
             listOf(
-                view.send, view.up, view.down, view.left, view.right,
-                view.enter, view.back, view.backspace,
-                view.volUp, view.volDown, view.mute
+                view.send, view.home, view.back, view.menu,
+                view.backspace, view.volUp, view.volDown, view.mute,
+                view.rewind, view.playPause, view.forward
             ).forEach { it.isEnabled = connected }
+            view.dpad.isEnabled = connected
+            view.dpad.invalidate()
             view.input.isEnabled = connected
         }
     }
@@ -47,13 +49,26 @@ class KeyboardFragment : Fragment() {
             } else false
         }
 
-        ui.up.setOnClickListener { key(HidReports.KEY_UP) }
-        ui.down.setOnClickListener { key(HidReports.KEY_DOWN) }
-        ui.left.setOnClickListener { key(HidReports.KEY_LEFT) }
-        ui.right.setOnClickListener { key(HidReports.KEY_RIGHT) }
-        ui.enter.setOnClickListener { key(HidReports.KEY_ENTER) }
+        ui.dpad.onKey = { k ->
+            when (k) {
+                DpadView.Key.UP -> key(HidReports.KEY_UP)
+                DpadView.Key.DOWN -> key(HidReports.KEY_DOWN)
+                DpadView.Key.LEFT -> key(HidReports.KEY_LEFT)
+                DpadView.Key.RIGHT -> key(HidReports.KEY_RIGHT)
+                DpadView.Key.OK -> key(HidReports.KEY_ENTER)
+            }
+        }
+
+        // Escape rather than the consumer Back usage: Android TV honours it
+        // more consistently.
         ui.back.setOnClickListener { key(HidReports.KEY_ESC) }
         ui.backspace.setOnClickListener { key(HidReports.KEY_BACKSPACE) }
+
+        ui.home.setOnClickListener { consumer(HidReports.CC_HOME) }
+        ui.menu.setOnClickListener { consumer(HidReports.CC_MENU) }
+        ui.rewind.setOnClickListener { consumer(HidReports.CC_SCAN_PREV) }
+        ui.playPause.setOnClickListener { consumer(HidReports.CC_PLAY_PAUSE) }
+        ui.forward.setOnClickListener { consumer(HidReports.CC_SCAN_NEXT) }
 
         ui.volUp.setOnClickListener { consumer(HidReports.CC_VOLUME_UP) }
         ui.volDown.setOnClickListener { consumer(HidReports.CC_VOLUME_DOWN) }
