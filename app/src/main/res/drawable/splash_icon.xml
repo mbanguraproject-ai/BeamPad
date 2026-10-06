@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon. The password field types itself: each dot pops in as the
+     cursor steps past it, so launch reads as text arriving on the TV.
+
+     Keyframes rather than startOffset, so every animator runs from t=0 and
+     the dots are hidden from the first frame. The drawable's resting state
+     is the finished icon, which is what pre-12 devices show without
+     animating.
+
+     Cursor offsets are multiples of the dot pitch in tools/make_icon.py. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/ic_launcher_foreground">
+
+    <target android:name="cursor">
+        <aapt:attr name="android:animation">
+            <objectAnimator android:duration="700">
+                <propertyValuesHolder
+                    android:propertyName="translateX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="-27.0" />
+                    <keyframe android:fraction="0.21" android:value="-27.0" />
+                    <keyframe android:fraction="0.215" android:value="-17.0" />
+                    <keyframe android:fraction="0.43" android:value="-17.0" />
+                    <keyframe android:fraction="0.435" android:value="-8.5" />
+                    <keyframe android:fraction="0.645" android:value="-8.5" />
+                    <keyframe android:fraction="0.65" android:value="0.0" />
+                    <keyframe android:fraction="1.0" android:value="0.0" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+
+    <target android:name="dot1">
+        <aapt:attr name="android:animation">
+            <objectAnimator android:duration="700">
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="0.0" />
+                    <keyframe android:fraction="0.21" android:value="0.0" />
+                    <keyframe
+                        android:fraction="0.38"
+                        android:interpolator="@android:interpolator/overshoot"
+                        android:value="1.0" />
+                    <keyframe android:fraction="1.0" android:value="1.0" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="0.0" />
+                    <keyframe android:fraction="0.21" android:value="0.0" />
+                    <keyframe
+                        android:fraction="0.38"
+                        android:interpolator="@android:interpolator/overshoot"
+                        android:value="1.0" />
+                    <keyframe android:fraction="1.0" android:value="1.0" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+
+    <target android:name="dot2">
+        <aapt:attr name="android:animation">
+            <objectAnimator android:duration="700">
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="0.0" />
+                    <keyframe android:fraction="0.43" android:value="0.0" />
+                    <keyframe
+                        android:fraction="0.6"
+                        android:interpolator="@android:interpolator/overshoot"
+                        android:value="1.0" />
+                    <keyframe android:fraction="1.0" android:value="1.0" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="0.0" />
+                    <keyframe android:fraction="0.43" android:value="0.0" />
+                    <keyframe
+                        android:fraction="0.6"
+                        android:interpolator="@android:interpolator/overshoot"
+                        android:value="1.0" />
+                    <keyframe android:fraction="1.0" android:value="1.0" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+
+    <target android:name="dot3">
+        <aapt:attr name="android:animation">
+            <objectAnimator android:duration="700">
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="0.0" />
+                    <keyframe android:fraction="0.645" android:value="0.0" />
+                    <keyframe
+                        android:fraction="0.82"
+                        android:interpolator="@android:interpolator/overshoot"
+                        android:value="1.0" />
+                    <keyframe android:fraction="1.0" android:value="1.0" />
+                </propertyValuesHolder>
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueType="floatType">
+                    <keyframe android:fraction="0.0" android:value="0.0" />
+                    <keyframe android:fraction="0.645" android:value="0.0" />
+                    <keyframe
+                        android:fraction="0.82"
+                        android:interpolator="@android:interpolator/overshoot"
+                        android:value="1.0" />
+                    <keyframe android:fraction="1.0" android:value="1.0" />
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+</animated-vector>

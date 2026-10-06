@@ -11,5 +11,7 @@
     <color name="bp_online">#3DDC84</color>
     <color name="bp_surface_translucent">#F2141B3D</color>
     <color name="bp_card_translucent">#E6161F45</color>
-    <color name="ic_launcher_background">#24016B</color>
+    <!-- Midpoint of the launcher icon gradient, so the Android 12+ launch
+         animation grows out of the icon without a colour jump. -->
+    <color name="splash_background">#5F51E4</color>
 </resources>
