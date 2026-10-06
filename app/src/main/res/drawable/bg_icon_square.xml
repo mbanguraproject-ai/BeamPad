@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Leading icon tile on settings and paywall rows. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#264F46E5" />
+    <solid android:color="?attr/bpAccentSoft" />
     <corners android:radius="12dp" />
 </shape>

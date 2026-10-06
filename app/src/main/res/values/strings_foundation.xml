@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation -->
+    <string name="tab_control">Control</string>
+    <string name="tab_devices">Devices</string>
+    <string name="tab_panels">Panels</string>
+
+    <!-- Control modes -->
+    <string name="mode_keyboard">Keyboard</string>
+    <string name="mode_remote">Remote</string>
+    <string name="mode_media">Media</string>
+    <string name="mode_trackpad">Trackpad</string>
+    <string name="mode_mouse">Mouse</string>
+    <string name="mode_presentation">Present</string>
+
+    <!-- Device types -->
+    <string name="type_tv">TV or streaming box</string>
+    <string name="type_computer">Computer</string>
+    <string name="type_projector">Projector</string>
+    <string name="type_phone">Phone or tablet</string>
+    <string name="type_other">Other</string>
+
+    <!-- Connection states added with the connection engine -->
+    <string name="status_lost">Connection lost</string>
+    <string name="status_lost_to">Connection to %1$s lost</string>
+    <string name="status_lost_detail">%1$s stopped responding. It may be asleep or out of range.</string>
+    <string name="status_lost_retrying">%1$s stopped responding. Trying again on its own…</string>
+    <string name="status_reconnecting">Reconnecting…</string>
+    <string name="action_reconnect">Reconnect</string>
+    <string name="retry_gave_up">Couldn’t reach your device after several tries. Wake it, then tap Reconnect.</string>
+    <string name="unsupported_no_profile">This phone’s Bluetooth can’t act as a keyboard or mouse. The maker left that feature out, so BeamPad can’t work on it.</string>
+    <string name="unsupported_refused">Another app is using Bluetooth keyboard mode. Close apps that act as a keyboard or controller, then try again.</string>
+    <string name="unsupported_no_response">Bluetooth didn’t answer. Turn Bluetooth off and on, then try again.</string>
+
+    <!-- Appearance -->
+    <string name="appearance_system">Match system</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_black">Pure black</string>
+
+    <!-- Action catalogue groups -->
+    <string name="group_navigation">Navigation</string>
+    <string name="group_media">Media</string>
+    <string name="group_tv">TV</string>
+    <string name="group_keyboard">Keys</string>
+    <string name="group_shortcuts">Shortcuts</string>
+    <string name="group_mouse">Mouse</string>
+    <string name="group_presentation">Presentation</string>
+    <string name="group_macros">Your macros</string>
+
+    <!-- Actions -->
+    <string name="act_up">Up</string>
+    <string name="act_down">Down</string>
+    <string name="act_left">Left</string>
+    <string name="act_right">Right</string>
+    <string name="act_ok">OK</string>
+    <string name="act_back">Back</string>
+    <string name="act_home">Home</string>
+    <string name="act_menu">Menu</string>
+    <string name="act_search">Search</string>
+    <string name="act_browser_back">Browser back</string>
+    <string name="act_browser_forward">Browser forward</string>
+    <string name="act_play_pause">Play / pause</string>
+    <string name="act_next_track">Next</string>
+    <string name="act_prev_track">Previous</string>
+    <string name="act_seek_forward">Fast forward</string>
+    <string name="act_seek_back">Rewind</string>
+    <string name="act_stop">Stop</string>
+    <string name="act_vol_up">Volume up</string>
+    <string name="act_vol_down">Volume down</string>
+    <string name="act_mute">Mute</string>
+    <string name="act_subtitles">Subtitles</string>
+    <string name="act_fullscreen">Fullscreen</string>
+    <string name="act_speed_up">Faster playback</string>
+    <string name="act_speed_down">Slower playback</string>
+    <string name="act_power">Power</string>
+    <string name="act_sleep">Sleep</string>
+    <string name="act_channel_up">Channel up</string>
+    <string name="act_channel_down">Channel down</string>
+    <string name="act_enter">Enter</string>
+    <string name="act_esc">Esc</string>
+    <string name="act_tab">Tab</string>
+    <string name="act_space">Space</string>
+    <string name="act_backspace">Backspace</string>
+    <string name="act_delete">Delete</string>
+    <string name="act_line_start">Line start</string>
+    <string name="act_line_end">Line end</string>
+    <string name="act_page_up">Page up</string>
+    <string name="act_page_down">Page down</string>
+    <string name="act_f_template">F%1$d</string>
+    <string name="act_select_all">Select all</string>
+    <string name="act_copy">Copy</string>
+    <string name="act_paste">Paste</string>
+    <string name="act_cut">Cut</string>
+    <string name="act_undo">Undo</string>
+    <string name="act_app_switch">Switch apps</string>
+    <string name="act_close_window">Close window</string>
+    <string name="act_show_desktop">Show desktop</string>
+    <string name="act_start_menu">Start / Search key</string>
+    <string name="act_zoom_in">Zoom in</string>
+    <string name="act_zoom_out">Zoom out</string>
+    <string name="act_left_click">Left click</string>
+    <string name="act_right_click">Right click</string>
+    <string name="act_middle_click">Middle click</string>
+    <string name="act_double_click">Double click</string>
+    <string name="act_scroll_up">Scroll up</string>
+    <string name="act_scroll_down">Scroll down</string>
+    <string name="act_slide_next">Next slide</string>
+    <string name="act_slide_prev">Previous slide</string>
+    <string name="act_slideshow_start">Start slideshow</string>
+    <string name="act_slideshow_end">End slideshow</string>
+    <string name="act_black_screen">Black screen</string>
+    <string name="act_type_text">Type “%1$s”</string>
+    <string name="act_wait_ms">Wait %1$d ms</string>
+    <string name="act_missing_macro">Deleted macro</string>
+    <string name="act_key_code">Key %1$d</string>
+    <string name="act_media_code">Media key %1$d</string>
+    <string name="pick_action">What should this do?</string>
+
+    <!-- Panel components -->
+    <string name="comp_button">Button</string>
+    <string name="comp_dpad">D-pad</string>
+    <string name="comp_trackpad">Trackpad</string>
+    <string name="comp_slider">Slider</string>
+    <string name="comp_toggle">Toggle</string>
+    <string name="comp_keyboard">Keyboard</string>
+    <string name="comp_media">Media controls</string>
+    <string name="comp_text_input">Text input</string>
+    <string name="comp_shortcut">Shortcut</string>
+    <string name="comp_macro">Macro</string>
+
+    <!-- Macro run sheet -->
+    <string name="macro_starting">Starting…</string>
+    <string name="macro_step">Step %1$d of %2$d</string>
+    <string name="macro_stop">Stop</string>
+    <string name="macro_done">%1$s finished</string>
+    <string name="macro_stopped">%1$s stopped</string>
+    <string name="macro_disconnected">%1$s stopped: the connection dropped</string>
+    <string name="macro_busy">Another macro is still running</string>
+    <string name="macro_empty">This macro has no steps yet</string>
+</resources>

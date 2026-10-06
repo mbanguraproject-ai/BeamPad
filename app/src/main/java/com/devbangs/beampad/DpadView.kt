@@ -63,22 +63,24 @@ class DpadView @JvmOverloads constructor(
 
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
-    private val colFaceTop = Color.parseColor("#1F2756")
-    private val colFaceBottom = Color.parseColor("#161C44")
-    private val colPressTop = Color.parseColor("#5046C8")
-    private val colPressBottom = Color.parseColor("#3A31A8")
-    private val colEdge = Color.parseColor("#2B3470")
-    private val colBezelTop = Color.parseColor("#2A3170")
-    private val colBezelBottom = Color.parseColor("#171D46")
-    private val colBezelShadow = Color.parseColor("#080C22")
-    private val colSurface = Color.parseColor("#2E141C3D")
-    private val colSurfaceDim = Color.parseColor("#14121A38")
-    private val colPressed = Color.parseColor("#4D4F46E5")
-    private val colStroke = Color.parseColor("#3B4190")
-    private val colStrokeDim = Color.parseColor("#1F2C4A")
-    private val colAccent = Color.parseColor("#7C6BFF")
-    private val colText = Color.parseColor("#EEF1FF")
-    private val colTextDim = Color.parseColor("#4D9BA4CC")
+    // Colours come from the theme, so the pad follows Light, Dark and Pure
+    // Black. Face and bezel are flat: the pad reads as a control by its
+    // hairline edge and press tint, not by fake depth.
+    private val colFaceTop = context.themeColor(R.attr.bpKey)
+    private val colFaceBottom = context.themeColor(R.attr.bpKey)
+    private val colPressTop = context.themeColor(R.attr.bpKeyPressed)
+    private val colPressBottom = context.themeColor(R.attr.bpKeyPressed)
+    private val colEdge = context.themeColor(R.attr.bpKeyStroke)
+    private val colBezelTop = context.themeColor(R.attr.bpSurfaceRaised)
+    private val colBezelBottom = context.themeColor(R.attr.bpSurfaceRaised)
+    private val colSurface = context.themeColor(R.attr.bpKey)
+    private val colSurfaceDim = context.themeColor(R.attr.bpSurface)
+    private val colPressed = context.themeColor(R.attr.bpAccentSoft)
+    private val colStroke = context.themeColor(R.attr.bpKeyStroke)
+    private val colStrokeDim = context.themeColor(R.attr.bpStroke)
+    private val colAccent = context.themeColor(R.attr.bpAccent)
+    private val colText = context.themeColor(R.attr.bpText)
+    private val colTextDim = context.themeColor(R.attr.bpTextDim)
 
     /** Gap between wedges, in degrees. */
     private val gapDeg = 5f
@@ -128,17 +130,12 @@ class DpadView @JvmOverloads constructor(
     }
 
     /**
-     * The bezel the wedges sit in. Drawn as a filled ring with the same
-     * gradient face as the keys, so the pad reads as one physical piece
-     * rather than an outline floating around a separate object.
+     * The bezel the wedges sit in: a flat filled ring with a hairline, so
+     * the pad reads as one piece rather than an outline floating around a
+     * separate object.
      */
     private fun drawHalo(canvas: Canvas, cx: Float, cy: Float, outer: Float) {
         val bezel = outer + dp(9f)
-
-        // Dark sliver under the bezel's lower edge, as on the keys.
-        fill.shader = null
-        fill.color = colBezelShadow
-        canvas.drawCircle(cx, cy + dp(2f), bezel, fill)
 
         fill.shader = bezelShader
         fill.color = Color.WHITE

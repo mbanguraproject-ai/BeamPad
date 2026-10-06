@@ -2,23 +2,19 @@
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="#33FFFFFF">
     <item>
-        <selector>
-            <item android:state_enabled="false">
+            <selector>
+                <item android:state_enabled="false">
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/bp_surface_raised" />
+                    <solid android:color="?attr/bpSurfaceHigh" />
                     <corners android:radius="999dp" />
                 </shape>
-            </item>
-            <item>
+                </item>
+                <item>
                 <shape android:shape="rectangle">
-                    <gradient
-                        android:type="linear"
-                        android:angle="0"
-                        android:startColor="@color/bp_accent"
-                        android:endColor="@color/bp_accent_2" />
+                    <solid android:color="?attr/bpAccent" />
                     <corners android:radius="999dp" />
                 </shape>
-            </item>
-        </selector>
+                </item>
+            </selector>
     </item>
 </ripple>

@@ -24,7 +24,7 @@
         android:text="@string/keys_title"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:textStyle="bold"
-        android:textColor="@color/bp_text" />
+        android:textColor="?attr/bpText" />
 
     <TextView
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
         android:paddingStart="4dp"
         android:text="@string/keys_body"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/bp_text_dim" />
+        android:textColor="?attr/bpTextDim" />
 
     <LinearLayout
         android:layout_width="match_parent"

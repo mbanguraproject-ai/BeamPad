@@ -5,13 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.fragment.app.FragmentActivity
 import com.devbangs.beampad.databinding.ActivityProBinding
 import com.devbangs.beampad.databinding.ItemCompareBinding
 import com.devbangs.beampad.databinding.ItemFeatureBinding
@@ -28,7 +25,7 @@ import kotlin.math.roundToInt
  * it. The fine print under the button carries all four for the selected
  * plan, and changes with it.
  */
-class ProActivity : FragmentActivity() {
+class ProActivity : BeamActivity() {
 
     private lateinit var ui: ActivityProBinding
     private val app get() = application as BeamPadApp
@@ -47,35 +44,37 @@ class ProActivity : FragmentActivity() {
 
     private val features = listOf(
         Feature(Features.Pro.NO_ADS, R.drawable.ic_sparkle_fill, R.string.feat_no_ads, R.string.feat_no_ads_body),
+        Feature(Features.Pro.PANELS, R.drawable.ic_layout, R.string.feat_panels, R.string.feat_panels_body),
+        Feature(Features.Pro.MACROS, R.drawable.ic_magic_wand, R.string.feat_macros, R.string.feat_macros_body),
+        Feature(Features.Pro.PROFILES, R.drawable.ic_devices, R.string.feat_profiles, R.string.feat_profiles_body),
+        Feature(Features.Pro.PRESENTATION, R.drawable.ic_presentation, R.string.feat_presentation, R.string.feat_presentation_body),
+        Feature(Features.Pro.TRACKPAD, R.drawable.ic_sliders_horizontal, R.string.feat_trackpad, R.string.feat_trackpad_body),
         Feature(Features.Pro.LIVE_TYPING, R.drawable.ic_lightning, R.string.feat_live, R.string.feat_live_body),
         Feature(Features.Pro.VOICE, R.drawable.ic_microphone, R.string.feat_voice, R.string.feat_voice_body),
         Feature(Features.Pro.CLIPBOARD, R.drawable.ic_clipboard_text, R.string.feat_clipboard, R.string.feat_clipboard_body),
         Feature(Features.Pro.PRO_KEYS, R.drawable.ic_squares_four, R.string.feat_keys, R.string.feat_keys_body),
-        Feature(Features.Pro.SNIPPETS, R.drawable.ic_vault, R.string.feat_snippets, R.string.feat_snippets_body),
-        Feature(Features.Pro.TRACKPAD, R.drawable.ic_sliders_horizontal, R.string.feat_trackpad, R.string.feat_trackpad_body)
+        Feature(Features.Pro.SNIPPETS, R.drawable.ic_vault, R.string.feat_snippets, R.string.feat_snippets_body)
     )
 
     /** Label, Free value, Pro value. A null value draws a dash, CHECK a tick. */
     private val comparison = listOf(
         Triple(R.string.cmp_remote, CHECK, CHECK),
         Triple(R.string.cmp_reconnect, CHECK, CHECK),
-        Triple(R.string.cmp_snippets, R.string.cmp_snippets_free, R.string.cmp_unlimited),
+        Triple(R.string.cmp_themes, CHECK, CHECK),
+        Triple(R.string.cmp_panels_macros, null, CHECK),
+        Triple(R.string.cmp_profiles_presentation, null, CHECK),
+        Triple(R.string.cmp_trackpad, null, CHECK),
         Triple(R.string.cmp_live_voice, null, CHECK),
         Triple(R.string.cmp_keys_clipboard, null, CHECK),
-        Triple(R.string.cmp_trackpad, null, CHECK),
+        Triple(R.string.cmp_snippets, R.string.cmp_snippets_free, R.string.cmp_unlimited),
         Triple(R.string.cmp_ads, R.string.cmp_ads_free, R.string.cmp_ads_pro)
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         ui = ActivityProBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
-        WindowInsetsControllerCompat(window, ui.root).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
 
         ViewCompat.setOnApplyWindowInsetsListener(ui.root) { _, insets ->
             val bars = insets.getInsets(
@@ -177,8 +176,8 @@ class ProActivity : FragmentActivity() {
         comparison.forEach { (label, free, pro) ->
             val row = ItemCompareBinding.inflate(layoutInflater, ui.compareTable, false)
             row.label.setText(label)
-            fill(row.freeText, row.freeIcon, free, R.color.bp_text_faint)
-            fill(row.proText, row.proIcon, pro, R.color.bp_mint)
+            fill(row.freeText, row.freeIcon, free, R.attr.bpTextFaint)
+            fill(row.proText, row.proIcon, pro, R.attr.bpLive)
             ui.compareTable.addView(row.root)
         }
     }
@@ -189,7 +188,7 @@ class ProActivity : FragmentActivity() {
                 text.isVisible = false
                 icon.isVisible = true
                 icon.setImageResource(R.drawable.ic_check_circle_fill)
-                icon.setColorFilter(getColor(tint))
+                icon.setColorFilter(themeColor(tint))
             }
             null -> {
                 text.isVisible = true

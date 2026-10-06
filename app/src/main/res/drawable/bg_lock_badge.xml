@@ -6,5 +6,5 @@
         android:angle="315"
         android:startColor="@color/bp_pro_start"
         android:endColor="@color/bp_pro_end" />
-    <stroke android:width="1.5dp" android:color="@color/bp_bg" />
+    <stroke android:width="1.5dp" android:color="?attr/bpBg" />
 </shape>

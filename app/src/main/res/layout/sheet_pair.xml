@@ -24,7 +24,7 @@
         android:text="@string/pair_steps_title"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:textStyle="bold"
-        android:textColor="@color/bp_text" />
+        android:textColor="?attr/bpText" />
 
     <TextView
         android:id="@+id/visibleFor"
@@ -33,7 +33,7 @@
         android:layout_marginTop="4dp"
         android:text="@string/pair_steps_body"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/bp_text_dim" />
+        android:textColor="?attr/bpTextDim" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -49,7 +49,7 @@
             android:gravity="center"
             android:text="1"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:layout_width="0dp"
@@ -58,7 +58,7 @@
             android:layout_marginTop="3dp"
             android:text="@string/pair_step_1"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
     </LinearLayout>
 
     <LinearLayout
@@ -75,7 +75,7 @@
             android:gravity="center"
             android:text="2"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:layout_width="0dp"
@@ -84,7 +84,7 @@
             android:layout_marginTop="3dp"
             android:text="@string/pair_step_2"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
     </LinearLayout>
 
     <LinearLayout
@@ -101,7 +101,7 @@
             android:gravity="center"
             android:text="3"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:id="@+id/step3"
@@ -110,7 +110,7 @@
             android:layout_weight="1"
             android:layout_marginTop="3dp"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
     </LinearLayout>
 
     <LinearLayout
@@ -128,7 +128,7 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             app:indicatorSize="18dp"
             app:trackThickness="2dp"
-            app:indicatorColor="@color/bp_mint"
+            app:indicatorColor="?attr/bpLive"
             app:trackColor="@android:color/transparent" />
 
         <TextView
@@ -137,7 +137,7 @@
             android:layout_weight="1"
             android:text="@string/pair_waiting"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton

@@ -3,33 +3,32 @@ package com.devbangs.beampad
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.os.SystemClock
 import android.provider.Settings
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.devbangs.beampad.databinding.ActivityMainBinding
 import com.devbangs.beampad.databinding.ItemDeviceBinding
 import com.devbangs.beampad.databinding.SheetDevicesBinding
@@ -37,7 +36,7 @@ import com.devbangs.beampad.databinding.SheetPairBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
-class MainActivity : FragmentActivity() {
+class MainActivity : BeamActivity() {
 
     private lateinit var ui: ActivityMainBinding
 
@@ -54,7 +53,7 @@ class MainActivity : FragmentActivity() {
     /** Where the user is in getting connected. Rendered by [refreshStatus]. */
     private enum class Step {
         NEEDS_PERMISSION, NO_BLUETOOTH, BLUETOOTH_OFF, STARTING,
-        UNSUPPORTED, READY, CONNECTING, CONNECTED
+        UNSUPPORTED, READY, CONNECTING, CONNECTED, LOST
     }
 
     private val entitlementObserver: (Entitlements.Change) -> Unit = { change ->
@@ -86,16 +85,25 @@ class MainActivity : FragmentActivity() {
         connectionObservers -= observer
     }
 
+    private val stateListener: () -> Unit = { refreshStatus() }
+
+    private val noticeListener: (HidService.Notice) -> Unit = { notice ->
+        when (notice) {
+            HidService.Notice.CONNECTED -> onConnected()
+            HidService.Notice.CONNECT_FAILED ->
+                Toast.makeText(this, R.string.connect_failed, Toast.LENGTH_LONG).show()
+            HidService.Notice.GAVE_UP_RETRYING ->
+                Toast.makeText(this, R.string.retry_gave_up, Toast.LENGTH_LONG).show()
+            HidService.Notice.LOST -> Unit
+        }
+    }
+
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             val s = (binder as HidService.LocalBinder).service
             service = s
-            s.listener = { refreshStatus() }
-            s.onNotice = { notice ->
-                if (notice == HidService.Notice.CONNECT_FAILED) {
-                    Toast.makeText(this@MainActivity, R.string.connect_failed, Toast.LENGTH_LONG).show()
-                }
-            }
+            s.addListener(stateListener)
+            s.addNoticeListener(noticeListener)
             refreshStatus()
         }
 
@@ -141,17 +149,10 @@ class MainActivity : FragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // Before super.onCreate: it swaps the splash theme for the app theme.
+        // No artificial hold: the app is usable as soon as it draws.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
-
-        // The app starts faster than the splash animation runs, so without a
-        // hold the splash flashes past and reads as a glitch. Held just long
-        // enough to register as deliberate, not long enough to feel like a
-        // stall.
-        val splashShownAt = SystemClock.uptimeMillis()
-        installSplashScreen().setKeepOnScreenCondition {
-            SystemClock.uptimeMillis() - splashShownAt < SPLASH_HOLD_MS
-        }
 
         if (OnboardingActivity.shouldShow(this)) {
             startActivity(Intent(this, OnboardingActivity::class.java))
@@ -161,13 +162,6 @@ class MainActivity : FragmentActivity() {
 
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
-
-        // Some OEM skins ignore the theme flag, so set bar icon appearance
-        // directly: dark background needs light icons.
-        WindowInsetsControllerCompat(window, ui.root).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
 
         // Top inset on the content column, bottom inset on the nav itself:
         // padding the whole column would leave dead space under the nav and
@@ -188,13 +182,7 @@ class MainActivity : FragmentActivity() {
         }
 
         ui.bottomNav.setOnItemSelectedListener { item ->
-            show(
-                when (item.itemId) {
-                    R.id.tab_keyboard -> KeyboardFragment()
-                    R.id.tab_trackpad -> TrackpadFragment()
-                    else -> SnippetsFragment()
-                }
-            )
+            showTab(item.itemId)
             true
         }
 
@@ -203,15 +191,12 @@ class MainActivity : FragmentActivity() {
         }
 
         ui.getPro.setOnClickListener { ProActivity.open(this, null) }
-
         ui.statusAction.setOnClickListener { onStatusAction() }
-
         ui.connectedRow.setOnClickListener { showDevicePicker() }
-
         ui.disconnect.setOnClickListener { disconnect() }
 
         if (savedInstanceState == null) {
-            ui.bottomNav.selectedItemId = R.id.tab_keyboard
+            ui.bottomNav.selectedItemId = R.id.tab_control
         }
 
         app.observeEntitlement(entitlementObserver)
@@ -232,10 +217,40 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun show(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.tabContent, fragment)
-            .commit()
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Arriving from the notification while already open: just show Control.
+        if (::ui.isInitialized) ui.bottomNav.selectedItemId = R.id.tab_control
+    }
+
+    private fun showTab(itemId: Int) {
+        val tag = "tab_$itemId"
+        if (supportFragmentManager.findFragmentByTag(tag)?.isVisible == true) return
+        val fragment: Fragment = when (itemId) {
+            R.id.tab_devices -> DevicesFragment()
+            R.id.tab_panels -> PanelsFragment()
+            R.id.tab_snippets -> SnippetsFragment()
+            else -> ControlFragment()
+        }
+        val tx = supportFragmentManager.beginTransaction()
+        if (!Motion.reduced(this)) tx.setCustomAnimations(R.animator.mode_in, R.animator.mode_out)
+        tx.replace(R.id.tabContent, fragment, tag).commit()
+    }
+
+    /** The Control tab's fragment, when it is the one showing. */
+    fun controlFragment(): ControlFragment? =
+        supportFragmentManager.findFragmentById(R.id.tabContent) as? ControlFragment
+
+    /** Switches to the Control tab and the given surface. Used by device profiles and Devices. */
+    fun openControl(mode: ControlMode? = null, panelId: String? = null) {
+        if (mode != null) prefs.lastMode = mode
+        if (panelId != null) prefs.lastPanelId = panelId else if (mode != null) prefs.lastPanelId = null
+        val current = controlFragment()
+        if (current != null) {
+            panelId?.let { current.showPanel(it) } ?: mode?.let { current.showMode(it) }
+        } else {
+            ui.bottomNav.selectedItemId = R.id.tab_control
+        }
     }
 
     private fun hasBluetoothPermissions(): Boolean =
@@ -243,7 +258,7 @@ class MainActivity : FragmentActivity() {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
 
-    private fun requestPermissions() {
+    fun requestPermissions() {
         // After two refusals Android stops showing the dialog and answers
         // "denied" at once, so a button that asks again would do nothing.
         // Settings is the only way left.
@@ -298,6 +313,7 @@ class MainActivity : FragmentActivity() {
             HidService.State.UNSUPPORTED -> Step.UNSUPPORTED
             HidService.State.READY -> Step.READY
             HidService.State.CONNECTING -> Step.CONNECTING
+            HidService.State.DISCONNECTED -> Step.LOST
             HidService.State.CONNECTED ->
                 if (s.isReady()) Step.CONNECTED else Step.READY
         }
@@ -309,6 +325,7 @@ class MainActivity : FragmentActivity() {
             Step.BLUETOOTH_OFF -> turnOnBluetooth()
             Step.UNSUPPORTED -> service?.restart()
             Step.READY -> showDevicePicker()
+            Step.LOST -> service?.reconnect()
             else -> Unit
         }
     }
@@ -319,16 +336,22 @@ class MainActivity : FragmentActivity() {
         val s = service
         val connected = step == Step.CONNECTED
 
-        TransitionManager.beginDelayedTransition(ui.contentColumn, AutoTransition().apply {
-            duration = 200
-        })
+        if (!Motion.reduced(this)) {
+            TransitionManager.beginDelayedTransition(ui.contentColumn, AutoTransition().apply {
+                duration = 180
+            })
+        }
 
         ui.connectedRow.isVisible = connected
         ui.setupRow.isVisible = !connected
 
         if (connected) {
-            ui.connectedName.text = s?.connectedDevice?.let { s.deviceLabel(it) }
-            // A sheet about finding the TV has nothing left to say.
+            val device = s?.connectedDevice
+            ui.connectedName.text = device?.let { s.deviceLabel(it) }
+            ui.connectedIcon.setImageResource(
+                device?.let { s.typeOf(it).iconRes } ?: R.drawable.ic_television_simple
+            )
+            // A sheet about finding the device has nothing left to say.
             sheet?.dismiss()
         } else {
             renderSetup(step, s)
@@ -375,24 +398,44 @@ class MainActivity : FragmentActivity() {
                 action = null
             }
             Step.UNSUPPORTED -> {
-                icon = R.drawable.ic_bluetooth_slash
+                icon = R.drawable.ic_warning_circle
                 title = R.string.status_unsupported
-                detail = getString(R.string.status_unsupported_detail)
-                action = R.string.action_try_again
+                detail = getString(
+                    when (s?.unsupportedReason) {
+                        HidService.UnsupportedReason.NO_PROFILE -> R.string.unsupported_no_profile
+                        HidService.UnsupportedReason.REFUSED -> R.string.unsupported_refused
+                        else -> R.string.unsupported_no_response
+                    }
+                )
+                action = if (s?.unsupportedReason == HidService.UnsupportedReason.NO_PROFILE) null
+                else R.string.action_try_again
             }
             Step.READY -> {
-                icon = R.drawable.ic_television_simple
+                icon = R.drawable.ic_devices
                 title = R.string.status_ready
                 val last = s?.lastHostName()
                 detail = if (last != null) getString(R.string.status_ready_last, last)
                 else getString(R.string.status_ready_first)
                 action = R.string.action_connect
             }
+            Step.LOST -> {
+                val device = s?.lostDevice
+                icon = device?.let { s.typeOf(it).iconRes } ?: R.drawable.ic_devices
+                title = R.string.status_lost
+                val name = device?.let { s.deviceLabel(it) } ?: getString(R.string.device_fallback)
+                detail = if (s?.isRetrying == true) {
+                    getString(R.string.status_lost_retrying, name)
+                } else {
+                    getString(R.string.status_lost_detail, name)
+                }
+                action = R.string.action_reconnect
+            }
             Step.CONNECTING, Step.CONNECTED -> {
-                icon = R.drawable.ic_television_simple
-                title = R.string.status_connecting_short
-                val target = s?.connectingDevice?.let { s.deviceLabel(it) }
-                detail = if (target != null) getString(R.string.status_connecting_to, target)
+                val target = s?.connectingDevice
+                icon = target?.let { s.typeOf(it).iconRes } ?: R.drawable.ic_devices
+                title = if ((s?.retryAttempt ?: 0) > 0) R.string.status_reconnecting
+                else R.string.status_connecting_short
+                detail = if (target != null) getString(R.string.status_connecting_to, s.deviceLabel(target))
                 else getString(R.string.status_connecting_detail)
                 action = null
             }
@@ -406,6 +449,31 @@ class MainActivity : FragmentActivity() {
         ui.statusProgress.isVisible = step == Step.STARTING || step == Step.CONNECTING
     }
 
+    /**
+     * Medium haptic and optional tone to confirm the link, then the device
+     * profile's preferred surface (Pro).
+     */
+    private fun onConnected() {
+        Haptics.confirm(this)
+        if (prefs.connectionSound) {
+            runCatching {
+                ToneGenerator(AudioManager.STREAM_NOTIFICATION, 60).apply {
+                    startTone(ToneGenerator.TONE_PROP_ACK, 150)
+                    ui.root.postDelayed({ release() }, 400)
+                }
+            }
+        }
+        val s = service ?: return
+        val device = s.connectedDevice ?: return
+        if (!Features.profiles(this)) return
+        val saved = DeviceStore(this).get(device.address) ?: return
+        when {
+            saved.defaultPanelId != null && PanelStore(this).get(saved.defaultPanelId) != null ->
+                openControl(panelId = saved.defaultPanelId)
+            saved.preferredMode != null -> openControl(mode = saved.preferredMode)
+        }
+    }
+
     private fun renderPlan() {
         val pro = app.entitlements.isPro
         ui.proBadge.isVisible = pro
@@ -413,11 +481,15 @@ class MainActivity : FragmentActivity() {
         ui.planLabel.setText(if (pro) R.string.plan_pro_label else R.string.plan_free_label)
     }
 
-    /** One gentle bounce per launch, so the button is noticed without nagging. */
+    /** One gentle bounce, at most once a day, so the button is noticed without nagging. */
     private fun nudgeProButton() {
-        if (!::ui.isInitialized || !ui.getPro.isVisible) return
-        ui.getPro.animate().scaleX(1.08f).scaleY(1.08f).setDuration(180).withEndAction {
-            ui.getPro.animate().scaleX(1f).scaleY(1f).setDuration(260).start()
+        if (!::ui.isInitialized || !ui.getPro.isVisible || Motion.reduced(this)) return
+        val nudges = getSharedPreferences(Prefs.FILE, MODE_PRIVATE)
+        val today = System.currentTimeMillis() / DAY_MS
+        if (nudges.getLong(KEY_LAST_NUDGE, -1) == today) return
+        nudges.edit().putLong(KEY_LAST_NUDGE, today).apply()
+        ui.getPro.animate().scaleX(1.06f).scaleY(1.06f).setDuration(160).withEndAction {
+            ui.getPro.animate().scaleX(1f).scaleY(1f).setDuration(220).start()
         }.start()
     }
 
@@ -428,7 +500,8 @@ class MainActivity : FragmentActivity() {
         if (!launched) openBluetoothSettings()
     }
 
-    private fun showDevicePicker() {
+    /** Lists devices this phone has paired with, or goes straight to pairing when there are none. */
+    fun showDevicePicker() {
         val s = service ?: return
         val hosts = s.pairedHosts()
         if (hosts.isEmpty()) {
@@ -443,22 +516,13 @@ class MainActivity : FragmentActivity() {
         hosts.forEach { device ->
             val row = ItemDeviceBinding.inflate(layoutInflater, view.deviceList, false)
             row.name.text = s.deviceLabel(device)
-            row.icon.setImageResource(
-                when (s.hostKind(device)) {
-                    HidService.HostKind.TV -> R.drawable.ic_television_simple
-                    HidService.HostKind.COMPUTER -> R.drawable.ic_desktop
-                    HidService.HostKind.PHONE -> R.drawable.ic_device_mobile
-                }
-            )
+            row.icon.setImageResource(s.typeOf(device).iconRes)
             val isCurrent = device == current
             row.lastUsed.isVisible = isCurrent || (current == null && device.address == prefs.lastHost)
             row.lastUsed.setText(if (isCurrent) R.string.status_connected else R.string.last_used)
             row.root.setOnClickListener {
                 dialog.dismiss()
-                if (!isCurrent) {
-                    s.connect(device)
-                    refreshStatus()
-                }
+                if (!isCurrent) connectTo(device)
             }
             view.deviceList.addView(row.root)
         }
@@ -472,8 +536,14 @@ class MainActivity : FragmentActivity() {
         dialog.show()
     }
 
-    /** Makes the phone visible, then shows where to look on the TV. */
-    private fun startPairing() {
+    /** Connects to [device]. Exposed for the Devices tab. */
+    fun connectTo(device: BluetoothDevice) {
+        service?.connect(device)
+        refreshStatus()
+    }
+
+    /** Makes the phone visible, then shows where to look on the device. */
+    fun startPairing() {
         val intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
             .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERABLE_SECONDS)
         // Launching this without the advertise permission is what used to
@@ -481,9 +551,11 @@ class MainActivity : FragmentActivity() {
         // once permissions are granted, and some ROMs have no such screen at
         // all, so failure falls back to the steps alone: many TVs still find
         // the phone while its Bluetooth settings are open.
-        val launched = hasBluetoothPermissions() && runCatching {
-            discoverable.launch(intent)
-        }.isSuccess
+        if (!hasBluetoothPermissions()) {
+            requestPermissions()
+            return
+        }
+        val launched = runCatching { discoverable.launch(intent) }.isSuccess
         if (!launched) showPairSteps()
     }
 
@@ -556,14 +628,15 @@ class MainActivity : FragmentActivity() {
         super.onDestroy()
         sheet?.dismiss()
         app.stopObservingEntitlement(entitlementObserver)
-        service?.listener = null
-        service?.onNotice = null
+        service?.removeListener(stateListener)
+        service?.removeNoticeListener(noticeListener)
         if (bound) runCatching { unbindService(connection) }
     }
 
     private companion object {
-        const val SPLASH_HOLD_MS = 1300L
         const val PRO_NUDGE_DELAY_MS = 1600L
         const val DISCOVERABLE_SECONDS = 180
+        const val DAY_MS = 86_400_000L
+        const val KEY_LAST_NUDGE = "last_pro_nudge_day"
     }
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colour tokens. Every layout and drawable reads colours through these,
+     so Dark, Pure Black and Light are three sets of values, not three
+     sets of screens. Values live in values/colors.xml per palette. -->
+<resources>
+    <attr name="bpBg" format="color" />
+    <attr name="bpSurface" format="color" />
+    <attr name="bpSurfaceRaised" format="color" />
+    <attr name="bpSurfaceHigh" format="color" />
+    <attr name="bpStroke" format="color" />
+    <attr name="bpStrokeStrong" format="color" />
+    <attr name="bpAccent" format="color" />
+    <attr name="bpAccent2" format="color" />
+    <attr name="bpAccentSoft" format="color" />
+    <attr name="bpOnAccent" format="color" />
+    <attr name="bpLive" format="color" />
+    <attr name="bpLiveSoft" format="color" />
+    <attr name="bpText" format="color" />
+    <attr name="bpTextDim" format="color" />
+    <attr name="bpTextFaint" format="color" />
+    <attr name="bpKey" format="color" />
+    <attr name="bpKeyPressed" format="color" />
+    <attr name="bpKeyStroke" format="color" />
+    <attr name="bpScrim" format="color" />
+    <attr name="bpDanger" format="color" />
+</resources>

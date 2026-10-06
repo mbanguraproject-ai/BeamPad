@@ -23,7 +23,7 @@
         android:text="@string/picker_title"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:textStyle="bold"
-        android:textColor="@color/bp_text" />
+        android:textColor="?attr/bpText" />
 
     <TextView
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
         android:paddingEnd="4dp"
         android:text="@string/picker_body"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/bp_text_dim" />
+        android:textColor="?attr/bpTextDim" />
 
     <LinearLayout
         android:id="@+id/deviceList"
@@ -47,7 +47,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/bp_stroke" />
+        android:background="?attr/bpStroke" />
 
     <LinearLayout
         android:id="@+id/pairNew"
@@ -73,7 +73,7 @@
                 android:layout_height="22dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_broadcast"
-                android:tint="@color/bp_text"
+                android:tint="?attr/bpText"
                 android:contentDescription="@null" />
         </FrameLayout>
 
@@ -89,21 +89,21 @@
                 android:text="@string/pair_new"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textStyle="bold"
-                android:textColor="@color/bp_text" />
+                android:textColor="?attr/bpText" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/pair_new_hint"
                 android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="@color/bp_text_dim" />
+                android:textColor="?attr/bpTextDim" />
         </LinearLayout>
 
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_caret_right"
-            android:tint="@color/bp_text_dim"
+            android:tint="?attr/bpTextDim"
             android:contentDescription="@null" />
     </LinearLayout>
 </LinearLayout>

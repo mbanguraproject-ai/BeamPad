@@ -4,12 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
-import androidx.fragment.app.FragmentActivity
 import com.devbangs.beampad.databinding.ActivityOnboardingBinding
 
 /**
@@ -17,7 +14,7 @@ import com.devbangs.beampad.databinding.ActivityOnboardingBinding
  * mismatch fails silently: the user has no way to guess why symbols arrived
  * wrong unless they are told before it happens.
  */
-class OnboardingActivity : FragmentActivity() {
+class OnboardingActivity : BeamActivity() {
 
     private data class Page(
         val icon: Int,
@@ -36,16 +33,11 @@ class OnboardingActivity : FragmentActivity() {
     private var index = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         ui = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
-        WindowInsetsControllerCompat(window, ui.root).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
 
         ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -123,7 +115,7 @@ class OnboardingActivity : FragmentActivity() {
     companion object {
         const val KEY_SEEN = "onboarding_seen"
 
-        fun shouldShow(activity: FragmentActivity): Boolean =
+        fun shouldShow(activity: android.app.Activity): Boolean =
             !activity.getSharedPreferences("beampad", MODE_PRIVATE)
                 .getBoolean(KEY_SEEN, false)
     }

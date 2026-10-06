@@ -9,8 +9,8 @@
     android:layout_marginTop="8dp"
     app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="@color/bp_surface"
-    app:strokeColor="@color/bp_stroke"
+    app:cardBackgroundColor="?attr/bpSurface"
+    app:strokeColor="?attr/bpStroke"
     app:strokeWidth="1dp"
     android:clickable="true"
     android:focusable="true"
@@ -38,7 +38,7 @@
                 android:layout_height="20dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_lock_key"
-                android:tint="@color/bp_accent_2"
+                android:tint="?attr/bpAccent2"
                 android:contentDescription="@null" />
         </FrameLayout>
 
@@ -51,7 +51,7 @@
             android:ellipsize="end"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <ImageButton
             android:id="@+id/delete"
@@ -60,7 +60,7 @@
             android:padding="12dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_trash"
-            android:tint="@color/bp_text_faint"
+            android:tint="?attr/bpTextFaint"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/snippet_delete" />
 
@@ -72,7 +72,7 @@
             android:padding="11dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_paper_plane_right"
-            android:tint="@color/bp_text"
+            android:tint="?attr/bpText"
             android:background="@drawable/bg_send_round"
             android:contentDescription="@string/snippet_send" />
     </LinearLayout>

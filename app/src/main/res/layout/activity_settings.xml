@@ -63,7 +63,7 @@
                     android:text="@string/settings_pro_title"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textStyle="bold"
-                    android:textColor="@color/bp_text" />
+                    android:textColor="?attr/bpText" />
 
                 <TextView
                     android:id="@+id/proBody"
@@ -72,7 +72,7 @@
                     android:layout_marginTop="2dp"
                     android:text="@string/settings_pro_body"
                     android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="@color/bp_text_dim" />
+                    android:textColor="?attr/bpTextDim" />
             </LinearLayout>
 
             <ImageView style="@style/SettingsChevron" />
@@ -423,7 +423,7 @@
             android:layout_marginTop="24dp"
             android:gravity="center"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/bp_text_faint" />
+            android:textColor="?attr/bpTextFaint" />
 
         </LinearLayout>
     </ScrollView>

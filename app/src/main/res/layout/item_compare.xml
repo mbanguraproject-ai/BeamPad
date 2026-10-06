@@ -14,7 +14,7 @@
         android:paddingTop="6dp"
         android:paddingBottom="6dp"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/bp_text" />
+        android:textColor="?attr/bpText" />
 
     <FrameLayout
         android:layout_width="68dp"
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
 
         <ImageView
             android:id="@+id/freeIcon"

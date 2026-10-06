@@ -1,28 +1,20 @@
 package com.devbangs.beampad
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
-import androidx.fragment.app.FragmentActivity
 import com.devbangs.beampad.databinding.ActivityDocBinding
 
 /** Displays a bundled plain-text document: privacy, terms or licences. */
-class DocActivity : FragmentActivity() {
+class DocActivity : BeamActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         val ui = ActivityDocBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
-        WindowInsetsControllerCompat(window, ui.root).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
 
         ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

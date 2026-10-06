@@ -34,6 +34,7 @@
         <activity
             android:name=".MainActivity"
             android:theme="@style/Theme.BeamPad.Splash"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,6 +56,30 @@
 
         <activity
             android:name=".ProActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".PanelEditorActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MacrosActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MacroEditorActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DeviceActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DiagnosticsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CompatibilityActivity"
             android:exported="false" />
 
         <service

@@ -36,7 +36,7 @@
                     android:padding="10dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_x"
-                    android:tint="@color/bp_text"
+                    android:tint="?attr/bpText"
                     android:background="@drawable/bg_icon_button"
                     android:contentDescription="@string/close" />
 
@@ -90,7 +90,7 @@
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:letterSpacing="-0.01"
-                android:textColor="@color/bp_text" />
+                android:textColor="?attr/bpText" />
 
             <TextView
                 android:id="@+id/subtitle"
@@ -103,7 +103,7 @@
                 android:lineSpacingExtra="2dp"
                 android:text="@string/pro_subtitle"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="@color/bp_text_dim" />
+                android:textColor="?attr/bpTextDim" />
 
             <TextView
                 android:id="@+id/highlight"
@@ -165,7 +165,7 @@
                         android:gravity="center"
                         android:text="@string/plan_free"
                         android:textAppearance="?attr/textAppearanceLabelLarge"
-                        android:textColor="@color/bp_text_dim" />
+                        android:textColor="?attr/bpTextDim" />
 
                     <FrameLayout
                         android:layout_width="76dp"
@@ -210,7 +210,7 @@
                 android:padding="16dp"
                 android:text="@string/plans_loading"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/bp_text_dim" />
+                android:textColor="?attr/bpTextDim" />
         </LinearLayout>
     </ScrollView>
 
@@ -242,7 +242,7 @@
             android:gravity="center"
             android:lineSpacingExtra="2dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -261,7 +261,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/dot_separator"
-                android:textColor="@color/bp_text_faint" />
+                android:textColor="?attr/bpTextFaint" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/privacy"

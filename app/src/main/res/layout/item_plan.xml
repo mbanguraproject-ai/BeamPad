@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textStyle="bold"
-                android:textColor="@color/bp_text" />
+                android:textColor="?attr/bpText" />
 
             <TextView
                 android:id="@+id/badge"
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
     </LinearLayout>
 
     <LinearLayout
@@ -81,13 +81,13 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:id="@+id/per"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
     </LinearLayout>
 </LinearLayout>

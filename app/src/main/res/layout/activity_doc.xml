@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bp_bg">
+    android:background="?attr/bpBg">
 
     <include
         android:id="@+id/bar"
@@ -23,6 +23,6 @@
             android:lineSpacingExtra="4dp"
             android:textIsSelectable="true"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
     </ScrollView>
 </LinearLayout>

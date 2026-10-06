@@ -21,7 +21,7 @@
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:layout_gravity="center"
-            android:tint="@color/bp_accent_2"
+            android:tint="?attr/bpAccent2"
             android:contentDescription="@null" />
     </FrameLayout>
 
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:id="@+id/body"
@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
     </LinearLayout>
 
     <ImageView
@@ -54,6 +54,6 @@
         android:layout_height="20dp"
         android:layout_marginStart="8dp"
         android:src="@drawable/ic_check_circle_fill"
-        android:tint="@color/bp_mint"
+        android:tint="?attr/bpLive"
         android:contentDescription="@null" />
 </LinearLayout>

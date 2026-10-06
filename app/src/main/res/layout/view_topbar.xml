@@ -16,7 +16,7 @@
         android:padding="10dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_arrow_left"
-        android:tint="@color/bp_text"
+        android:tint="?attr/bpText"
         android:background="@drawable/bg_icon_button"
         android:contentDescription="@string/back" />
 
@@ -27,5 +27,5 @@
         android:layout_marginStart="14dp"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="@color/bp_text" />
+        android:textColor="?attr/bpText" />
 </LinearLayout>

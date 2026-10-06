@@ -23,7 +23,7 @@
             android:layout_height="22dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_television_simple"
-            android:tint="@color/bp_text"
+            android:tint="?attr/bpText"
             android:contentDescription="@null" />
     </FrameLayout>
 
@@ -36,7 +36,7 @@
         android:ellipsize="end"
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:textStyle="bold"
-        android:textColor="@color/bp_text" />
+        android:textColor="?attr/bpText" />
 
     <TextView
         android:id="@+id/lastUsed"
@@ -50,6 +50,6 @@
         android:paddingBottom="3dp"
         android:text="@string/last_used"
         android:textAppearance="?attr/textAppearanceLabelSmall"
-        android:textColor="@color/bp_mint"
+        android:textColor="?attr/bpLive"
         android:visibility="gone" />
 </LinearLayout>

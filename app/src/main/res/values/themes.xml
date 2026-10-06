@@ -13,23 +13,147 @@
         <item name="postSplashScreenTheme">@style/Theme.BeamPad</item>
     </style>
 
-    <!-- Fixed dark identity. Dynamic colour is deliberately not used: the
-         brand should not change with the user's wallpaper. -->
+    <!-- Three appearances: Dark (default), Pure Black for OLED, and Light.
+         Activities pick one through Appearance before inflating. Dynamic
+         colour is deliberately not used: the brand should not change with
+         the user's wallpaper. -->
     <style name="Theme.BeamPad" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">@color/bp_accent</item>
-        <item name="colorOnPrimary">@color/bp_text</item>
-        <item name="colorSurface">@color/bp_surface</item>
-        <item name="colorOnSurface">@color/bp_text</item>
-        <item name="colorSurfaceVariant">@color/bp_surface_raised</item>
-        <item name="colorOnSurfaceVariant">@color/bp_text_dim</item>
-        <item name="colorOutline">@color/bp_stroke</item>
-        <item name="android:colorBackground">@color/bp_bg</item>
+        <item name="colorPrimary">@color/dark_accent</item>
+        <item name="colorOnPrimary">@color/dark_on_accent</item>
+        <item name="colorSecondary">@color/dark_accent_2</item>
+        <item name="colorError">@color/dark_danger</item>
+        <item name="colorSurface">@color/dark_surface</item>
+        <item name="colorOnSurface">@color/dark_text</item>
+        <item name="colorSurfaceVariant">@color/dark_surface_raised</item>
+        <item name="colorOnSurfaceVariant">@color/dark_text_dim</item>
+        <item name="colorSurfaceContainerLow">@color/dark_surface</item>
+        <item name="colorSurfaceContainer">@color/dark_surface_raised</item>
+        <item name="colorSurfaceContainerHigh">@color/dark_surface_high</item>
+        <item name="colorOutline">@color/dark_stroke_strong</item>
+        <item name="colorOutlineVariant">@color/dark_stroke</item>
+        <item name="android:colorBackground">@color/dark_bg</item>
+        <item name="android:windowBackground">@color/dark_bg</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowBackground">@color/bp_bg</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.BeamPad.BottomSheet</item>
+        <item name="bpBg">@color/dark_bg</item>
+        <item name="bpSurface">@color/dark_surface</item>
+        <item name="bpSurfaceRaised">@color/dark_surface_raised</item>
+        <item name="bpSurfaceHigh">@color/dark_surface_high</item>
+        <item name="bpStroke">@color/dark_stroke</item>
+        <item name="bpStrokeStrong">@color/dark_stroke_strong</item>
+        <item name="bpAccent">@color/dark_accent</item>
+        <item name="bpAccent2">@color/dark_accent_2</item>
+        <item name="bpAccentSoft">@color/dark_accent_soft</item>
+        <item name="bpOnAccent">@color/dark_on_accent</item>
+        <item name="bpLive">@color/dark_live</item>
+        <item name="bpLiveSoft">@color/dark_live_soft</item>
+        <item name="bpText">@color/dark_text</item>
+        <item name="bpTextDim">@color/dark_text_dim</item>
+        <item name="bpTextFaint">@color/dark_text_faint</item>
+        <item name="bpKey">@color/dark_key</item>
+        <item name="bpKeyPressed">@color/dark_key_pressed</item>
+        <item name="bpKeyStroke">@color/dark_key_stroke</item>
+        <item name="bpScrim">@color/dark_scrim</item>
+        <item name="bpDanger">@color/dark_danger</item>
+    </style>
+
+    <style name="Theme.BeamPad.Black" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/black_accent</item>
+        <item name="colorOnPrimary">@color/black_on_accent</item>
+        <item name="colorSecondary">@color/black_accent_2</item>
+        <item name="colorError">@color/black_danger</item>
+        <item name="colorSurface">@color/black_surface</item>
+        <item name="colorOnSurface">@color/black_text</item>
+        <item name="colorSurfaceVariant">@color/black_surface_raised</item>
+        <item name="colorOnSurfaceVariant">@color/black_text_dim</item>
+        <item name="colorSurfaceContainerLow">@color/black_surface</item>
+        <item name="colorSurfaceContainer">@color/black_surface_raised</item>
+        <item name="colorSurfaceContainerHigh">@color/black_surface_high</item>
+        <item name="colorOutline">@color/black_stroke_strong</item>
+        <item name="colorOutlineVariant">@color/black_stroke</item>
+        <item name="android:colorBackground">@color/black_bg</item>
+        <item name="android:windowBackground">@color/black_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.BeamPad.BottomSheet</item>
+        <item name="bpBg">@color/black_bg</item>
+        <item name="bpSurface">@color/black_surface</item>
+        <item name="bpSurfaceRaised">@color/black_surface_raised</item>
+        <item name="bpSurfaceHigh">@color/black_surface_high</item>
+        <item name="bpStroke">@color/black_stroke</item>
+        <item name="bpStrokeStrong">@color/black_stroke_strong</item>
+        <item name="bpAccent">@color/black_accent</item>
+        <item name="bpAccent2">@color/black_accent_2</item>
+        <item name="bpAccentSoft">@color/black_accent_soft</item>
+        <item name="bpOnAccent">@color/black_on_accent</item>
+        <item name="bpLive">@color/black_live</item>
+        <item name="bpLiveSoft">@color/black_live_soft</item>
+        <item name="bpText">@color/black_text</item>
+        <item name="bpTextDim">@color/black_text_dim</item>
+        <item name="bpTextFaint">@color/black_text_faint</item>
+        <item name="bpKey">@color/black_key</item>
+        <item name="bpKeyPressed">@color/black_key_pressed</item>
+        <item name="bpKeyStroke">@color/black_key_stroke</item>
+        <item name="bpScrim">@color/black_scrim</item>
+        <item name="bpDanger">@color/black_danger</item>
+    </style>
+
+    <style name="Theme.BeamPad.Light" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/light_accent</item>
+        <item name="colorOnPrimary">@color/light_on_accent</item>
+        <item name="colorSecondary">@color/light_accent_2</item>
+        <item name="colorError">@color/light_danger</item>
+        <item name="colorSurface">@color/light_surface</item>
+        <item name="colorOnSurface">@color/light_text</item>
+        <item name="colorSurfaceVariant">@color/light_surface_raised</item>
+        <item name="colorOnSurfaceVariant">@color/light_text_dim</item>
+        <item name="colorSurfaceContainerLow">@color/light_surface</item>
+        <item name="colorSurfaceContainer">@color/light_surface_raised</item>
+        <item name="colorSurfaceContainerHigh">@color/light_surface_high</item>
+        <item name="colorOutline">@color/light_stroke_strong</item>
+        <item name="colorOutlineVariant">@color/light_stroke</item>
+        <item name="android:colorBackground">@color/light_bg</item>
+        <item name="android:windowBackground">@color/light_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.BeamPad.BottomSheet</item>
+        <item name="bpBg">@color/light_bg</item>
+        <item name="bpSurface">@color/light_surface</item>
+        <item name="bpSurfaceRaised">@color/light_surface_raised</item>
+        <item name="bpSurfaceHigh">@color/light_surface_high</item>
+        <item name="bpStroke">@color/light_stroke</item>
+        <item name="bpStrokeStrong">@color/light_stroke_strong</item>
+        <item name="bpAccent">@color/light_accent</item>
+        <item name="bpAccent2">@color/light_accent_2</item>
+        <item name="bpAccentSoft">@color/light_accent_soft</item>
+        <item name="bpOnAccent">@color/light_on_accent</item>
+        <item name="bpLive">@color/light_live</item>
+        <item name="bpLiveSoft">@color/light_live_soft</item>
+        <item name="bpText">@color/light_text</item>
+        <item name="bpTextDim">@color/light_text_dim</item>
+        <item name="bpTextFaint">@color/light_text_faint</item>
+        <item name="bpKey">@color/light_key</item>
+        <item name="bpKeyPressed">@color/light_key_pressed</item>
+        <item name="bpKeyStroke">@color/light_key_stroke</item>
+        <item name="bpScrim">@color/light_scrim</item>
+        <item name="bpDanger">@color/light_danger</item>
+    </style>
+
+    <!-- High contrast, layered over any appearance: secondary text at full
+         strength and strokes at the strong weight, so edges and labels never
+         rely on subtle greys. -->
+    <style name="ThemeOverlay.BeamPad.HighContrast" parent="">
+        <item name="bpTextDim">?attr/bpText</item>
+        <item name="bpTextFaint">?attr/bpTextDim</item>
+        <item name="bpStroke">?attr/bpStrokeStrong</item>
+        <item name="bpKeyStroke">?attr/bpStrokeStrong</item>
     </style>
 
     <!-- Sheets: the app's surface colour with large top corners, instead of
@@ -39,7 +163,7 @@
     </style>
 
     <style name="Widget.BeamPad.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
-        <item name="backgroundTint">@color/bp_surface</item>
+        <item name="backgroundTint">?attr/bpSurface</item>
         <item name="shapeAppearance">@style/Shape.Sheet</item>
     </style>
 
@@ -65,14 +189,14 @@
 
     <style name="Widget.BeamPad.PrimaryButton" parent="Widget.BeamPad.Button">
         <item name="android:background">@drawable/bg_primary_button</item>
-        <item name="android:textColor">@color/bp_text</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="android:textColor">?attr/bpText</item>
+        <item name="iconTint">?attr/bpText</item>
     </style>
 
     <style name="Widget.BeamPad.SecondaryButton" parent="Widget.BeamPad.Button">
         <item name="android:background">@drawable/bg_secondary_button</item>
-        <item name="android:textColor">@color/bp_text</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="android:textColor">?attr/bpText</item>
+        <item name="iconTint">?attr/bpText</item>
     </style>
 
     <style name="Widget.BeamPad.ProButton" parent="Widget.BeamPad.Button">
@@ -85,7 +209,7 @@
         <item name="android:textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0</item>
-        <item name="android:textColor">@color/bp_accent_2</item>
+        <item name="android:textColor">?attr/bpAccent2</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
     </style>
@@ -94,7 +218,7 @@
         <item name="android:textAllCaps">false</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/bp_text_dim</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
         <item name="android:minWidth">0dp</item>
@@ -118,9 +242,9 @@
         <item name="android:layout_marginEnd">12dp</item>
         <item name="android:layout_marginTop">-8dp</item>
         <item name="labelBehavior">gone</item>
-        <item name="thumbColor">@color/bp_text</item>
-        <item name="trackColorActive">@color/bp_accent_2</item>
-        <item name="trackColorInactive">@color/bp_surface_high</item>
+        <item name="thumbColor">?attr/bpText</item>
+        <item name="trackColorActive">?attr/bpAccent2</item>
+        <item name="trackColorInactive">?attr/bpSurfaceHigh</item>
         <item name="haloColor">#337C6BFF</item>
         <item name="tickVisible">false</item>
     </style>
@@ -148,7 +272,7 @@
         <item name="android:layout_width">16dp</item>
         <item name="android:layout_height">16dp</item>
         <item name="android:layout_marginEnd">6dp</item>
-        <item name="android:tint">@color/bp_text</item>
+        <item name="android:tint">?attr/bpText</item>
         <item name="android:contentDescription">@null</item>
     </style>
 
@@ -157,7 +281,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/bp_text</item>
+        <item name="android:textColor">?attr/bpText</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
     </style>
@@ -203,7 +327,7 @@
         <item name="android:layout_width">20dp</item>
         <item name="android:layout_height">20dp</item>
         <item name="android:layout_gravity">center</item>
-        <item name="android:tint">@color/bp_accent_2</item>
+        <item name="android:tint">?attr/bpAccent2</item>
         <item name="android:contentDescription">@null</item>
     </style>
 
@@ -212,7 +336,7 @@
         <item name="android:layout_height">18dp</item>
         <item name="android:layout_marginStart">8dp</item>
         <item name="android:src">@drawable/ic_caret_right</item>
-        <item name="android:tint">@color/bp_text_faint</item>
+        <item name="android:tint">?attr/bpTextFaint</item>
         <item name="android:contentDescription">@null</item>
     </style>
 
@@ -236,16 +360,16 @@
         <item name="cornerSize">20dp</item>
     </style>
     <style name="Nav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/bp_accent</item>
+        <item name="android:color">?attr/bpAccentSoft</item>
         <item name="android:width">64dp</item>
         <item name="android:height">32dp</item>
     </style>
     <style name="Theme.BeamPad.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorSurface">@color/bp_surface</item>
-        <item name="colorOnSurface">@color/bp_text</item>
-        <item name="colorPrimary">@color/bp_accent_2</item>
-        <item name="colorOnSurfaceVariant">@color/bp_text_dim</item>
-        <item name="colorOutline">@color/bp_stroke</item>
+        <item name="colorSurface">?attr/bpSurface</item>
+        <item name="colorOnSurface">?attr/bpText</item>
+        <item name="colorPrimary">?attr/bpAccent2</item>
+        <item name="colorOnSurfaceVariant">?attr/bpTextDim</item>
+        <item name="colorOutline">?attr/bpStroke</item>
         <item name="shapeAppearanceOverlay">@style/Shape.Dialog</item>
     </style>
 
@@ -263,7 +387,7 @@
         <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0.04</item>
-        <item name="android:textColor">@color/bp_text_dim</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
     </style>
 
     <style name="SettingsRow">
@@ -294,7 +418,7 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
-        <item name="android:textColor">@color/bp_text</item>
+        <item name="android:textColor">?attr/bpText</item>
     </style>
 
     <style name="RowSubtitle">
@@ -302,9 +426,10 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">2dp</item>
         <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
-        <item name="android:textColor">@color/bp_text_dim</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
     </style>
     <style name="DpadKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:stateListAnimator">@animator/press_scale</item>
         <item name="android:layout_width">96dp</item>
         <item name="android:layout_height">62dp</item>
         <item name="android:background">@drawable/bg_key</item>
@@ -313,11 +438,12 @@
         <item name="android:insetBottom">0dp</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">0dp</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="iconTint">?attr/bpText</item>
         <item name="iconSize">22dp</item>
     </style>
 
     <style name="WideKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:stateListAnimator">@animator/press_scale</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_height">52dp</item>
@@ -325,26 +451,28 @@
         <item name="backgroundTint">@null</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
-        <item name="android:textColor">@color/bp_text_dim</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">0dp</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="iconTint">?attr/bpText</item>
         <item name="iconSize">20dp</item>
     </style>
     <style name="RockerKey" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">0dp</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:background">@android:color/transparent</item>
+        <item name="android:background">@drawable/bg_rocker_key</item>
+        <item name="android:stateListAnimator">@animator/press_scale</item>
         <item name="backgroundTint">@null</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">0dp</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="iconTint">?attr/bpText</item>
         <item name="iconSize">22dp</item>
     </style>
     <style name="StackedKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:stateListAnimator">@animator/press_scale</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_height">58dp</item>
@@ -357,13 +485,14 @@
         <item name="android:paddingTop">7dp</item>
         <item name="android:paddingBottom">7dp</item>
         <item name="android:textSize">11sp</item>
-        <item name="android:textColor">@color/bp_text_dim</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
         <item name="iconGravity">top</item>
         <item name="iconPadding">0dp</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="iconTint">?attr/bpText</item>
         <item name="iconSize">19dp</item>
     </style>
     <style name="IconKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:stateListAnimator">@animator/press_scale</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_height">48dp</item>
@@ -373,10 +502,11 @@
         <item name="android:insetBottom">0dp</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">0dp</item>
-        <item name="iconTint">@color/bp_text</item>
+        <item name="iconTint">?attr/bpText</item>
         <item name="iconSize">21dp</item>
     </style>
     <style name="TextKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:stateListAnimator">@animator/press_scale</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_height">52dp</item>
@@ -391,6 +521,6 @@
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:maxLines">1</item>
-        <item name="android:textColor">@color/bp_text</item>
+        <item name="android:textColor">?attr/bpText</item>
     </style>
 </resources>

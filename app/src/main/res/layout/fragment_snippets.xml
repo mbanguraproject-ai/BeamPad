@@ -36,7 +36,7 @@
         android:gravity="center_vertical"
         android:paddingStart="20dp"
         android:paddingEnd="16dp"
-        android:background="@color/bp_scrim">
+        android:background="?attr/bpScrim">
 
         <TextView
             android:layout_width="0dp"
@@ -45,7 +45,7 @@
             android:text="@string/snippets_title"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:id="@+id/count"
@@ -57,7 +57,7 @@
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
             android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
     </LinearLayout>
 
     <!-- Empty state sits in the lower third, clear of the TV in the
@@ -82,7 +82,7 @@
             android:text="@string/snippets_empty_title"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:layout_width="match_parent"
@@ -94,7 +94,7 @@
             android:lineSpacingExtra="3dp"
             android:text="@string/snippets_empty_body"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/bp_text_dim" />
+            android:textColor="?attr/bpTextDim" />
 
         <Space
             android:layout_width="match_parent"
@@ -109,11 +109,11 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
         android:text="@string/snippet_add"
-        android:textColor="@color/bp_text"
+        android:textColor="?attr/bpText"
         android:textStyle="bold"
         app:icon="@drawable/ic_plus"
-        app:iconTint="@color/bp_text"
-        app:backgroundTint="@color/bp_accent"
+        app:iconTint="?attr/bpText"
+        app:backgroundTint="?attr/bpAccent"
         app:shapeAppearanceOverlay="@style/Shape.Fab.Squircle" />
 
 </FrameLayout>

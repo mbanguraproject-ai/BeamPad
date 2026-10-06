@@ -24,42 +24,62 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.content.ContextCompat
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
 
+/**
+ * The connection engine. Owns the Bluetooth HID registration and the link
+ * to one host, independent of any screen, and hands report sending to
+ * [engine]. Every screen reads [state] and observes changes through
+ * [addListener], so they all show the same thing.
+ */
 class HidService : Service() {
 
     inner class LocalBinder : Binder() {
         val service: HidService get() = this@HidService
     }
 
-    /** Where the connection stands. The home screen renders straight from this. */
+    /**
+     * Where the connection stands. Maps onto the blueprint's visible states:
+     * CONNECTED, CONNECTING, READY ("available"), DISCONNECTED (a link that
+     * dropped), and the action-required states BLUETOOTH_OFF, UNSUPPORTED
+     * and NO_BLUETOOTH.
+     */
     enum class State {
-        /** No Bluetooth hardware at all. */
         NO_BLUETOOTH,
         BLUETOOTH_OFF,
 
         /** Registering the keyboard with the Bluetooth stack. */
         STARTING,
 
-        /** The phone does not offer keyboard mode, or refused to register it. */
+        /** Keyboard mode cannot run; see [unsupportedReason]. */
         UNSUPPORTED,
 
         /** Registered and waiting for a host. */
         READY,
         CONNECTING,
-        CONNECTED
+        CONNECTED,
+
+        /** A connection dropped without the user asking; see [lostDevice]. */
+        DISCONNECTED
     }
 
-    /** One-off events the screen reports once rather than renders. */
-    enum class Notice { CONNECT_FAILED }
+    /** Why keyboard mode is unavailable. Each has its own explanation and fix. */
+    enum class UnsupportedReason {
+        /** The phone's Bluetooth has no HID Device profile at all. */
+        NO_PROFILE,
 
-    /** Rough kind of host, for the icon in the device list. */
-    enum class HostKind { TV, COMPUTER, PHONE }
+        /** The profile exists but refused to register, usually another app holding it. */
+        REFUSED,
+
+        /** Registration never answered. */
+        NO_RESPONSE
+    }
+
+    /** One-off events, reported once rather than rendered. */
+    enum class Notice { CONNECTED, CONNECT_FAILED, LOST, GAVE_UP_RETRYING }
 
     private val binder = LocalBinder()
-
-    /** Reports go out on one thread so keys arrive in order. */
-    private val exec = Executors.newSingleThreadExecutor()
 
     /** Stack callbacks on their own thread: a long snippet must not delay a disconnect. */
     private val callbackExec = Executors.newSingleThreadExecutor()
@@ -73,13 +93,17 @@ class HidService : Service() {
     /** A connect asked for before registration finished. */
     @Volatile private var pendingConnect: BluetoothDevice? = null
 
-    /** Auto-reconnect runs once per start, and never after the user acted. */
-    @Volatile private var autoReconnectDone = false
-
     /** Automatic attempts fail quietly: the screen already offers Connect. */
     @Volatile private var quietAttempt = false
 
+    /** Set when the user disconnects, so nothing reconnects behind their back. */
+    @Volatile private var userParked = false
+    @Volatile private var userDisconnecting = false
+
     @Volatile var state: State = State.STARTING
+        private set
+
+    @Volatile var unsupportedReason: UnsupportedReason? = null
         private set
 
     @Volatile var connectedDevice: BluetoothDevice? = null
@@ -89,33 +113,71 @@ class HidService : Service() {
     @Volatile var connectingDevice: BluetoothDevice? = null
         private set
 
-    private val prefs by lazy { Prefs(this) }
+    /** The host whose connection dropped, offered for one-tap reconnect. */
+    @Volatile var lostDevice: BluetoothDevice? = null
+        private set
 
-    /** Layout of the receiving device. Persisted across restarts. */
+    /** Automatic reconnect attempts made since the last drop; 0 when not retrying. */
+    @Volatile var retryAttempt = 0
+        private set
+
+    val isRetrying: Boolean get() = lostDevice != null && retryAttempt < RETRY_DELAYS_MS.size &&
+        prefs.retryAfterDrop && state == State.DISCONNECTED
+
+    private val prefs by lazy { Prefs(this) }
+    private val devices by lazy { DeviceStore(this) }
+
+    /** Per-device layout from the connected device's profile, when Pro. */
+    @Volatile private var deviceLayout: HidReports.Layout? = null
+
+    /** Layout of the receiving device: its profile's, else the app setting. */
     var layout: HidReports.Layout
-        get() = prefs.layout
+        get() = deviceLayout ?: prefs.layout
         set(value) {
             prefs.layout = value
         }
 
-    /** Called on the main thread whenever [state] changes. */
-    var listener: (() -> Unit)? = null
+    /** Every control in the app sends through this. */
+    lateinit var engine: InputEngine
+        private set
+
+    private val listeners = CopyOnWriteArraySet<() -> Unit>()
+    private val noticeListeners = CopyOnWriteArraySet<(Notice) -> Unit>()
+
+    /** Called on the main thread whenever [state] or its details change. */
+    fun addListener(l: () -> Unit) {
+        listeners += l
+    }
+
+    fun removeListener(l: () -> Unit) {
+        listeners -= l
+    }
 
     /** Called on the main thread for one-off events. */
-    var onNotice: ((Notice) -> Unit)? = null
+    fun addNoticeListener(l: (Notice) -> Unit) {
+        noticeListeners += l
+    }
+
+    fun removeNoticeListener(l: (Notice) -> Unit) {
+        noticeListeners -= l
+    }
 
     private fun setState(next: State) {
         state = next
+        if (next != State.UNSUPPORTED) unsupportedReason = null
         main.post {
-            listener?.invoke()
+            listeners.forEach { it() }
             updateNotification()
         }
     }
 
     private fun notice(n: Notice) {
-        if (quietAttempt) return
-        main.post { onNotice?.invoke(n) }
+        if (quietAttempt && n == Notice.CONNECT_FAILED) return
+        main.post { noticeListeners.forEach { it(n) } }
     }
+
+    private fun log(kind: ConnectionLog.Kind, detail: String = "") =
+        ConnectionLog.add(this, kind, detail)
 
     private fun bluetoothOn(): Boolean =
         runCatching { adapter?.isEnabled == true }.getOrDefault(false)
@@ -123,8 +185,16 @@ class HidService : Service() {
     private val btStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)) {
-                BluetoothAdapter.STATE_ON -> acquireProxy()
+                BluetoothAdapter.STATE_ON -> {
+                    log(ConnectionLog.Kind.BLUETOOTH, "on")
+                    acquireProxy()
+                }
                 BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_OFF -> {
+                    if (state != State.BLUETOOTH_OFF) log(ConnectionLog.Kind.BLUETOOTH, "off")
+                    // A device connected when Bluetooth went off is offered back
+                    // when it returns, rather than forgotten.
+                    connectedDevice?.let { lostDevice = it }
+                    main.removeCallbacks(retryRunnable)
                     releaseProxy()
                     setState(State.BLUETOOTH_OFF)
                 }
@@ -135,14 +205,30 @@ class HidService : Service() {
     private val registrationTimeout = Runnable {
         // Some phones hand out the profile but never confirm registration.
         // Saying so beats an endless "Starting".
-        if (!registered && state == State.STARTING) setState(State.UNSUPPORTED)
+        if (!registered && state == State.STARTING) markUnsupported(UnsupportedReason.NO_RESPONSE)
     }
 
     private val connectTimeout = Runnable {
-        if (connectingDevice == null || connectedDevice != null) return@Runnable
+        val target = connectingDevice
+        if (target == null || connectedDevice != null) return@Runnable
         connectingDevice = null
-        setState(if (registered) State.READY else State.STARTING)
-        notice(Notice.CONNECT_FAILED)
+        log(ConnectionLog.Kind.FAILED, "timeout ${label(target)}")
+        attemptFailed()
+    }
+
+    private val retryRunnable = Runnable {
+        val target = lostDevice ?: return@Runnable
+        if (!registered || !bluetoothOn() || connectedDevice != null) return@Runnable
+        retryAttempt++
+        log(ConnectionLog.Kind.RETRY, "attempt $retryAttempt ${label(target)}")
+        connectNow(target, quiet = true)
+    }
+
+    private fun markUnsupported(reason: UnsupportedReason) {
+        log(ConnectionLog.Kind.UNSUPPORTED, reason.name)
+        setState(State.UNSUPPORTED)
+        unsupportedReason = reason
+        main.post { listeners.forEach { it() } }
     }
 
     private val hidCallback = object : BluetoothHidDevice.Callback() {
@@ -156,29 +242,25 @@ class HidService : Service() {
                 setState(if (bluetoothOn()) State.STARTING else State.BLUETOOTH_OFF)
                 return
             }
+            log(ConnectionLog.Kind.REGISTERED)
 
-            if (connectedDevice == null && connectingDevice == null) setState(State.READY)
+            if (connectedDevice == null && connectingDevice == null) {
+                setState(if (lostDevice != null) State.DISCONNECTED else State.READY)
+            }
 
             val requested = pendingConnect
             pendingConnect = null
-            if (requested != null) {
-                connectNow(requested, quiet = false)
-            } else {
-                autoReconnectTarget(pluggedDevice)?.let { connectNow(it, quiet = true) }
+            when {
+                requested != null -> connectNow(requested, quiet = false)
+                userParked || !prefs.autoReconnect -> Unit
+                lostDevice != null -> lostDevice?.let { connectNow(it, quiet = true) }
+                else -> autoReconnectTarget(pluggedDevice)?.let { connectNow(it, quiet = true) }
             }
         }
 
         override fun onConnectionStateChanged(device: BluetoothDevice, state: Int) {
             when (state) {
-                BluetoothProfile.STATE_CONNECTED -> {
-                    main.removeCallbacks(connectTimeout)
-                    connectedDevice = device
-                    connectingDevice = null
-                    quietAttempt = false
-                    sentThisSession = false
-                    prefs.lastHost = device.address
-                    setState(State.CONNECTED)
-                }
+                BluetoothProfile.STATE_CONNECTED -> onConnected(device)
 
                 BluetoothProfile.STATE_CONNECTING -> {
                     if (connectedDevice == null) {
@@ -187,25 +269,86 @@ class HidService : Service() {
                     }
                 }
 
-                BluetoothProfile.STATE_DISCONNECTED -> {
-                    val failedAttempt = device == connectingDevice
-                    if (failedAttempt) connectingDevice = null
-                    if (device == connectedDevice) connectedDevice = null
-
-                    when {
-                        connectedDevice != null -> Unit
-                        // Switching hosts: the old one dropping is expected.
-                        connectingDevice != null -> setState(State.CONNECTING)
-                        else -> {
-                            main.removeCallbacks(connectTimeout)
-                            setState(if (registered) State.READY else State.STARTING)
-                            if (failedAttempt) notice(Notice.CONNECT_FAILED)
-                            quietAttempt = false
-                        }
-                    }
-                }
+                BluetoothProfile.STATE_DISCONNECTED -> onDisconnected(device)
             }
         }
+    }
+
+    private fun onConnected(device: BluetoothDevice) {
+        main.removeCallbacks(connectTimeout)
+        main.removeCallbacks(retryRunnable)
+        connectedDevice = device
+        connectingDevice = null
+        lostDevice = null
+        retryAttempt = 0
+        quietAttempt = false
+        userParked = false
+        userDisconnecting = false
+        engine.resetSession()
+        prefs.lastHost = device.address
+        val saved = devices.recordConnected(device.address, systemName(device), guessType(device))
+        deviceLayout = if (Features.profiles(this)) saved.layout else null
+        log(ConnectionLog.Kind.CONNECTED, saved.displayName)
+        setState(State.CONNECTED)
+        notice(Notice.CONNECTED)
+    }
+
+    private fun onDisconnected(device: BluetoothDevice) {
+        val failedAttempt = device == connectingDevice
+        val wasConnected = device == connectedDevice
+        if (failedAttempt) connectingDevice = null
+        if (wasConnected) {
+            connectedDevice = null
+            engine.cancelAll()
+        }
+
+        when {
+            connectedDevice != null -> Unit
+            // Switching hosts: the old one dropping is expected.
+            connectingDevice != null -> setState(State.CONNECTING)
+            wasConnected && userDisconnecting -> {
+                userDisconnecting = false
+                log(ConnectionLog.Kind.DISCONNECTED, label(device))
+                setState(if (registered) State.READY else State.STARTING)
+            }
+            wasConnected -> {
+                // Dropped without being asked: the TV slept, rebooted or went
+                // out of range. Remember it and try again quietly.
+                lostDevice = device
+                retryAttempt = 0
+                log(ConnectionLog.Kind.LOST, label(device))
+                setState(State.DISCONNECTED)
+                notice(Notice.LOST)
+                scheduleRetry()
+            }
+            failedAttempt -> {
+                log(ConnectionLog.Kind.FAILED, label(device))
+                attemptFailed()
+            }
+            else -> setState(if (lostDevice != null) State.DISCONNECTED else if (registered) State.READY else State.STARTING)
+        }
+    }
+
+    /** A connection attempt ended without connecting. */
+    private fun attemptFailed() {
+        main.removeCallbacks(connectTimeout)
+        val retrying = lostDevice != null
+        setState(if (retrying) State.DISCONNECTED else if (registered) State.READY else State.STARTING)
+        notice(Notice.CONNECT_FAILED)
+        quietAttempt = false
+        if (retrying) scheduleRetry()
+    }
+
+    private fun scheduleRetry() {
+        main.removeCallbacks(retryRunnable)
+        if (lostDevice == null || userParked || !prefs.retryAfterDrop) return
+        if (retryAttempt >= RETRY_DELAYS_MS.size) {
+            notice(Notice.GAVE_UP_RETRYING)
+            main.post { listeners.forEach { it() } }
+            return
+        }
+        main.postDelayed(retryRunnable, RETRY_DELAYS_MS[retryAttempt])
+        main.post { listeners.forEach { it() } }
     }
 
     private val serviceListener = object : BluetoothProfile.ServiceListener {
@@ -225,7 +368,7 @@ class HidService : Service() {
             }.getOrDefault(false)
 
             if (!ok) {
-                setState(State.UNSUPPORTED)
+                markUnsupported(UnsupportedReason.REFUSED)
                 return
             }
             main.removeCallbacks(registrationTimeout)
@@ -236,6 +379,7 @@ class HidService : Service() {
             if (profile != BluetoothProfile.HID_DEVICE) return
             hid = null
             registered = false
+            connectedDevice?.let { lostDevice = it }
             connectedDevice = null
             connectingDevice = null
             setState(if (bluetoothOn()) State.STARTING else State.BLUETOOTH_OFF)
@@ -244,6 +388,11 @@ class HidService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        engine = InputEngine(
+            sink = { id, report -> send(id, report) },
+            layout = { layout },
+            findMacro = { id -> MacroStore(this).get(id) }
+        )
         createChannel()
         startForegroundSafely()
         adapter = runCatching {
@@ -274,12 +423,13 @@ class HidService : Service() {
         val ok = runCatching {
             a.getProfileProxy(this, serviceListener, BluetoothProfile.HID_DEVICE)
         }.getOrDefault(false)
-        if (!ok) setState(State.UNSUPPORTED)
+        if (!ok) markUnsupported(UnsupportedReason.NO_PROFILE)
     }
 
     private fun releaseProxy() {
         main.removeCallbacks(registrationTimeout)
         main.removeCallbacks(connectTimeout)
+        engine.cancelAll()
         val h = hid ?: return
         hid = null
         registered = false
@@ -300,13 +450,31 @@ class HidService : Service() {
      * is still in progress the request waits for it instead of failing.
      */
     fun connect(device: BluetoothDevice) {
-        autoReconnectDone = true
+        userParked = false
+        main.removeCallbacks(retryRunnable)
+        if (device != lostDevice) {
+            lostDevice = null
+            retryAttempt = 0
+        }
         if (device == connectedDevice) return
         if (!registered || hid == null) {
             pendingConnect = device
             return
         }
         connectNow(device, quiet = false)
+    }
+
+    /** One tap back to the device that dropped, or else the last one used. */
+    fun reconnect(): Boolean {
+        val target = lostDevice ?: lastHost() ?: return false
+        retryAttempt = 0
+        connect(target)
+        return true
+    }
+
+    private fun lastHost(): BluetoothDevice? {
+        val address = prefs.lastHost ?: return null
+        return pairedHosts().firstOrNull { it.address == address }
     }
 
     private fun connectNow(device: BluetoothDevice, quiet: Boolean) {
@@ -318,41 +486,42 @@ class HidService : Service() {
         quietAttempt = quiet
 
         // The profile allows one host at a time.
-        connectedDevice?.let { current -> runCatching { h.disconnect(current) } }
+        connectedDevice?.let { current ->
+            userDisconnecting = true
+            runCatching { h.disconnect(current) }
+        }
 
         connectingDevice = device
+        log(ConnectionLog.Kind.CONNECTING, label(device))
         setState(State.CONNECTING)
         val ok = runCatching { h.connect(device) }.getOrDefault(false)
         if (!ok) {
             connectingDevice = null
-            setState(if (connectedDevice != null) State.CONNECTED else State.READY)
-            notice(Notice.CONNECT_FAILED)
-            quietAttempt = false
+            log(ConnectionLog.Kind.FAILED, "refused ${label(device)}")
+            if (connectedDevice != null) setState(State.CONNECTED) else attemptFailed()
             return
         }
         main.removeCallbacks(connectTimeout)
-        main.postDelayed(connectTimeout, CONNECT_TIMEOUT_MS)
+        main.postDelayed(connectTimeout, prefs.connectTimeout.millis)
     }
 
     private fun autoReconnectTarget(plugged: BluetoothDevice?): BluetoothDevice? {
-        if (autoReconnectDone || !prefs.autoReconnect) return null
-        autoReconnectDone = true
         val hosts = pairedHosts()
         plugged?.let { p -> hosts.firstOrNull { it == p }?.let { return it } }
         val address = prefs.lastHost ?: return null
         return hosts.firstOrNull { it.address == address }
     }
 
-    /** Devices bonded with this phone that can take keyboard input, last used first. */
+    /** Devices bonded with this phone that can take keyboard input, most recent first. */
     fun pairedHosts(): List<BluetoothDevice> {
         val bonded = runCatching {
             adapter?.bondedDevices?.toList().orEmpty()
         }.getOrDefault(emptyList())
-        val last = prefs.lastHost
+        val recency = devices.all().withIndex().associate { (i, d) -> d.address to i }
         return bonded
             .filter { canHost(it) }
             .sortedWith(
-                compareByDescending<BluetoothDevice> { it.address == last }
+                compareBy<BluetoothDevice> { recency[it.address] ?: Int.MAX_VALUE }
                     .thenBy { deviceLabel(it).lowercase() }
             )
     }
@@ -370,115 +539,95 @@ class HidService : Service() {
         }
     }
 
-    fun hostKind(device: BluetoothDevice): HostKind {
+    /** The saved type when the user set one, else a guess from the Bluetooth class. */
+    fun typeOf(device: BluetoothDevice): DeviceType =
+        devices.get(device.address)?.type ?: guessType(device)
+
+    private fun guessType(device: BluetoothDevice): DeviceType {
         val major = runCatching { device.bluetoothClass?.majorDeviceClass }.getOrNull()
         return when (major) {
-            BluetoothClass.Device.Major.COMPUTER -> HostKind.COMPUTER
-            BluetoothClass.Device.Major.PHONE -> HostKind.PHONE
-            else -> HostKind.TV
+            BluetoothClass.Device.Major.COMPUTER -> DeviceType.COMPUTER
+            BluetoothClass.Device.Major.PHONE -> DeviceType.PHONE
+            else -> DeviceType.TV
         }
     }
 
     fun lastHostName(): String? {
         val address = prefs.lastHost ?: return null
-        return pairedHosts().firstOrNull { it.address == address }?.let { deviceLabel(it) }
+        return devices.get(address)?.displayName
+            ?: pairedHosts().firstOrNull { it.address == address }?.let { deviceLabel(it) }
     }
 
-    private fun send(device: BluetoothDevice, id: Int, report: ByteArray): Boolean {
+    /** Re-reads the connected device's profile after it was edited. */
+    fun refreshProfile() {
+        val address = connectedDevice?.address ?: return
+        deviceLayout = if (Features.profiles(this)) devices.get(address)?.layout else null
+        main.post { listeners.forEach { it() } }
+    }
+
+    private fun send(id: Int, report: ByteArray): Boolean {
         val h = hid ?: return false
-        return runCatching { h.sendReport(device, id, report) }.getOrDefault(false)
-    }
-
-    /** Sends a key press followed by a release. Call off the main thread. */
-    fun tapKey(modifier: Byte, keyCode: Byte): Boolean {
         val dev = connectedDevice ?: return false
-        sentThisSession = true
-        if (!send(dev, HidReports.REPORT_ID, HidReports.press(modifier, keyCode))) return false
-        Thread.sleep(KEY_DELAY_MS)
-        send(dev, HidReports.REPORT_ID, HidReports.release())
-        Thread.sleep(KEY_DELAY_MS)
-        return true
+        val ok = runCatching { h.sendReport(dev, id, report) }.getOrDefault(false)
+        if (!ok) log(ConnectionLog.Kind.SEND_FAILED, "report $id")
+        return ok
     }
 
-    /**
-     * Types a whole string on the send executor, one key at a time.
-     * [done] reports how many characters were sent and how many had no mapping.
-     */
+    // Thin wrappers kept for screens written against the earlier API.
+
     fun typeText(text: String, done: (sent: Int, skipped: Int) -> Unit) {
-        exec.execute {
-            var sent = 0
-            var skipped = 0
-            for (c in text) {
-                val enc = HidReports.encode(c, layout)
-                if (enc == null) {
-                    skipped++
-                    continue
-                }
-                if (!tapKey(enc.first, enc.second)) break
-                sent++
-            }
-            done(sent, skipped)
-        }
+        engine.keyboard.type(text) { r -> done(r.sent, r.skipped) }
     }
 
-    /** Relative pointer movement. Safe to call at touch-event rate. */
-    fun moveMouse(dx: Int, dy: Int) {
-        val dev = connectedDevice ?: return
-        send(dev, HidReports.REPORT_ID_MOUSE, HidReports.mouse(HidReports.BUTTON_NONE, dx, dy))
-    }
+    fun typeKey(modifier: Byte, keyCode: Byte) = engine.keyboard.tap(keyCode.toInt(), modifier.toInt())
 
-    fun scroll(amount: Int) {
-        val dev = connectedDevice ?: return
-        send(dev, HidReports.REPORT_ID_MOUSE, HidReports.mouse(HidReports.BUTTON_NONE, 0, 0, amount))
-    }
+    fun consumerKey(usage: Int) = engine.consumer.press(usage)
 
-    /** Press and release a mouse button in place. */
-    fun click(button: Byte) {
-        val dev = connectedDevice ?: return
-        exec.execute {
-            send(dev, HidReports.REPORT_ID_MOUSE, HidReports.mouse(button, 0, 0))
-            Thread.sleep(KEY_DELAY_MS)
-            send(dev, HidReports.REPORT_ID_MOUSE, HidReports.mouse(HidReports.BUTTON_NONE, 0, 0))
-        }
-    }
+    fun moveMouse(dx: Int, dy: Int) = engine.mouse.move(dx, dy)
 
-    /**
-     * Sends a consumer control code: volume, mute, play/pause.
-     * A release report must follow or the receiver treats the key as held.
-     */
-    fun consumerKey(usage: Int) {
-        val dev = connectedDevice ?: return
-        exec.execute {
-            send(dev, HidReports.REPORT_ID_CONSUMER, HidReports.consumer(usage))
-            Thread.sleep(KEY_DELAY_MS)
-            send(dev, HidReports.REPORT_ID_CONSUMER, HidReports.consumerRelease())
-        }
-    }
+    fun scroll(amount: Int) = engine.mouse.scroll(amount)
 
-    /** Sends a single key, optionally with a modifier held, off the main thread. */
-    fun typeKey(modifier: Byte, keyCode: Byte) {
-        exec.execute { tapKey(modifier, keyCode) }
-    }
+    fun click(button: Byte) = engine.mouse.click(button.toInt())
 
     /**
      * Drops the current connection. The HID app stays registered, so the
      * device can pair again without reopening the app.
      */
     fun disconnect(): Boolean {
-        autoReconnectDone = true
-        val dev = connectedDevice ?: return false
+        userParked = true
+        main.removeCallbacks(retryRunnable)
+        lostDevice = null
+        retryAttempt = 0
+        val dev = connectedDevice ?: run {
+            setState(if (registered) State.READY else State.STARTING)
+            return false
+        }
         val h = hid ?: return false
+        userDisconnecting = true
         return runCatching { h.disconnect(dev) }.getOrDefault(false)
     }
 
+    /** Stops trying to bring back a dropped connection. */
+    fun forgetLost() {
+        main.removeCallbacks(retryRunnable)
+        lostDevice = null
+        retryAttempt = 0
+        setState(if (registered) State.READY else State.STARTING)
+    }
+
     /** True once anything has actually been sent this connection. */
-    var sentThisSession: Boolean = false
-        private set
+    val sentThisSession: Boolean get() = engine.sentSomething
 
     fun isReady(): Boolean = hid != null && connectedDevice != null
 
+    /** The user's name for a device when they set one, else its Bluetooth name. */
     fun deviceLabel(device: BluetoothDevice): String =
+        devices.get(device.address)?.displayName ?: systemName(device)
+
+    private fun systemName(device: BluetoothDevice): String =
         runCatching { device.name ?: device.address }.getOrNull() ?: getString(R.string.device_fallback)
+
+    private fun label(device: BluetoothDevice): String = deviceLabel(device)
 
     fun localBluetoothName(): String =
         runCatching { adapter?.name }.getOrNull() ?: getString(R.string.this_phone)
@@ -495,7 +644,7 @@ class HidService : Service() {
         main.removeCallbacksAndMessages(null)
         runCatching { unregisterReceiver(btStateReceiver) }
         releaseProxy()
-        exec.shutdown()
+        engine.shutdown()
         callbackExec.shutdown()
     }
 
@@ -519,13 +668,20 @@ class HidService : Service() {
         State.BLUETOOTH_OFF -> getString(R.string.status_bt_off)
         State.UNSUPPORTED -> getString(R.string.status_unsupported)
         State.NO_BLUETOOTH -> getString(R.string.status_no_bluetooth)
+        State.DISCONNECTED -> getString(
+            R.string.status_lost_to,
+            lostDevice?.let { deviceLabel(it) } ?: getString(R.string.device_fallback)
+        )
     }
 
     private fun buildNotification(): Notification {
+        // Single top: tapping the notification returns to the open screen
+        // rather than stacking a second copy of it.
         val open = PendingIntent.getActivity(
             this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
+            Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val builder = Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
@@ -579,13 +735,13 @@ class HidService : Service() {
     }
 
     companion object {
-        /** Gap between reports. Slower stacks drop keys sent back-to-back. */
-        private const val KEY_DELAY_MS = 12L
         private const val REGISTER_TIMEOUT_MS = 8_000L
-        private const val CONNECT_TIMEOUT_MS = 15_000L
         private const val CHANNEL_ID = "beampad_connection"
         private const val NOTIF_ID = 1
         const val ACTION_DISCONNECT = "com.devbangs.beampad.DISCONNECT"
+
+        /** Backoff for quietly retrying a dropped connection: TVs take a while to wake. */
+        val RETRY_DELAYS_MS = longArrayOf(2_000, 5_000, 10_000, 20_000, 40_000)
 
         private val AUDIO_ONLY = setOf(
             BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES,

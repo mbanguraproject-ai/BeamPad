@@ -56,8 +56,8 @@
                     android:inputType="text"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:textColor="@color/bp_text"
-                    android:textColorHint="@color/bp_text_faint"
+                    android:textColor="?attr/bpText"
+                    android:textColorHint="?attr/bpTextFaint"
                     android:textSize="16sp"
                     android:importantForAutofill="no" />
 
@@ -72,7 +72,7 @@
                         android:padding="11dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_microphone"
-                        android:tint="@color/bp_text_dim"
+                        android:tint="?attr/bpTextDim"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/voice_typing" />
 
@@ -110,7 +110,7 @@
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="22dp"
-                app:iconTint="@color/bp_text" />
+                app:iconTint="?attr/bpText" />
         </LinearLayout>
 
         <!-- Tools share the row evenly, so all three are always visible
@@ -253,7 +253,7 @@
                     android:layout_weight="0.8"
                     android:padding="15dp"
                     android:src="@drawable/ic_speaker_high"
-                    android:tint="@color/bp_text_dim"
+                    android:tint="?attr/bpTextDim"
                     android:contentDescription="@null" />
 
                 <com.google.android.material.button.MaterialButton
@@ -268,7 +268,7 @@
                     android:gravity="center"
                     android:text="@string/vol"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="@color/bp_text_dim" />
+                    android:textColor="?attr/bpTextDim" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/volDown"
@@ -311,7 +311,7 @@
                     android:gravity="center"
                     android:text="@string/del"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="@color/bp_text_dim" />
+                    android:textColor="?attr/bpTextDim" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/mute"

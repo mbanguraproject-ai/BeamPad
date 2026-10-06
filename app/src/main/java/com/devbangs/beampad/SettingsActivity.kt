@@ -8,17 +8,14 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.fragment.app.FragmentActivity
 import com.devbangs.beampad.databinding.ActivitySettingsBinding
 import java.util.Locale
 
-class SettingsActivity : FragmentActivity() {
+class SettingsActivity : BeamActivity() {
 
     private lateinit var ui: ActivitySettingsBinding
     private val app get() = application as BeamPadApp
@@ -45,16 +42,11 @@ class SettingsActivity : FragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         ui = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
-        WindowInsetsControllerCompat(window, ui.root).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
 
         ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, insets ->
             val bars = insets.getInsets(

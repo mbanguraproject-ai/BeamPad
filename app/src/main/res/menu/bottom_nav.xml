@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Control, Devices, Panels, Snippets. Settings is the gear in the header. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/tab_control"
+        android:icon="@drawable/ic_keyboard"
+        android:title="@string/tab_control" />
+    <item
+        android:id="@+id/tab_devices"
+        android:icon="@drawable/ic_devices"
+        android:title="@string/tab_devices" />
+    <item
+        android:id="@+id/tab_panels"
+        android:icon="@drawable/ic_layout"
+        android:title="@string/tab_panels" />
     <item
         android:id="@+id/tab_snippets"
         android:icon="@drawable/ic_vault"
         android:title="@string/tab_snippets" />
-    <item
-        android:id="@+id/tab_keyboard"
-        android:icon="@drawable/ic_keyboard"
-        android:title="@string/tab_keyboard" />
-    <item
-        android:id="@+id/tab_trackpad"
-        android:icon="@drawable/ic_cursor"
-        android:title="@string/tab_trackpad" />
 </menu>

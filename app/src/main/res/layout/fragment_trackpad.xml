@@ -51,7 +51,7 @@
                     android:layout_height="48dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_cursor"
-                    android:tint="@color/bp_text"
+                    android:tint="?attr/bpText"
                     android:contentDescription="@null" />
             </FrameLayout>
 
@@ -62,7 +62,7 @@
                 android:text="@string/trackpad_title"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textStyle="bold"
-                android:textColor="@color/bp_text" />
+                android:textColor="?attr/bpText" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                 android:lineSpacingExtra="3dp"
                 android:text="@string/trackpad_hint"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/bp_text_dim" />
+                android:textColor="?attr/bpTextDim" />
         </LinearLayout>
     </FrameLayout>
 
@@ -95,7 +95,7 @@
             android:focusable="true"
             android:text="@string/left_click"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
 
         <TextView
             android:id="@+id/rightClick"
@@ -109,6 +109,6 @@
             android:focusable="true"
             android:text="@string/right_click"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
     </LinearLayout>
 </LinearLayout>

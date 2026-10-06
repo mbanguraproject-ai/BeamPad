@@ -1,21 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- App background: near-black navy with a soft indigo glow at the top,
-     so the header sits in light and the controls below stay calm. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/bp_bg" />
-        </shape>
-    </item>
-    <item>
-        <shape android:shape="rectangle">
-            <gradient
-                android:type="radial"
-                android:centerX="0.5"
-                android:centerY="0"
-                android:gradientRadius="90%"
-                android:startColor="#992A2580"
-                android:endColor="#00070A18" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Plain background. Depth comes from surfaces, not glow. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/bpBg" />
+</shape>

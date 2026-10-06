@@ -24,6 +24,16 @@ object HidReports {
     const val CC_HOME = 0x0223           // AC Home
     const val CC_BACK = 0x0224           // AC Back
     const val CC_MENU = 0x0040           // Menu
+    const val CC_FORWARD = 0x0225        // AC Forward
+    const val CC_SEARCH = 0x0221         // AC Search: opens the TV's search
+    const val CC_POWER = 0x0030          // Power
+    const val CC_SLEEP = 0x0032          // Sleep
+    const val CC_CHANNEL_UP = 0x009C     // Channel Increment
+    const val CC_CHANNEL_DOWN = 0x009D   // Channel Decrement
+    const val CC_FAST_FORWARD = 0x00B3   // Fast Forward (seek, not next track)
+    const val CC_REWIND = 0x00B4         // Rewind (seek, not previous track)
+    const val CC_STOP = 0x00B7           // Stop
+    const val CC_CLOSED_CAPTION = 0x0061 // Closed Caption: subtitles toggle
 
     // Deliberately absent: input/source switching has no HID usage at all
     // (it is IR, CEC or vendor protocol), and channel up/down only works on
@@ -32,10 +42,13 @@ object HidReports {
     const val BUTTON_NONE: Byte = 0x00
     const val BUTTON_LEFT: Byte = 0x01
     const val BUTTON_RIGHT: Byte = 0x02
+    const val BUTTON_MIDDLE: Byte = 0x04
 
     const val MOD_NONE: Byte = 0x00
     const val MOD_LEFT_CTRL: Byte = 0x01
     const val MOD_LEFT_SHIFT: Byte = 0x02
+    const val MOD_LEFT_ALT: Byte = 0x04
+    const val MOD_LEFT_META: Byte = 0x08     // Windows / Command / Search key
     const val MOD_RIGHT_ALT: Byte = 0x40   // AltGr, needed by continental layouts
 
     // Common control keys, by HID usage code.
@@ -45,6 +58,19 @@ object HidReports {
     const val KEY_TAB: Byte = 0x2B
     const val KEY_SPACE: Byte = 0x2C
     const val KEY_A: Byte = 0x04
+    const val KEY_B: Byte = 0x05
+    const val KEY_C: Byte = 0x06
+    const val KEY_D: Byte = 0x07
+    const val KEY_F: Byte = 0x09
+    const val KEY_V: Byte = 0x19
+    const val KEY_X: Byte = 0x1B
+    const val KEY_Z: Byte = 0x1D
+    const val KEY_MINUS: Byte = 0x2D
+    const val KEY_EQUALS: Byte = 0x2E
+    const val KEY_COMMA: Byte = 0x36
+    const val KEY_PERIOD: Byte = 0x37
+    const val KEY_F4: Byte = 0x3D
+    const val KEY_F5: Byte = 0x3E
     const val KEY_HOME: Byte = 0x4A
     const val KEY_PAGE_UP: Byte = 0x4B
     const val KEY_DELETE: Byte = 0x4C
@@ -54,6 +80,18 @@ object HidReports {
     const val KEY_LEFT: Byte = 0x50
     const val KEY_DOWN: Byte = 0x51
     const val KEY_UP: Byte = 0x52
+
+    /** F1 to F12 are usages 0x3A to 0x45, inside the descriptor's 0-0x65 range. */
+    fun functionKey(n: Int): Byte {
+        require(n in 1..12) { "function key out of range: $n" }
+        return (0x3A + n - 1).toByte()
+    }
+
+    /**
+     * True when [c] can be typed with [layout]. Used to keep live typing's
+     * picture of the remote text in step with what was actually sent.
+     */
+    fun canType(c: Char, layout: Layout = Layout.US): Boolean = encode(c, layout) != null
 
     val KEYBOARD_DESCRIPTOR = byteArrayOf(
         0x05, 0x01,                     // Usage Page (Generic Desktop)

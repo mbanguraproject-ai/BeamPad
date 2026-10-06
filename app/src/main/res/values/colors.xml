@@ -1,33 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Surfaces step up in lightness, each a little bluer, so depth reads
-         without shadows on a dark background. -->
-    <color name="bp_bg">#070A18</color>
-    <color name="bp_surface">#111737</color>
-    <color name="bp_surface_raised">#182048</color>
-    <color name="bp_surface_high">#212A5C</color>
-    <color name="bp_stroke">#252D5E</color>
-    <color name="bp_stroke_strong">#3B4190</color>
+    <!-- Palettes for the three appearances. Deep neutral greys with one
+         restrained indigo accent; mint marks live states (connected, on). -->
 
-    <color name="bp_accent">#4F46E5</color>
-    <color name="bp_accent_2">#7C6BFF</color>
-    <!-- The launcher icon's cursor. Used for "live" states: connected, on. -->
-    <color name="bp_mint">#46F0C2</color>
-    <color name="bp_mint_dim">#1F46F0C2</color>
+    <!-- dark -->
+    <color name="dark_bg">#0E0F13</color>
+    <color name="dark_surface">#16181E</color>
+    <color name="dark_surface_raised">#1D2028</color>
+    <color name="dark_surface_high">#262A34</color>
+    <color name="dark_stroke">#262A33</color>
+    <color name="dark_stroke_strong">#3A3F4C</color>
+    <color name="dark_accent">#6366F1</color>
+    <color name="dark_accent_2">#A5A7FA</color>
+    <color name="dark_accent_soft">#296366F1</color>
+    <color name="dark_on_accent">#FFFFFF</color>
+    <color name="dark_live">#3DD9B0</color>
+    <color name="dark_live_soft">#243DD9B0</color>
+    <color name="dark_text">#F2F3F7</color>
+    <color name="dark_text_dim">#A3A8B8</color>
+    <color name="dark_text_faint">#6E7385</color>
+    <color name="dark_key">#1D2028</color>
+    <color name="dark_key_pressed">#2F3160</color>
+    <color name="dark_key_stroke">#2B2F39</color>
+    <color name="dark_scrim">#E60E0F13</color>
+    <color name="dark_danger">#F87171</color>
 
-    <color name="bp_text">#EEF1FF</color>
-    <color name="bp_text_dim">#9BA4CC</color>
-    <color name="bp_text_faint">#68709A</color>
-    <color name="bp_online">#46F0C2</color>
+    <!-- black -->
+    <color name="black_bg">#000000</color>
+    <color name="black_surface">#0B0C0F</color>
+    <color name="black_surface_raised">#121419</color>
+    <color name="black_surface_high">#1A1D24</color>
+    <color name="black_stroke">#1C1F26</color>
+    <color name="black_stroke_strong">#2E323C</color>
+    <color name="black_accent">#6366F1</color>
+    <color name="black_accent_2">#A5A7FA</color>
+    <color name="black_accent_soft">#2E6366F1</color>
+    <color name="black_on_accent">#FFFFFF</color>
+    <color name="black_live">#3DD9B0</color>
+    <color name="black_live_soft">#263DD9B0</color>
+    <color name="black_text">#F2F3F7</color>
+    <color name="black_text_dim">#9EA3B3</color>
+    <color name="black_text_faint">#646979</color>
+    <color name="black_key">#111317</color>
+    <color name="black_key_pressed">#2A2C58</color>
+    <color name="black_key_stroke">#22252D</color>
+    <color name="black_scrim">#E6000000</color>
+    <color name="black_danger">#F87171</color>
 
-    <!-- Pro is warm on purpose: it is the only warm colour in the app, so
-         the eye finds it first. -->
+    <!-- light -->
+    <color name="light_bg">#F4F5F8</color>
+    <color name="light_surface">#FFFFFF</color>
+    <color name="light_surface_raised">#F0F1F5</color>
+    <color name="light_surface_high">#E6E8EE</color>
+    <color name="light_stroke">#E1E3EA</color>
+    <color name="light_stroke_strong">#C9CCD6</color>
+    <color name="light_accent">#4F46E5</color>
+    <color name="light_accent_2">#4338CA</color>
+    <color name="light_accent_soft">#1F4F46E5</color>
+    <color name="light_on_accent">#FFFFFF</color>
+    <color name="light_live">#0E8F6E</color>
+    <color name="light_live_soft">#1F0E8F6E</color>
+    <color name="light_text">#12141A</color>
+    <color name="light_text_dim">#5A6072</color>
+    <color name="light_text_faint">#8A90A2</color>
+    <color name="light_key">#FFFFFF</color>
+    <color name="light_key_pressed">#E3E3FC</color>
+    <color name="light_key_stroke">#DADDE5</color>
+    <color name="light_scrim">#E6F4F5F8</color>
+    <color name="light_danger">#DC2626</color>
+
+    <!-- Pro is warm on purpose and identical in every appearance: it is the
+         one warm colour, so the eye finds it first. -->
     <color name="bp_pro_start">#FFC145</color>
     <color name="bp_pro_mid">#FF8A4C</color>
     <color name="bp_pro_end">#FF4F8B</color>
     <color name="bp_on_pro">#2B0A17</color>
 
-    <color name="bp_scrim">#99070A18</color>
+    <!-- Kept for files deliberately left as they were (the ad slot). -->
+    <color name="bp_surface">#16181E</color>
 
     <!-- Midpoint of the launcher icon gradient, so the Android 12+ launch
          animation grows out of the icon without a colour jump. -->

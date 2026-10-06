@@ -19,7 +19,7 @@
             android:layout_height="26dp"
             android:layout_marginEnd="12dp"
             android:src="@drawable/ic_trash"
-            android:tint="@color/bp_accent_2"
+            android:tint="?attr/bpAccent2"
             android:contentDescription="@null" />
 
         <TextView
@@ -31,7 +31,7 @@
             android:ellipsize="end"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
     </LinearLayout>
 
     <TextView
@@ -41,7 +41,7 @@
         android:layout_marginTop="14dp"
         android:lineSpacingExtra="3dp"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/bp_text_dim" />
+        android:textColor="?attr/bpTextDim" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -56,8 +56,8 @@
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:text="@string/cancel"
-            android:textColor="@color/bp_text_dim"
-            app:strokeColor="@color/bp_stroke" />
+            android:textColor="?attr/bpTextDim"
+            app:strokeColor="?attr/bpStroke" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/confirm"
@@ -69,6 +69,6 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:textStyle="bold"
-            android:textColor="@color/bp_text" />
+            android:textColor="?attr/bpText" />
     </LinearLayout>
 </LinearLayout>

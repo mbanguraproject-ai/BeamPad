@@ -2,13 +2,13 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/bp_accent_2" />
+            <solid android:color="?attr/bpAccent" />
             <corners android:radius="4dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/bp_stroke" />
+            <solid android:color="?attr/bpStrokeStrong" />
             <corners android:radius="4dp" />
         </shape>
     </item>

@@ -43,7 +43,7 @@
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:letterSpacing="-0.01"
-                    android:textColor="@color/bp_text" />
+                    android:textColor="?attr/bpText" />
 
                 <TextView
                     android:id="@+id/proBadge"
@@ -70,7 +70,7 @@
                 android:layout_marginTop="1dp"
                 android:text="@string/plan_free_label"
                 android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="@color/bp_text_dim" />
+                android:textColor="?attr/bpTextDim" />
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -96,7 +96,7 @@
             android:scaleType="fitCenter"
             android:src="@drawable/ic_gear"
             android:background="@drawable/bg_icon_button"
-            android:tint="@color/bp_text"
+            android:tint="?attr/bpText"
             android:contentDescription="@string/settings" />
     </LinearLayout>
 
@@ -136,7 +136,7 @@
                     android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_television_simple"
-                    android:tint="@color/bp_text"
+                    android:tint="?attr/bpText"
                     android:contentDescription="@null" />
             </FrameLayout>
 
@@ -155,7 +155,7 @@
                     android:text="@string/status_ready"
                     android:textAppearance="?attr/textAppearanceTitleSmall"
                     android:textStyle="bold"
-                    android:textColor="@color/bp_text" />
+                    android:textColor="?attr/bpText" />
 
                 <TextView
                     android:id="@+id/statusDetail"
@@ -165,7 +165,7 @@
                     android:maxLines="2"
                     android:ellipsize="end"
                     android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="@color/bp_text_dim" />
+                    android:textColor="?attr/bpTextDim" />
             </LinearLayout>
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -178,7 +178,7 @@
                 android:visibility="gone"
                 app:indicatorSize="24dp"
                 app:trackThickness="3dp"
-                app:indicatorColor="@color/bp_accent_2"
+                app:indicatorColor="?attr/bpAccent2"
                 app:trackColor="@android:color/transparent" />
 
             <com.google.android.material.button.MaterialButton
@@ -216,11 +216,12 @@
                 android:background="@drawable/bg_icon_chip_mint">
 
                 <ImageView
+                    android:id="@+id/connectedIcon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_television_simple"
-                    android:tint="@color/bp_mint"
+                    android:tint="?attr/bpLive"
                     android:contentDescription="@null" />
             </FrameLayout>
 
@@ -247,7 +248,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/status_connected"
                         android:textAppearance="?attr/textAppearanceLabelSmall"
-                        android:textColor="@color/bp_mint" />
+                        android:textColor="?attr/bpLive" />
                 </LinearLayout>
 
                 <TextView
@@ -258,7 +259,7 @@
                     android:ellipsize="end"
                     android:textAppearance="?attr/textAppearanceTitleSmall"
                     android:textStyle="bold"
-                    android:textColor="@color/bp_text" />
+                    android:textColor="?attr/bpText" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
