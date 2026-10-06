@@ -34,6 +34,7 @@ object HidReports {
     const val BUTTON_RIGHT: Byte = 0x02
 
     const val MOD_NONE: Byte = 0x00
+    const val MOD_LEFT_CTRL: Byte = 0x01
     const val MOD_LEFT_SHIFT: Byte = 0x02
     const val MOD_RIGHT_ALT: Byte = 0x40   // AltGr, needed by continental layouts
 
@@ -43,6 +44,12 @@ object HidReports {
     const val KEY_BACKSPACE: Byte = 0x2A
     const val KEY_TAB: Byte = 0x2B
     const val KEY_SPACE: Byte = 0x2C
+    const val KEY_A: Byte = 0x04
+    const val KEY_HOME: Byte = 0x4A
+    const val KEY_PAGE_UP: Byte = 0x4B
+    const val KEY_DELETE: Byte = 0x4C
+    const val KEY_END: Byte = 0x4D
+    const val KEY_PAGE_DOWN: Byte = 0x4E
     const val KEY_RIGHT: Byte = 0x4F
     const val KEY_LEFT: Byte = 0x50
     const val KEY_DOWN: Byte = 0x51

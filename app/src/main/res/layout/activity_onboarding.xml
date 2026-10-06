@@ -36,7 +36,7 @@
                 android:layout_width="52dp"
                 android:layout_height="52dp"
                 android:layout_gravity="center"
-                app:tint="@color/bp_text"
+                android:tint="@color/bp_text"
                 android:contentDescription="@null" />
         </FrameLayout>
     </FrameLayout>

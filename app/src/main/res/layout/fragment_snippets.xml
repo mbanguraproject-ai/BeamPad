@@ -25,7 +25,40 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
+        android:paddingTop="52dp"
         android:paddingBottom="96dp" />
+
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="16dp"
+        android:background="@color/bp_scrim">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/snippets_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textStyle="bold"
+            android:textColor="@color/bp_text" />
+
+        <TextView
+            android:id="@+id/count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tool_chip"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="@color/bp_text_dim" />
+    </LinearLayout>
 
     <!-- Empty state sits in the lower third, clear of the TV in the
          background image. Weighted spacer rather than a fixed margin so
@@ -69,17 +102,18 @@
             android:layout_weight="28" />
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
-        android:src="@drawable/ic_plus"
+        android:text="@string/snippet_add"
+        android:textColor="@color/bp_text"
+        android:textStyle="bold"
+        app:icon="@drawable/ic_plus"
+        app:iconTint="@color/bp_text"
         app:backgroundTint="@color/bp_accent"
-        app:tint="@color/bp_text"
-        app:fabSize="normal"
-        app:shapeAppearanceOverlay="@style/Shape.Fab.Squircle"
-        android:contentDescription="@string/snippet_add" />
+        app:shapeAppearanceOverlay="@style/Shape.Fab.Squircle" />
 
 </FrameLayout>

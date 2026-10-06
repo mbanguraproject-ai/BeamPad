@@ -53,6 +53,10 @@
             android:name=".DocActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ProActivity"
+            android:exported="false" />
+
         <service
             android:name=".HidService"
             android:exported="false"

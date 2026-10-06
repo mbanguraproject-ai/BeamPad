@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bp_bg">
+    android:background="@drawable/bg_app">
 
 <LinearLayout
     android:id="@+id/contentColumn"
@@ -11,15 +11,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!-- Header: name and plan on the left, the upgrade and settings on the
+         right. Nothing here changes width with connection state, so the
+         header never reflows when a TV connects. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="20dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp">
+        android:paddingEnd="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -27,99 +30,198 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textStyle="bold"
-                android:textColor="@color/bp_text" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="-0.01"
+                    android:textColor="@color/bp_text" />
+
+                <TextView
+                    android:id="@+id/proBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pro_badge"
+                    android:paddingStart="7dp"
+                    android:paddingEnd="7dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:text="@string/pro_badge"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:textColor="@color/bp_on_pro"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <TextView
+                android:id="@+id/planLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/tagline"
+                android:layout_marginTop="1dp"
+                android:text="@string/plan_free_label"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="@color/bp_text_dim" />
         </LinearLayout>
 
-        <!-- Connected chip replaces the pairing card once paired: the card is
-             only useful while the user is trying to connect. Tapping it
-             disconnects, so the action is not buried in Settings. -->
-        <LinearLayout
-            android:id="@+id/connectedChip"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/getPro"
+            style="@style/Widget.BeamPad.ProButton"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginEnd="4dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="14dp"
-            android:background="@drawable/bg_chip"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone">
-
-            <View
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/dot_online" />
-
-            <TextView
-                android:id="@+id/chipLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:maxWidth="130dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="@color/bp_text" />
-        </LinearLayout>
+            android:layout_height="40dp"
+            android:minHeight="40dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="16dp"
+            android:text="@string/get_pro"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_crown_simple_fill"
+            app:iconSize="18dp"
+            app:iconPadding="6dp" />
 
         <ImageButton
             android:id="@+id/settings"
             android:layout_width="44dp"
             android:layout_height="44dp"
+            android:layout_marginStart="10dp"
+            android:padding="11dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_gear"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/bg_icon_button"
+            android:tint="@color/bp_text"
             android:contentDescription="@string/settings" />
     </LinearLayout>
 
-    <com.google.android.material.card.MaterialCardView
+    <!-- One card for every connection state. Disconnected it explains the
+         next step and offers one button for it; connected it shrinks to a
+         single row with the TV's name, returning space to the controls. -->
+    <FrameLayout
         android:id="@+id/statusCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_marginBottom="4dp"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/bp_surface_translucent"
-        app:strokeColor="@color/bp_stroke"
-        app:strokeWidth="1dp">
+        android:background="@drawable/bg_card">
 
         <LinearLayout
+            android:id="@+id/setupRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
 
             <FrameLayout
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_marginEnd="14dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="12dp"
                 android:background="@drawable/bg_icon_chip">
 
                 <ImageView
                     android:id="@+id/statusIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_device_mobile_camera"
-                    android:contentDescription="@string/status_disconnected" />
+                    android:src="@drawable/ic_television_simple"
+                    android:tint="@color/bp_text"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/statusTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@string/status_ready"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textStyle="bold"
+                    android:textColor="@color/bp_text" />
+
+                <TextView
+                    android:id="@+id/statusDetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="@color/bp_text_dim" />
+            </LinearLayout>
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/statusProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="8dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorSize="24dp"
+                app:trackThickness="3dp"
+                app:indicatorColor="@color/bp_accent_2"
+                app:trackColor="@android:color/transparent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/statusAction"
+                style="@style/Widget.BeamPad.PrimaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:minHeight="44dp"
+                android:minWidth="96dp"
+                android:layout_marginStart="10dp"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp"
+                android:text="@string/action_connect" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/connectedRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_row"
+            android:paddingStart="14dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_icon_chip_mint">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_television_simple"
+                    android:tint="@color/bp_mint"
+                    android:contentDescription="@null" />
             </FrameLayout>
 
             <LinearLayout
@@ -129,54 +231,48 @@
                 android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
 
                     <View
-                        android:id="@+id/statusDot"
-                        android:layout_width="8dp"
-                        android:layout_height="8dp"
-                        android:layout_marginEnd="8dp"
+                        android:layout_width="7dp"
+                        android:layout_height="7dp"
+                        android:layout_marginEnd="6dp"
                         android:background="@drawable/dot_online" />
 
                     <TextView
-                        android:id="@+id/statusTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/status_disconnected"
-                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                        android:textStyle="bold"
-                        android:textColor="@color/bp_text" />
+                        android:text="@string/status_connected"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="@color/bp_mint" />
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/statusDetail"
+                    android:id="@+id/connectedName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:alpha="0.7"
-                    android:visibility="gone" />
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textStyle="bold"
+                    android:textColor="@color/bp_text" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/statusAction"
-                style="@style/Widget.Material3.Button.UnelevatedButton"
+                android:id="@+id/disconnect"
+                style="@style/Widget.BeamPad.SecondaryButton"
                 android:layout_width="wrap_content"
-                android:layout_height="46dp"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/bg_accent_gradient"
-                android:backgroundTint="@null"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:textColor="@color/bp_text"
-                android:textStyle="bold"
-                app:cornerRadius="24dp"
-                android:text="@string/action_pair" />
+                android:layout_height="38dp"
+                android:minHeight="38dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="@string/action_disconnect"
+                android:textSize="13sp" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
     <!-- Banner sits here, not above the nav: the trackpad is a drag surface
          and a banner below it would collect accidental clicks, which AdMob

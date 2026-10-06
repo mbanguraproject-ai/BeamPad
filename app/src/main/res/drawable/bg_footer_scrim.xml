@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fades the scrolling paywall out under the fixed purchase button. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="90"
+        android:startColor="@color/bp_bg"
+        android:centerColor="#F2070A18"
+        android:endColor="#00070A18"
+        android:centerY="0.75" />
+</shape>

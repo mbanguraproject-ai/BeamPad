@@ -1,69 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="12dp">
+    android:orientation="vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="12dp">
 
-    <com.devbangs.beampad.TrackpadView
-        android:id="@+id/pad"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/bg_trackpad" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <!-- The glow is a separate view over the pad rather than a background
-         swap: a drawable change cannot animate, so it would snap. This fades.
-         Not clickable, so touches still reach the pad underneath. -->
-    <View
-        android:id="@+id/padGlow"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/bg_trackpad_active"
-        android:alpha="0"
-        android:clickable="false"
-        android:focusable="false" />
+        <com.devbangs.beampad.TrackpadView
+            android:id="@+id/pad"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_trackpad" />
 
+        <!-- The glow is a separate view over the pad rather than a background
+             swap: a drawable change cannot animate, so it would snap. This fades.
+             Not clickable, so touches still reach the pad underneath. -->
+        <View
+            android:id="@+id/padGlow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_trackpad_active"
+            android:alpha="0"
+            android:clickable="false"
+            android:focusable="false" />
+
+        <LinearLayout
+            android:id="@+id/hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <FrameLayout
+                android:id="@+id/ring"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:background="@drawable/bg_cursor_ring">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_cursor"
+                    android:tint="@color/bp_text"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:text="@string/trackpad_title"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textStyle="bold"
+                android:textColor="@color/bp_text" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/trackpad_hint"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/bp_text_dim" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Explicit buttons for people who find tap-to-click unreliable, and
+         for dragging with one finger while clicking with another. -->
     <LinearLayout
-        android:id="@+id/hint"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="24dp">
-
-        <FrameLayout
-            android:id="@+id/ring"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:background="@drawable/bg_cursor_ring">
-
-            <ImageView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_cursor"
-                app:tint="@color/bp_text"
-                android:contentDescription="@null" />
-        </FrameLayout>
+        android:layout_height="52dp"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/trackpad_title"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textStyle="bold"
+            android:id="@+id/leftClick"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_click_button"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/left_click"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/bp_text" />
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:id="@+id/rightClick"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_click_button"
             android:gravity="center"
-            android:lineSpacingExtra="3dp"
-            android:text="@string/trackpad_hint"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/bp_text_dim" />
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/right_click"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/bp_text" />
     </LinearLayout>
-</FrameLayout>
+</LinearLayout>

@@ -20,8 +20,8 @@ android {
         applicationId = "com.devbangs.beampad"
         minSdk = 28
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.1"
+        versionCode = 4
+        versionName = "1.1.0"
     }
 
     buildFeatures {

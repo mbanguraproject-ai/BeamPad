@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The one warm surface in the app. Pill so it reads as an action,
+     not a label. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="@color/bp_pro_start"
+                android:centerColor="@color/bp_pro_mid"
+                android:endColor="@color/bp_pro_end" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</ripple>

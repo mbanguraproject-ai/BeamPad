@@ -63,14 +63,14 @@ class DpadView @JvmOverloads constructor(
 
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
-    private val colFaceTop = Color.parseColor("#2C3465")
-    private val colFaceBottom = Color.parseColor("#1A2044")
-    private val colPressTop = Color.parseColor("#4A3F9E")
-    private val colPressBottom = Color.parseColor("#2A2470")
-    private val colEdge = Color.parseColor("#4A5299")
-    private val colBezelTop = Color.parseColor("#3A3F86")
-    private val colBezelBottom = Color.parseColor("#20264F")
-    private val colBezelShadow = Color.parseColor("#0C1128")
+    private val colFaceTop = Color.parseColor("#1F2756")
+    private val colFaceBottom = Color.parseColor("#161C44")
+    private val colPressTop = Color.parseColor("#5046C8")
+    private val colPressBottom = Color.parseColor("#3A31A8")
+    private val colEdge = Color.parseColor("#2B3470")
+    private val colBezelTop = Color.parseColor("#2A3170")
+    private val colBezelBottom = Color.parseColor("#171D46")
+    private val colBezelShadow = Color.parseColor("#080C22")
     private val colSurface = Color.parseColor("#2E141C3D")
     private val colSurfaceDim = Color.parseColor("#14121A38")
     private val colPressed = Color.parseColor("#4D4F46E5")

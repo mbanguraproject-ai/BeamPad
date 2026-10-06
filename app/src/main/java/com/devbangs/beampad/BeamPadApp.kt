@@ -17,22 +17,26 @@ class BeamPadApp : Application() {
     lateinit var billing: Billing
         private set
 
-    /** Anything that needs to react when ads are removed registers here. */
-    private val entitlementListeners = mutableSetOf<() -> Unit>()
+    lateinit var prefs: Prefs
+        private set
 
-    fun observeEntitlement(listener: () -> Unit) {
+    /** Anything that needs to react to a purchase or a lapse registers here. */
+    private val entitlementListeners = mutableSetOf<(Entitlements.Change) -> Unit>()
+
+    fun observeEntitlement(listener: (Entitlements.Change) -> Unit) {
         entitlementListeners += listener
     }
 
-    fun stopObservingEntitlement(listener: () -> Unit) {
+    fun stopObservingEntitlement(listener: (Entitlements.Change) -> Unit) {
         entitlementListeners -= listener
     }
 
     override fun onCreate() {
         super.onCreate()
+        prefs = Prefs(this)
         entitlements = Entitlements(this)
-        billing = Billing(this, entitlements) {
-            entitlementListeners.toList().forEach { it() }
+        billing = Billing(this, entitlements) { change ->
+            entitlementListeners.toList().forEach { it(change) }
         }
         billing.start()
     }

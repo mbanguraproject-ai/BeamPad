@@ -26,6 +26,12 @@ class TrackpadView @JvmOverloads constructor(
     /** Pointer travel per unit of finger travel. */
     var sensitivity: Float = 1.6f
 
+    /** Wheel notches per unit of finger travel, relative to the default. */
+    var scrollSpeed: Float = 1f
+
+    /** Flips two-finger scrolling for people used to the other direction. */
+    var reverseScroll: Boolean = false
+
     /** Fires true while a finger is down, false when it lifts. */
     var onTouchActive: ((Boolean) -> Unit)? = null
 
@@ -65,11 +71,12 @@ class TrackpadView @JvmOverloads constructor(
                 travelled += abs(dx) + abs(dy)
 
                 if (event.pointerCount >= 2) {
+                    val step = SCROLL_STEP / scrollSpeed.coerceAtLeast(0.1f)
                     scrollAccum += dy
-                    val steps = (scrollAccum / SCROLL_STEP).toInt()
+                    val steps = (scrollAccum / step).toInt()
                     if (steps != 0) {
-                        onScroll?.invoke(steps)
-                        scrollAccum -= steps * SCROLL_STEP
+                        onScroll?.invoke(if (reverseScroll) -steps else steps)
+                        scrollAccum -= steps * step
                     }
                 } else {
                     onMove?.invoke(

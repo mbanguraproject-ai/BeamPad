@@ -1,16 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bp_bg">#080D1F</color>
-    <color name="bp_surface">#141B3D</color>
-    <color name="bp_surface_raised">#1B2350</color>
-    <color name="bp_stroke">#3B4190</color>
+    <!-- Surfaces step up in lightness, each a little bluer, so depth reads
+         without shadows on a dark background. -->
+    <color name="bp_bg">#070A18</color>
+    <color name="bp_surface">#111737</color>
+    <color name="bp_surface_raised">#182048</color>
+    <color name="bp_surface_high">#212A5C</color>
+    <color name="bp_stroke">#252D5E</color>
+    <color name="bp_stroke_strong">#3B4190</color>
+
     <color name="bp_accent">#4F46E5</color>
     <color name="bp_accent_2">#7C6BFF</color>
+    <!-- The launcher icon's cursor. Used for "live" states: connected, on. -->
+    <color name="bp_mint">#46F0C2</color>
+    <color name="bp_mint_dim">#1F46F0C2</color>
+
     <color name="bp_text">#EEF1FF</color>
     <color name="bp_text_dim">#9BA4CC</color>
-    <color name="bp_online">#3DDC84</color>
-    <color name="bp_surface_translucent">#F2141B3D</color>
-    <color name="bp_card_translucent">#E6161F45</color>
+    <color name="bp_text_faint">#68709A</color>
+    <color name="bp_online">#46F0C2</color>
+
+    <!-- Pro is warm on purpose: it is the only warm colour in the app, so
+         the eye finds it first. -->
+    <color name="bp_pro_start">#FFC145</color>
+    <color name="bp_pro_mid">#FF8A4C</color>
+    <color name="bp_pro_end">#FF4F8B</color>
+    <color name="bp_on_pro">#2B0A17</color>
+
+    <color name="bp_scrim">#99070A18</color>
+
     <!-- Midpoint of the launcher icon gradient, so the Android 12+ launch
          animation grows out of the icon without a colour jump. -->
     <color name="splash_background">#5F51E4</color>

@@ -19,7 +19,7 @@
             android:layout_height="26dp"
             android:layout_marginEnd="12dp"
             android:src="@drawable/ic_trash"
-            app:tint="@color/bp_accent_2"
+            android:tint="@color/bp_accent_2"
             android:contentDescription="@null" />
 
         <TextView

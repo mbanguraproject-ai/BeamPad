@@ -1,6 +1,7 @@
 package com.devbangs.beampad
 
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,7 +45,7 @@ class TrackpadFragment : Fragment() {
         if (now - lastNudge > NUDGE_INTERVAL_MS) {
             lastNudge = now
             android.widget.Toast
-                .makeText(requireContext(), R.string.not_connected, android.widget.Toast.LENGTH_SHORT)
+                .makeText(requireContext(), R.string.not_connected_hint, android.widget.Toast.LENGTH_SHORT)
                 .show()
         }
         return false
@@ -77,6 +78,9 @@ class TrackpadFragment : Fragment() {
         ui.pad.onScroll = { if (connected) host?.service?.scroll(it) }
         ui.pad.onClick = { if (nudgeIfDisconnected()) host?.service?.click(it) }
 
+        ui.leftClick.setOnClickListener { button(it, HidReports.BUTTON_LEFT) }
+        ui.rightClick.setOnClickListener { button(it, HidReports.BUTTON_RIGHT) }
+
         // Glow only while a finger is down, and only when paired: a surface
         // that lights up with nothing connected is a lie. Fading out is
         // slower than fading in so the release feels like a decay.
@@ -94,6 +98,22 @@ class TrackpadFragment : Fragment() {
         ui.hint.isFocusable = false
 
         host?.observeConnection(connectionObserver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Read on every resume: the values can change in Settings, and fall
+        // back to the defaults if Pro has lapsed meanwhile.
+        val context = requireContext()
+        ui.pad.sensitivity = Features.pointerSpeed(context)
+        ui.pad.scrollSpeed = Features.scrollSpeed(context)
+        ui.pad.reverseScroll = Features.reverseScroll(context)
+    }
+
+    private fun button(view: View, which: Byte) {
+        val app = requireActivity().application as BeamPadApp
+        if (app.prefs.haptics) view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        if (nudgeIfDisconnected()) host?.service?.click(which)
     }
 
     override fun onDestroyView() {

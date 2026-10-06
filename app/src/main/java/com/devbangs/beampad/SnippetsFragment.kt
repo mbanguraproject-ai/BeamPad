@@ -52,7 +52,14 @@ class SnippetsFragment : Fragment() {
 
         ui.list.layoutManager = LinearLayoutManager(requireContext())
         ui.list.adapter = adapter
-        ui.add.setOnClickListener { showAddDialog() }
+        ui.add.setOnClickListener {
+            val context = requireContext()
+            if (Features.canAddSnippet(context, store.all().size)) {
+                showAddDialog()
+            } else {
+                ProActivity.open(context, Features.Pro.SNIPPETS)
+            }
+        }
 
         refresh()
         host?.observeConnection(connectionObserver)
@@ -66,12 +73,32 @@ class SnippetsFragment : Fragment() {
         // The scene is the empty state's artwork; behind a list it is clutter.
         ui.backdrop.visibility = if (empty) View.VISIBLE else View.GONE
         ui.backdropScrim.visibility = if (empty) View.VISIBLE else View.GONE
+        ui.header.visibility = if (empty) View.GONE else View.VISIBLE
+        ui.list.setPadding(
+            ui.list.paddingLeft,
+            if (empty) 0 else ui.header.layoutParams.height,
+            ui.list.paddingRight,
+            ui.list.paddingBottom
+        )
+
+        // Free users see how many of their slots are used, so the limit is
+        // known before it is hit rather than discovered at the paywall.
+        ui.count.text = if (Features.isPro(requireContext())) {
+            resources.getQuantityString(R.plurals.snippet_count, items.size, items.size)
+        } else {
+            getString(R.string.snippet_count_free, items.size, Features.FREE_SNIPPET_LIMIT)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refresh()
     }
 
     private fun send(snippet: Snippet) {
         val service = host?.service
         if (service == null || !service.isReady()) {
-            toast(getString(R.string.not_connected))
+            toast(getString(R.string.not_connected_hint))
             return
         }
 
@@ -91,12 +118,12 @@ class SnippetsFragment : Fragment() {
     private fun type(snippet: Snippet) {
         val service = host?.service ?: return
         val plaintext = runCatching { store.reveal(snippet) }.getOrElse {
-            toast("could not decrypt this snippet")
+            toast(getString(R.string.snippet_decrypt_failed))
             return
         }
         service.typeText(plaintext) { sent, skipped ->
             activity?.runOnUiThread {
-                if (skipped > 0) toast("sent $sent characters, $skipped unsupported")
+                if (skipped > 0) toast(getString(R.string.snippet_partly_sent, sent, skipped))
             }
         }
     }
@@ -153,7 +180,7 @@ class SnippetsFragment : Fragment() {
             val l = label.text.toString().trim()
             val v = value.text.toString()
             if (l.isEmpty() || v.isEmpty()) {
-                toast("Label and text are both required")
+                toast(getString(R.string.snippet_required))
                 return@setOnClickListener
             }
             try {
