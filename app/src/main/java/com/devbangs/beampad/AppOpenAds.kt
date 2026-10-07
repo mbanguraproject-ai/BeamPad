@@ -8,23 +8,29 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import androidx.core.splashscreen.SplashScreen
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.google.android.ump.UserMessagingPlatform
 
 /**
- * App open ad, shown when the user comes back to BeamPad after time away.
+ * App open ad, shown only as the app launches: it covers the splash screen,
+ * and closing it reveals the app, which is where established apps put it.
+ * Once the app is on screen it never appears, so it cannot land on top of
+ * the remote mid-film, a half-typed message or the snippets vault.
  *
- * Separate from the banner in [Ads] and leans on it for setup: nothing loads
- * until [Consent] allows ads, and by then [Ads.start] has initialised the
- * SDK and registered the test devices.
+ * The splash waits at most [MAX_SPLASH_WAIT_MS] for an ad. Without one by
+ * then the app opens as normal, and an ad that arrives late is kept for the
+ * next launch (AdMob allows four hours) rather than shown over the app.
  *
- * Never on a cold launch (the control surface must appear at once), never
- * on a quick switch, never more than once per [MIN_INTERVAL_MS], never over
- * the connection flow or the snippets vault (see
- * [MainActivity.allowsAppOpenAd]), and never for Pro or remove-ads users.
+ * Skipped for Pro and remove-ads users, until consent allows ads, during
+ * the first [MIN_LAUNCHES] launches (onboarding and first pairing must not
+ * meet an ad), when the screen is restored rather than launched, and within
+ * [MIN_INTERVAL_MS] of the last one. [Ads.start] has already set up the SDK
+ * and test devices by the time [onLaunch] runs.
  */
 object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
@@ -34,49 +40,77 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** AdMob expires app open ads after four hours. */
     private const val MAX_AD_AGE_MS = 4 * 60 * 60 * 1000L
 
-    /** Shorter trips (copying a code, answering a message) are not a return. */
-    private const val MIN_AWAY_MS = 30 * 1000L
+    /** Longest the splash is held for an ad; past this the app opens without one. */
+    private const val MAX_SPLASH_WAIT_MS = 3_000L
 
-    /** A remote is backgrounded constantly; an ad on every return would drive users off. */
+    /** Covers an ad that is told to show but never reports back. */
+    private const val SHOW_TIMEOUT_MS = 2_000L
+
+    /** A remote is opened many times a day; an ad on every one would drive users off. */
     private const val MIN_INTERVAL_MS = 30 * 60 * 1000L
 
-    /** Retries after MainActivity opens, while consent is still being gathered. */
-    private val CONSENT_RETRIES_MS = listOf(2_000L, 6_000L, 15_000L)
+    /** New users get a few clean launches first, as AdMob recommends. */
+    private const val MIN_LAUNCHES = 3
 
-    /** Covers a trip to Bluetooth settings or the TV's pairing screen. */
-    private const val CONNECTION_FLOW_GRACE_MS = 10 * 60 * 1000L
+    private const val FILE = "beampad_ads"
+    private const val KEY_LAUNCHES = "launches"
+    private const val KEY_LAST_SHOWN = "app_open_last_shown"
 
     private var ad: AppOpenAd? = null
     private var loadedAt = 0L
     private var loading = false
-    private var showing = false
-    private var lastShownAt = 0L
+
+    /** The launch whose splash is being held for an ad, if any. */
+    private var launch: Activity? = null
+    private var holding = false
+    private var showOnResume = false
+    private var resumedActivity: Activity? = null
 
     private val main = Handler(Looper.getMainLooper())
-
-    private var startedActivities = 0
-    private var changingConfig = false
-    private var backgroundedAt = 0L
-    private var skipReturnsUntil = 0L
+    private val giveUp = Runnable { endLaunch("no ad within $MAX_SPLASH_WAIT_MS ms") }
 
     /**
-     * Call before sending the user out of the app as part of connecting:
-     * coming back from that must land on the pairing state, not an ad.
+     * Called from MainActivity.onCreate on a real launch (not a restore),
+     * after [Ads.start]. Holds the splash while an ad loads, when one may
+     * be shown at all.
      */
-    fun skipNextReturn() {
-        skipReturnsUntil = SystemClock.elapsedRealtime() + CONNECTION_FLOW_GRACE_MS
+    fun onLaunch(activity: Activity, splash: SplashScreen) {
+        val store = activity.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+        val launches = store.getInt(KEY_LAUNCHES, 0) + 1
+        store.edit().putInt(KEY_LAUNCHES, launches).apply()
+        val sinceLast = System.currentTimeMillis() - store.getLong(KEY_LAST_SHOWN, 0L)
+
+        val reason = when {
+            adsRemoved(activity) -> "ads removed"
+            launches <= MIN_LAUNCHES -> "launch $launches of the first $MIN_LAUNCHES"
+            !consentAllows(activity) -> "no consent yet"
+            sinceLast in 0 until MIN_INTERVAL_MS -> "shown ${sinceLast / 60_000} min ago"
+            else -> null
+        }
+        if (reason != null) {
+            Log.i(TAG, "app open skipped: $reason")
+            return
+        }
+
+        launch = activity
+        holding = true
+        splash.setKeepOnScreenCondition { holding }
+        main.postDelayed(giveUp, MAX_SPLASH_WAIT_MS)
+        if (hasFreshAd()) showWhenReady() else fetch(activity)
     }
 
-    private fun adsAllowed(context: Context): Boolean =
-        Consent.canRequestAds &&
-            !(context.applicationContext as BeamPadApp).entitlements.adsRemoved
+    private fun adsRemoved(context: Context): Boolean =
+        (context.applicationContext as BeamPadApp).entitlements.adsRemoved
 
-    private fun hasFreshAd(now: Long): Boolean =
-        ad != null && now - loadedAt < MAX_AD_AGE_MS
+    /** The stored consent from earlier sessions, available without a network round trip. */
+    private fun consentAllows(context: Context): Boolean =
+        UserMessagingPlatform.getConsentInformation(context).canRequestAds()
+
+    private fun hasFreshAd(): Boolean =
+        ad != null && SystemClock.elapsedRealtime() - loadedAt < MAX_AD_AGE_MS
 
     private fun fetch(context: Context) {
-        val now = SystemClock.elapsedRealtime()
-        if (loading || hasFreshAd(now) || !adsAllowed(context)) return
+        if (loading || hasFreshAd()) return
         ad = null
         loading = true
         AppOpenAd.load(
@@ -86,97 +120,99 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(loaded: AppOpenAd) {
                     Log.i(TAG, "app open loaded")
+                    loading = false
                     ad = loaded
                     loadedAt = SystemClock.elapsedRealtime()
-                    loading = false
+                    showWhenReady()
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     Log.w(TAG, "app open failed ${error.code}: ${error.message}")
                     loading = false
+                    endLaunch("load failed")
                 }
             }
         )
     }
 
-    private fun onReturn(activity: Activity) {
-        val now = SystemClock.elapsedRealtime()
-        val awayFor = now - backgroundedAt
-        val skip = now < skipReturnsUntil
-        skipReturnsUntil = 0L
-
-        // backgroundedAt is 0 on a cold launch: there was no time away.
-        val reason = when {
-            backgroundedAt == 0L -> "cold launch"
-            awayFor < MIN_AWAY_MS -> "away ${awayFor / 1000}s, under ${MIN_AWAY_MS / 1000}s"
-            skip -> "back from Bluetooth, pairing or permissions"
-            showing -> "already showing"
-            lastShownAt != 0L && now - lastShownAt < MIN_INTERVAL_MS ->
-                "shown ${(now - lastShownAt) / 60_000} min ago, under ${MIN_INTERVAL_MS / 60_000} min"
-            activity !is MainActivity -> "not the main screen"
-            !(activity as MainActivity).allowsAppOpenAd() -> "snippets tab or connecting"
-            !adsAllowed(activity) -> "no consent yet, or ads removed"
-            !hasFreshAd(now) -> if (loading) "still loading" else "no ad loaded"
-            else -> null
-        }
-        if (reason != null) {
-            Log.i(TAG, "app open skipped: $reason")
-            if (!adsAllowed(activity)) ad = null else fetch(activity)
+    /** Shows the ad over the held splash, once the launch's screen is in front. */
+    private fun showWhenReady() {
+        val activity = launch ?: return
+        if (activity.isFinishing || activity.isDestroyed) return endLaunch("screen closed")
+        if (activity !== resumedActivity) {
+            showOnResume = true
             return
         }
-        val current = ad ?: return
+        show(activity)
+    }
+
+    private fun show(activity: Activity) {
+        val current = ad ?: return endLaunch("no ad")
+        ad = null
+        main.removeCallbacks(giveUp)
+        // The launch is handed to the ad: the screen stopping behind it is
+        // not the user leaving.
+        launch = null
+        // Keep the splash up until the ad covers it, so the app does not
+        // flash on screen first; but never longer than this.
+        main.postDelayed({ release() }, SHOW_TIMEOUT_MS)
 
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
-                lastShownAt = SystemClock.elapsedRealtime()
+                activity.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit()
+                    .putLong(KEY_LAST_SHOWN, System.currentTimeMillis())
+                    .apply()
+                release()
             }
 
-            override fun onAdDismissedFullScreenContent() {
-                showing = false
-                fetch(activity)
-            }
+            override fun onAdDismissedFullScreenContent() = release()
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
                 Log.w(TAG, "app open show failed ${error.code}: ${error.message}")
-                showing = false
-                fetch(activity)
+                release()
             }
         }
-        ad = null
-        showing = true
         current.show(activity)
     }
 
-    override fun onActivityStarted(activity: Activity) {
-        if (startedActivities == 0 && !changingConfig) onReturn(activity)
-        changingConfig = false
-        startedActivities++
+    private fun endLaunch(reason: String) {
+        if (launch == null) return
+        Log.i(TAG, "app open skipped: $reason")
+        release()
+    }
+
+    /** Lets the app draw, and forgets the launch. */
+    private fun release() {
+        main.removeCallbacks(giveUp)
+        holding = false
+        launch = null
+        showOnResume = false
     }
 
     override fun onActivityResumed(activity: Activity) {
-        if (activity !is MainActivity) return
-        fetch(activity)
-        // Consent is gathered asynchronously just after MainActivity opens,
-        // so the first attempt above is usually too early. Try again
-        // shortly, so an ad is ready for the first return rather than only
-        // after the user has already left once. Each retry is a no-op once
-        // an ad is loaded or loading.
-        val app = activity.applicationContext
-        CONSENT_RETRIES_MS.forEach { delay -> main.postDelayed({ fetch(app) }, delay) }
-    }
-
-    override fun onActivityStopped(activity: Activity) {
-        // A rotation stops and restarts the Activity; that is not a trip away.
-        if (activity.isChangingConfigurations) changingConfig = true
-        startedActivities = (startedActivities - 1).coerceAtLeast(0)
-        if (startedActivities == 0 && !changingConfig) {
-            backgroundedAt = SystemClock.elapsedRealtime()
-            fetch(activity)
+        resumedActivity = activity
+        if (activity === launch && showOnResume) {
+            showOnResume = false
+            show(activity)
         }
     }
 
+    override fun onActivityPaused(activity: Activity) {
+        if (resumedActivity === activity) resumedActivity = null
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+        // Left during the splash (Home, a rotation): the launch is over. An
+        // ad still loading is kept for the next launch.
+        if (activity === launch) endLaunch("left during the splash")
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+        if (activity === launch) release()
+        if (activity === resumedActivity) resumedActivity = null
+    }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
-    override fun onActivityPaused(activity: Activity) = Unit
+    override fun onActivityStarted(activity: Activity) = Unit
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
-    override fun onActivityDestroyed(activity: Activity) = Unit
 }

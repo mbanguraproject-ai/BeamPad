@@ -74,9 +74,6 @@ object Updates {
         launcher: ActivityResultLauncher<IntentSenderRequest>,
         type: Int
     ) {
-        // Play's update screen is another app; coming back from it is not a
-        // reason for the app open ad.
-        AppOpenAds.skipNextReturn()
         runCatching { manager.startUpdateFlowForResult(info, launcher, AppUpdateOptions.newBuilder(type).build()) }
     }
 

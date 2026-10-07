@@ -160,8 +160,9 @@ class MainActivity : BeamActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Before super.onCreate: it swaps the splash theme for the app theme.
-        // No artificial hold: the app is usable as soon as it draws.
-        installSplashScreen()
+        // The splash is only held for a launch ad (AppOpenAds), never longer
+        // than its short limit; otherwise the app is usable as soon as it draws.
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
 
         if (OnboardingActivity.shouldShow(this)) {
@@ -219,6 +220,9 @@ class MainActivity : BeamActivity() {
         // Consent and the ad SDK start here, so the app open ad and the
         // privacy options entry point are ready; no banner on this screen.
         Ads.start(this, app.entitlements)
+        // A real launch only; a screen restored after rotation or from
+        // recents is the user carrying on, not opening the app.
+        if (savedInstanceState == null) AppOpenAds.onLaunch(this, splash)
         renderPlan()
 
         if (hasBluetoothPermissions()) {
@@ -333,7 +337,6 @@ class MainActivity : BeamActivity() {
             startAndBind()
             return
         }
-        AppOpenAds.skipNextReturn()
         permissionRequest.launch(wanted.toTypedArray())
     }
 
@@ -593,7 +596,6 @@ class MainActivity : BeamActivity() {
     }
 
     private fun turnOnBluetooth() {
-        AppOpenAds.skipNextReturn()
         val launched = runCatching {
             enableBluetooth.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
         }.isSuccess
@@ -688,7 +690,6 @@ class MainActivity : BeamActivity() {
             requestPermissions()
             return
         }
-        AppOpenAds.skipNextReturn()
         val launched = runCatching { discoverable.launch(intent) }.isSuccess
         if (!launched) showPairSteps()
     }
@@ -756,7 +757,6 @@ class MainActivity : BeamActivity() {
     }
 
     private fun openAppSettings() {
-        AppOpenAds.skipNextReturn()
         runCatching {
             startActivity(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -766,19 +766,8 @@ class MainActivity : BeamActivity() {
     }
 
     private fun openBluetoothSettings() {
-        AppOpenAds.skipNextReturn()
         runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
     }
-
-    /**
-     * Whether an app open ad may cover this screen on return. Not before the
-     * screen exists, not over the snippets vault, and not while a connection
-     * is being made.
-     */
-    fun allowsAppOpenAd(): Boolean =
-        ::ui.isInitialized &&
-            currentTab != R.id.tab_snippets &&
-            service?.state != HidService.State.CONNECTING
 
     /**
      * The phone's volume buttons go to the surface on screen when it wants

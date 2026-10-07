@@ -194,12 +194,10 @@ class DiagnosticsActivity : PageActivity() {
     }
 
     private fun openBluetoothSettings() {
-        AppOpenAds.skipNextReturn()
         runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
     }
 
     private fun openAppSettings() {
-        AppOpenAds.skipNextReturn()
         runCatching {
             startActivity(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -209,7 +207,6 @@ class DiagnosticsActivity : PageActivity() {
     }
 
     private fun openBatterySettings() {
-        AppOpenAds.skipNextReturn()
         runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
     }
 

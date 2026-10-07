@@ -1,6 +1,7 @@
 package com.devbangs.beampad
 
 import android.app.Activity
+import android.content.pm.ApplicationInfo
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.window.layout.WindowMetricsCalculator
@@ -46,7 +47,9 @@ object Ads {
         if (entitlements.adsRemoved) return
         Consent.gather(activity) {
             if (!sdkStarted) {
-                if (TEST_DEVICES.isNotEmpty()) {
+                // Debug builds only: a release build must not carry test
+                // device IDs, and AdMob asks for them to be removed.
+                if (isDebuggable(activity) && TEST_DEVICES.isNotEmpty()) {
                     MobileAds.setRequestConfiguration(
                         RequestConfiguration.Builder()
                             .setTestDeviceIds(TEST_DEVICES)
@@ -59,6 +62,9 @@ object Ads {
             onReady()
         }
     }
+
+    private fun isDebuggable(activity: Activity): Boolean =
+        (activity.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
     /** Shows the banner in [slot] once consent allows. Removed-ads users get nothing. */
     fun attach(activity: Activity, slot: FrameLayout, entitlements: Entitlements) {

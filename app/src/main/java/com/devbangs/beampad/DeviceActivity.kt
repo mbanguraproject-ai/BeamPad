@@ -194,7 +194,6 @@ class DeviceActivity : PageActivity() {
             Ui.divider(manage)
         }
         Ui.linkRow(manage, getString(R.string.device_unpair), getString(R.string.device_unpair_body), R.drawable.ic_bluetooth) {
-            AppOpenAds.skipNextReturn()
             runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
         }
     }
