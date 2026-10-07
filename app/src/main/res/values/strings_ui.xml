@@ -474,4 +474,28 @@
     <string name="update_ready_body">A new version of BeamPad has downloaded. Restart to finish; it takes a few seconds.</string>
     <string name="update_restart">Restart</string>
     <string name="update_later">Later</string>
+
+    <!-- Paywall: trial first -->
+    <string name="pro_title_trial">Try Pro free for %1$d days</string>
+    <string name="pro_features_title">EVERYTHING IN PRO</string>
+    <string name="plan_weekly">Weekly</string>
+    <string name="per_week">per week</string>
+    <string name="period_week">week</string>
+    <string name="plan_weekly_detail">Billed weekly, cancel anytime</string>
+    <string name="plan_trial_detail">%1$s, then %2$s per %3$s</string>
+    <string name="badge_save">SAVE %1$d%%</string>
+    <string name="cta_trial_days">Start %1$d-day free trial</string>
+    <string name="trial_phrase_days">Free for %1$d days</string>
+    <string name="trial_phrase_months">Free for %1$d months</string>
+    <string name="trial_phrase_month">Free for 1 month</string>
+    <string name="trial_step_today">Today</string>
+    <string name="trial_step_today_body">Every Pro feature unlocks. You pay nothing now.</string>
+    <string name="trial_step_day">Day %1$d</string>
+    <string name="trial_step_end">When the trial ends</string>
+    <string name="trial_step_end_body">Your trial ends. Cancel before then in Google Play and you won’t be charged.</string>
+    <string name="trial_step_after">After the trial</string>
+    <string name="trial_step_after_body">%1$s per %2$s, renewing automatically until you cancel.</string>
+    <string name="feat_full_keyboard">Full PC keyboard</string>
+    <string name="feat_full_keyboard_body">Every key in one immersive layout: numbers, symbols, arrows, Home and End, F-keys and one-tap shortcuts</string>
+    <string name="cmp_full_keyboard">Full PC keyboard</string>
 </resources>

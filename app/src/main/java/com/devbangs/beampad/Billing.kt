@@ -32,7 +32,7 @@ class Billing(
     private val onEntitlementChanged: (Entitlements.Change) -> Unit
 ) {
 
-    enum class Period { YEARLY, MONTHLY, LIFETIME }
+    enum class Period { WEEKLY, MONTHLY, YEARLY, LIFETIME }
 
     /** One option on the paywall, resolved to the exact offer that will be bought. */
     class Plan(
@@ -42,13 +42,13 @@ class Billing(
         val price: String,
         val priceMicros: Long,
         val currencyCode: String,
-        /** ISO 8601 length of a free trial such as P7D, or null for none. */
+        /** ISO 8601 length of a free trial such as P3D, or null for none. */
         val freeTrial: String?
     )
 
     enum class Outcome { PURCHASED, PENDING, CANCELLED, FAILED }
 
-    /** Paywall options, yearly first. Only touched on the main thread. */
+    /** Paywall options, shortest period first. Only touched on the main thread. */
     var plans: List<Plan> = emptyList()
         private set
 
@@ -156,8 +156,8 @@ class Billing(
     /**
      * One plan per base plan. Play only returns offers this user is eligible
      * for, so a free-trial offer, when present, is the one to show; otherwise
-     * the base plan itself. The billing period decides yearly or monthly, so
-     * base plan IDs in Play Console can be named freely.
+     * the base plan itself. The billing period decides weekly, monthly or
+     * yearly, so base plan IDs in Play Console can be named freely.
      */
     private fun subscriptionPlans(product: ProductDetails): List<Plan> {
         val offers = product.subscriptionOfferDetails ?: return emptyList()
@@ -169,8 +169,9 @@ class Billing(
             val phases = offer.pricingPhases.pricingPhaseList
             val recurring = phases.lastOrNull() ?: return@mapNotNull null
             val period = when (recurring.billingPeriod) {
+                "P1W", "P7D" -> Period.WEEKLY
+                "P1M", "P4W" -> Period.MONTHLY
                 "P1Y", "P12M" -> Period.YEARLY
-                "P1M" -> Period.MONTHLY
                 else -> return@mapNotNull null
             }
             Plan(

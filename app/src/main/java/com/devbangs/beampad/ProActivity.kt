@@ -2,8 +2,15 @@ package com.devbangs.beampad
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.view.Gravity
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -18,7 +25,9 @@ import java.util.Currency
 import kotlin.math.roundToInt
 
 /**
- * The Pro page: what Pro adds, Free next to Pro, and the plans Play offers.
+ * The Pro page, trial first: the plans Play offers (a plan with a free
+ * trial leads and is preselected), what happens when for that trial, then
+ * what Pro adds and Free next to Pro.
  *
  * Play's subscription policy wants the price, the billing period, that it
  * renews, and how to cancel stated next to the button, before the user taps
@@ -43,6 +52,7 @@ class ProActivity : BeamActivity() {
     )
 
     private val features = listOf(
+        Feature(Features.Pro.FULL_KEYBOARD, R.drawable.ic_keyboard, R.string.feat_full_keyboard, R.string.feat_full_keyboard_body),
         Feature(Features.Pro.NO_ADS, R.drawable.ic_sparkle_fill, R.string.feat_no_ads, R.string.feat_no_ads_body),
         Feature(Features.Pro.PANELS, R.drawable.ic_layout, R.string.feat_panels, R.string.feat_panels_body),
         Feature(Features.Pro.MACROS, R.drawable.ic_magic_wand, R.string.feat_macros, R.string.feat_macros_body),
@@ -61,6 +71,7 @@ class ProActivity : BeamActivity() {
         Triple(R.string.cmp_remote, CHECK, CHECK),
         Triple(R.string.cmp_reconnect, CHECK, CHECK),
         Triple(R.string.cmp_themes, CHECK, CHECK),
+        Triple(R.string.cmp_full_keyboard, null, CHECK),
         Triple(R.string.cmp_panels_macros, null, CHECK),
         Triple(R.string.cmp_profiles_presentation, null, CHECK),
         Triple(R.string.cmp_trackpad, null, CHECK),
@@ -121,7 +132,12 @@ class ProActivity : BeamActivity() {
         val pro = app.entitlements.isPro
         buildFeatures(pro)
 
-        ui.title.setText(if (pro) R.string.pro_title_active else R.string.pro_title)
+        val trialDays = billing.plans.firstNotNullOfOrNull { p -> p.freeTrial?.let { trialDays(it) } }
+        ui.title.text = when {
+            pro -> getString(R.string.pro_title_active)
+            trialDays != null -> getString(R.string.pro_title_trial, trialDays)
+            else -> getString(R.string.pro_title)
+        }
         ui.subtitle.setText(if (pro) R.string.pro_subtitle_active else R.string.pro_subtitle)
         ui.compareHeader.isVisible = !pro
         ui.compareTable.isVisible = !pro
@@ -132,6 +148,7 @@ class ProActivity : BeamActivity() {
             ui.plansHeader.isVisible = false
             ui.planList.isVisible = false
             ui.plansStatus.isVisible = false
+            ui.trialTimeline.isVisible = false
             val subscribed = app.entitlements.proSubscription && !app.entitlements.proLifetime
             ui.cta.setText(if (subscribed) R.string.manage_subscription else R.string.done)
             ui.finePrint.setText(
@@ -141,7 +158,10 @@ class ProActivity : BeamActivity() {
             return
         }
 
-        val plans = billing.plans
+        // A plan with a free trial leads, then shortest period first.
+        val plans = billing.plans.sortedWith(
+            compareBy<Billing.Plan>({ it.freeTrial == null }, { it.period.ordinal })
+        )
         ui.plansHeader.isVisible = true
         ui.planList.isVisible = plans.isNotEmpty()
         ui.plansStatus.isVisible = plans.isEmpty()
@@ -150,7 +170,9 @@ class ProActivity : BeamActivity() {
         )
 
         if (selected == null || plans.none { it === selected }) {
-            selected = plans.firstOrNull { it.period == Billing.Period.YEARLY } ?: plans.firstOrNull()
+            selected = plans.firstOrNull { it.freeTrial != null }
+                ?: plans.firstOrNull { it.period == Billing.Period.YEARLY }
+                ?: plans.firstOrNull()
         }
         buildPlans(plans)
         renderCta()
@@ -205,40 +227,50 @@ class ProActivity : BeamActivity() {
 
     private fun buildPlans(plans: List<Billing.Plan>) {
         ui.planList.removeAllViews()
-        val monthly = plans.firstOrNull { it.period == Billing.Period.MONTHLY }
 
         plans.forEach { plan ->
             val row = ItemPlanBinding.inflate(layoutInflater, ui.planList, false)
             row.price.text = plan.price
+            row.badge.isVisible = false
+
+            val trial = plan.freeTrial?.let { trialPhrase(it) }
+            val trialDetail = trial?.let {
+                getString(R.string.plan_trial_detail, it, plan.price, periodWord(plan.period))
+            }
 
             when (plan.period) {
-                Billing.Period.YEARLY -> {
-                    row.name.setText(R.string.plan_yearly)
-                    row.per.setText(R.string.per_year)
-                    val perMonth = money(plan.priceMicros / 12, plan.currencyCode)
-                    val saving = monthly?.let { savingPercent(plan, it) }
-                    row.detail.text = when {
-                        perMonth != null && saving != null ->
-                            getString(R.string.plan_yearly_detail_saving, perMonth, saving)
-                        perMonth != null -> getString(R.string.plan_yearly_detail, perMonth)
-                        else -> getString(R.string.plan_billed_yearly)
-                    }
-                    row.badge.setText(R.string.badge_best_value)
-                    row.badge.isVisible = true
+                Billing.Period.WEEKLY -> {
+                    row.name.setText(R.string.plan_weekly)
+                    row.per.setText(R.string.per_week)
+                    row.detail.text = trialDetail ?: getString(R.string.plan_weekly_detail)
                 }
                 Billing.Period.MONTHLY -> {
                     row.name.setText(R.string.plan_monthly)
                     row.per.setText(R.string.per_month)
-                    row.detail.setText(R.string.plan_monthly_detail)
+                    row.detail.text = trialDetail ?: getString(R.string.plan_monthly_detail)
+                }
+                Billing.Period.YEARLY -> {
+                    row.name.setText(R.string.plan_yearly)
+                    row.per.setText(R.string.per_year)
+                    val perMonth = money(plan.priceMicros / 12, plan.currencyCode)
+                    row.detail.text = trialDetail
+                        ?: perMonth?.let { getString(R.string.plan_yearly_detail, it) }
+                        ?: getString(R.string.plan_billed_yearly)
+                    savingPercent(plan, plans)?.let {
+                        row.badge.text = getString(R.string.badge_save, it)
+                        row.badge.isVisible = true
+                    }
                 }
                 Billing.Period.LIFETIME -> {
                     row.name.setText(R.string.plan_lifetime)
                     row.per.setText(R.string.per_once)
                     row.detail.setText(R.string.plan_lifetime_detail)
+                    row.badge.setText(R.string.badge_best_value)
+                    row.badge.isVisible = true
                 }
             }
 
-            // A trial is the strongest reason to start; it outranks "best value".
+            // A trial is the strongest reason to start; it outranks any saving.
             plan.freeTrial?.let { trialLabel(it) }?.let {
                 row.badge.text = it
                 row.badge.isVisible = true
@@ -247,6 +279,7 @@ class ProActivity : BeamActivity() {
             row.root.isSelected = plan === selected
             row.root.setOnClickListener {
                 selected = plan
+                Haptics.tick(it)
                 for (i in 0 until ui.planList.childCount) {
                     ui.planList.getChildAt(i).isSelected = ui.planList.getChildAt(i) === row.root
                 }
@@ -259,30 +292,123 @@ class ProActivity : BeamActivity() {
     private fun renderCta() {
         val plan = selected
         ui.cta.isEnabled = plan != null
+        renderTimeline(plan)
         if (plan == null) {
             ui.cta.setText(R.string.cta_continue)
             ui.finePrint.setText(R.string.fine_unavailable)
             return
         }
 
-        val trial = plan.freeTrial?.let { trialLabel(it) }
-        ui.cta.setText(
-            when {
-                plan.period == Billing.Period.LIFETIME -> R.string.cta_lifetime
-                trial != null -> R.string.cta_trial
-                else -> R.string.cta_continue
-            }
-        )
+        val trial = plan.freeTrial?.let { trialPhrase(it) }
+        val days = plan.freeTrial?.let { trialDays(it) }
+        ui.cta.text = when {
+            plan.period == Billing.Period.LIFETIME -> getString(R.string.cta_lifetime)
+            days != null -> getString(R.string.cta_trial_days, days)
+            trial != null -> getString(R.string.cta_trial)
+            else -> getString(R.string.cta_continue)
+        }
 
-        val period = getString(
-            if (plan.period == Billing.Period.YEARLY) R.string.period_year else R.string.period_month
-        )
         ui.finePrint.text = when {
             plan.period == Billing.Period.LIFETIME -> getString(R.string.fine_lifetime, plan.price)
-            trial != null -> getString(R.string.fine_trial, trial, plan.price, period)
-            else -> getString(R.string.fine_sub, plan.price, period)
+            trial != null -> getString(R.string.fine_trial, trial, plan.price, periodWord(plan.period))
+            else -> getString(R.string.fine_sub, plan.price, periodWord(plan.period))
         }
     }
+
+    /**
+     * Today, the day the trial ends, and after: when Pro starts, when the
+     * first charge happens and how to avoid it. Only for a plan with a trial.
+     */
+    private fun renderTimeline(plan: Billing.Plan?) {
+        val box = ui.trialTimeline
+        box.removeAllViews()
+        val iso = plan?.freeTrial
+        if (plan == null || iso == null || trialPhrase(iso) == null || app.entitlements.isPro) {
+            box.isVisible = false
+            return
+        }
+        box.isVisible = true
+        val days = trialDays(iso)
+        val steps = listOf(
+            Triple(R.drawable.ic_crown_simple_fill, getString(R.string.trial_step_today), getString(R.string.trial_step_today_body)),
+            Triple(
+                R.drawable.ic_clock,
+                if (days != null) getString(R.string.trial_step_day, days) else getString(R.string.trial_step_end),
+                getString(R.string.trial_step_end_body)
+            ),
+            Triple(
+                R.drawable.ic_arrow_clockwise,
+                getString(R.string.trial_step_after),
+                getString(R.string.trial_step_after_body, plan.price, periodWord(plan.period))
+            )
+        )
+        steps.forEachIndexed { i, (icon, title, body) ->
+            box.addView(timelineStep(icon, title, body, first = i == 0, last = i == steps.lastIndex))
+        }
+    }
+
+    private fun timelineStep(icon: Int, title: String, body: String, first: Boolean, last: Boolean): View {
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+
+        // The rail: a dot per step, joined by a line down to the next one.
+        val rail = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        val dot = FrameLayout(this).apply {
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                if (first) {
+                    orientation = GradientDrawable.Orientation.TL_BR
+                    colors = intArrayOf(getColor(R.color.bp_pro_start), getColor(R.color.bp_pro_end))
+                } else {
+                    setColor(themeColor(R.attr.bpSurfaceHigh))
+                }
+            }
+            addView(
+                ImageView(this@ProActivity).apply {
+                    setImageResource(icon)
+                    setColorFilter(if (first) getColor(R.color.bp_on_pro) else themeColor(R.attr.bpTextDim))
+                },
+                FrameLayout.LayoutParams(dp(16), dp(16), Gravity.CENTER)
+            )
+        }
+        rail.addView(dot, LinearLayout.LayoutParams(dp(32), dp(32)))
+        if (!last) {
+            rail.addView(
+                View(this).apply { setBackgroundColor(themeColor(R.attr.bpStroke)) },
+                LinearLayout.LayoutParams(dp(2), 0, 1f).apply {
+                    topMargin = dp(4)
+                    bottomMargin = dp(4)
+                }
+            )
+        }
+        row.addView(rail, LinearLayout.LayoutParams(dp(32), LinearLayout.LayoutParams.MATCH_PARENT))
+
+        val text = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(5), 0, dp(if (last) 10 else 18))
+        }
+        text.addView(TextView(this).apply {
+            setTextAppearance(R.style.Text_Subtitle)
+            this.text = title
+        })
+        text.addView(TextView(this).apply {
+            setTextAppearance(R.style.Text_Small)
+            setPadding(0, dp(2), 0, 0)
+            this.text = body
+        })
+        row.addView(text, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        return row
+    }
+
+    private fun periodWord(period: Billing.Period): String = getString(
+        when (period) {
+            Billing.Period.WEEKLY -> R.string.period_week
+            Billing.Period.MONTHLY -> R.string.period_month
+            else -> R.string.period_year
+        }
+    )
 
     private fun onCta() {
         if (app.entitlements.isPro) {
@@ -301,7 +427,10 @@ class ProActivity : BeamActivity() {
 
     private fun onOutcome(outcome: Billing.Outcome) {
         when (outcome) {
-            Billing.Outcome.PURCHASED -> render()
+            Billing.Outcome.PURCHASED -> {
+                Haptics.confirm(this)
+                render()
+            }
             Billing.Outcome.PENDING ->
                 Toast.makeText(this, R.string.purchase_pending, Toast.LENGTH_LONG).show()
             Billing.Outcome.FAILED ->
@@ -341,11 +470,16 @@ class ProActivity : BeamActivity() {
         )
     }
 
-    /** Whole-percent saving of yearly over twelve months, or null if small. */
-    private fun savingPercent(yearly: Billing.Plan, monthly: Billing.Plan): Int? {
-        if (yearly.currencyCode != monthly.currencyCode || monthly.priceMicros <= 0) return null
-        val fullYear = monthly.priceMicros * 12.0
-        val percent = ((1 - yearly.priceMicros / fullYear) * 100).roundToInt()
+    /**
+     * Whole-percent saving of yearly over paying monthly (or, without a
+     * monthly plan, weekly) for a year. Null if small or not comparable.
+     */
+    private fun savingPercent(yearly: Billing.Plan, plans: List<Billing.Plan>): Int? {
+        val (base, perYear) = plans.firstOrNull { it.period == Billing.Period.MONTHLY }?.let { it to 12.0 }
+            ?: plans.firstOrNull { it.period == Billing.Period.WEEKLY }?.let { it to 52.0 }
+            ?: return null
+        if (yearly.currencyCode != base.currencyCode || base.priceMicros <= 0) return null
+        val percent = ((1 - yearly.priceMicros / (base.priceMicros * perYear)) * 100).roundToInt()
         return percent.takeIf { it >= 5 }
     }
 
@@ -355,7 +489,22 @@ class ProActivity : BeamActivity() {
         }.format(micros / 1_000_000.0)
     }.getOrNull()
 
-    /** "P7D" to "7-day free trial". Null for anything unexpected. */
+    /** Trial length in days, for day and week trials; null otherwise. */
+    private fun trialDays(iso: String): Int? {
+        val match = Regex("P(\\d+)([DW])").matchEntire(iso) ?: return null
+        val n = match.groupValues[1].toInt()
+        return if (match.groupValues[2] == "W") n * 7 else n
+    }
+
+    /** "P3D" to "Free for 3 days", for sentences. Null for anything unexpected. */
+    private fun trialPhrase(iso: String): String? {
+        trialDays(iso)?.let { return getString(R.string.trial_phrase_days, it) }
+        val match = Regex("P(\\d+)M").matchEntire(iso) ?: return null
+        val n = match.groupValues[1].toInt()
+        return if (n == 1) getString(R.string.trial_phrase_month) else getString(R.string.trial_phrase_months, n)
+    }
+
+    /** "P3D" to "3-DAY FREE TRIAL", for badges. Null for anything unexpected. */
     private fun trialLabel(iso: String): String? {
         val match = Regex("P(\\d+)([DWMY])").matchEntire(iso) ?: return null
         val n = match.groupValues[1].toInt()

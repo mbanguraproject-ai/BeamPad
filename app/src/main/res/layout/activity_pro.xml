@@ -57,7 +57,7 @@
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="118dp"
                 android:clipChildren="false">
 
                 <View
@@ -67,15 +67,15 @@
                     android:background="@drawable/bg_pro_hero" />
 
                 <FrameLayout
-                    android:layout_width="84dp"
-                    android:layout_height="84dp"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_pro_icon"
                     android:elevation="8dp">
 
                     <ImageView
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_crown_simple_fill"
                         android:tint="@color/bp_on_pro"
@@ -89,7 +89,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="@string/pro_title"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="-0.01"
                 android:textColor="?attr/bpText" />
@@ -123,11 +123,54 @@
                 android:textColor="@color/bp_on_pro"
                 android:visibility="gone" />
 
+            <TextView
+                android:id="@+id/plansHeader"
+                style="@style/SectionHeader"
+                android:paddingStart="4dp"
+                android:text="@string/choose_plan" />
+
+            <LinearLayout
+                android:id="@+id/planList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/plansStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/plans_loading"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/bpTextDim" />
+
+            <!-- What happens when, for a plan with a free trial: the honest
+                 version of "cancel anytime", filled in from the plan. -->
+            <LinearLayout
+                android:id="@+id/trialTimeline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="6dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/featuresHeader"
+                style="@style/SectionHeader"
+                android:paddingStart="4dp"
+                android:text="@string/pro_features_title" />
+
             <LinearLayout
                 android:id="@+id/featureList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:paddingTop="6dp"
@@ -191,28 +234,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/plansHeader"
-                style="@style/SectionHeader"
-                android:paddingStart="4dp"
-                android:text="@string/choose_plan" />
-
-            <LinearLayout
-                android:id="@+id/planList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <TextView
-                android:id="@+id/plansStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:padding="16dp"
-                android:text="@string/plans_loading"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/bpTextDim" />
         </LinearLayout>
     </ScrollView>
 
