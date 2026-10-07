@@ -159,7 +159,7 @@
             app:iconSize="16dp"
             app:iconPadding="6dp" />
 
-        <!-- The command palette (Pro; free users see the upgrade). -->
+        <!-- The command palette (Pro): shown with Pro, where Get Pro was. -->
         <ImageButton
             android:id="@+id/commands"
             style="@style/Widget.BeamPad.IconButton"

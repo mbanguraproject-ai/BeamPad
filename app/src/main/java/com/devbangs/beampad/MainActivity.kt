@@ -596,6 +596,9 @@ class MainActivity : BeamActivity() {
         val pro = app.entitlements.isPro
         ui.proBadge.isVisible = pro
         ui.getPro.isVisible = !pro
+        // The palette is Pro; on free the top bar keeps its room for the
+        // device's name and state, and the paywall lists the palette.
+        ui.commands.isVisible = pro
     }
 
     /** One gentle bounce, at most once a day, so the button is noticed without nagging. */
