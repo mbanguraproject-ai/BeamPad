@@ -16,7 +16,7 @@
     <string name="no_device">No device yet</string>
     <string name="state_connected">Connected</string>
     <string name="state_connecting">Connecting…</string>
-    <string name="state_available">Not connected</string>
+    <string name="state_available">Available</string>
     <string name="state_disconnected">Disconnected</string>
     <string name="state_action">Action required</string>
     <string name="device_button_description">%1$s, %2$s. Opens your devices.</string>
@@ -155,6 +155,8 @@
     <string name="compat_chromeos_body">Keyboard, trackpad, mouse and media keys.</string>
     <string name="compat_linux">Linux</string>
     <string name="compat_linux_body">Works with standard desktop Bluetooth (GNOME, KDE and others).</string>
+    <string name="compat_minipc">Mini PCs and media PCs</string>
+    <string name="compat_minipc_body">Intel NUC, Mac mini, Beelink and other small PCs run Windows, macOS or Linux, so they work like any computer. Built-in Bluetooth is needed (or a USB adapter).</string>
     <string name="compat_group_other">Other devices</string>
     <string name="compat_projector">Projectors</string>
     <string name="compat_projector_body">Android-based projectors work like Android TV. Others: use the quick test.</string>

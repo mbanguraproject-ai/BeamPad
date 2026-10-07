@@ -195,7 +195,10 @@ object HidReports {
      */
     enum class Layout(val label: String) {
         US("US QWERTY"),
-        UK("UK QWERTY")
+        UK("UK QWERTY"),
+        DE("German QWERTZ"),
+        FR("French AZERTY"),
+        ES("Spanish QWERTY")
     }
 
     /**
@@ -212,11 +215,112 @@ object HidReports {
         '|' to (MOD_LEFT_SHIFT to 0x64.toByte())
     )
 
-    private fun overridesFor(layout: Layout): Map<Char, Pair<Byte, Byte>> =
-        when (layout) {
-            Layout.US -> emptyMap()
-            Layout.UK -> UK_OVERRIDES
+    private const val SHIFT = MOD_LEFT_SHIFT
+    private const val ALTGR = MOD_RIGHT_ALT
+    private const val NONE = MOD_NONE
+
+    private fun key(mod: Byte, usage: Int): Pair<Byte, Byte> = mod to usage.toByte()
+
+    /**
+     * German QWERTZ. Every symbol is listed: the US mapping is wrong for
+     * almost all of them on this layout. Dead keys (^ ` ´) are left out, so
+     * they are reported as untypable instead of typing something else.
+     */
+    private val DE_KEYS: Map<Char, Pair<Byte, Byte>> = mapOf(
+        'ä' to key(NONE, 0x34), 'Ä' to key(SHIFT, 0x34),
+        'ö' to key(NONE, 0x33), 'Ö' to key(SHIFT, 0x33),
+        'ü' to key(NONE, 0x2F), 'Ü' to key(SHIFT, 0x2F),
+        'ß' to key(NONE, 0x2D), '?' to key(SHIFT, 0x2D), '\\' to key(ALTGR, 0x2D),
+        '!' to key(SHIFT, 0x1E), '"' to key(SHIFT, 0x1F), '§' to key(SHIFT, 0x20),
+        '$' to key(SHIFT, 0x21), '%' to key(SHIFT, 0x22), '&' to key(SHIFT, 0x23),
+        '/' to key(SHIFT, 0x24), '(' to key(SHIFT, 0x25), ')' to key(SHIFT, 0x26),
+        '=' to key(SHIFT, 0x27),
+        '²' to key(ALTGR, 0x1F), '³' to key(ALTGR, 0x20),
+        '{' to key(ALTGR, 0x24), '[' to key(ALTGR, 0x25), ']' to key(ALTGR, 0x26), '}' to key(ALTGR, 0x27),
+        '+' to key(NONE, 0x30), '*' to key(SHIFT, 0x30), '~' to key(ALTGR, 0x30),
+        '#' to key(NONE, 0x32), '\'' to key(SHIFT, 0x32),
+        '°' to key(SHIFT, 0x35),
+        ',' to key(NONE, 0x36), ';' to key(SHIFT, 0x36),
+        '.' to key(NONE, 0x37), ':' to key(SHIFT, 0x37),
+        '-' to key(NONE, 0x38), '_' to key(SHIFT, 0x38),
+        '<' to key(NONE, 0x64), '>' to key(SHIFT, 0x64), '|' to key(ALTGR, 0x64),
+        '@' to key(ALTGR, 0x14), '€' to key(ALTGR, 0x08), 'µ' to key(ALTGR, 0x10)
+    )
+
+    /** French AZERTY: digits need Shift, M sits where US has the semicolon. */
+    private val FR_KEYS: Map<Char, Pair<Byte, Byte>> = mapOf(
+        '&' to key(NONE, 0x1E), '1' to key(SHIFT, 0x1E),
+        'é' to key(NONE, 0x1F), '2' to key(SHIFT, 0x1F),
+        '"' to key(NONE, 0x20), '3' to key(SHIFT, 0x20), '#' to key(ALTGR, 0x20),
+        '\'' to key(NONE, 0x21), '4' to key(SHIFT, 0x21), '{' to key(ALTGR, 0x21),
+        '(' to key(NONE, 0x22), '5' to key(SHIFT, 0x22), '[' to key(ALTGR, 0x22),
+        '-' to key(NONE, 0x23), '6' to key(SHIFT, 0x23), '|' to key(ALTGR, 0x23),
+        'è' to key(NONE, 0x24), '7' to key(SHIFT, 0x24),
+        '_' to key(NONE, 0x25), '8' to key(SHIFT, 0x25), '\\' to key(ALTGR, 0x25),
+        'ç' to key(NONE, 0x26), '9' to key(SHIFT, 0x26),
+        'à' to key(NONE, 0x27), '0' to key(SHIFT, 0x27), '@' to key(ALTGR, 0x27),
+        ')' to key(NONE, 0x2D), '°' to key(SHIFT, 0x2D), ']' to key(ALTGR, 0x2D),
+        '=' to key(NONE, 0x2E), '+' to key(SHIFT, 0x2E), '}' to key(ALTGR, 0x2E),
+        '$' to key(NONE, 0x30), '£' to key(SHIFT, 0x30),
+        '*' to key(NONE, 0x32), 'µ' to key(SHIFT, 0x32),
+        'm' to key(NONE, 0x33), 'M' to key(SHIFT, 0x33),
+        'ù' to key(NONE, 0x34), '%' to key(SHIFT, 0x34),
+        '²' to key(NONE, 0x35),
+        ',' to key(NONE, 0x10), '?' to key(SHIFT, 0x10),
+        ';' to key(NONE, 0x36), '.' to key(SHIFT, 0x36),
+        ':' to key(NONE, 0x37), '/' to key(SHIFT, 0x37),
+        '!' to key(NONE, 0x38), '§' to key(SHIFT, 0x38),
+        '<' to key(NONE, 0x64), '>' to key(SHIFT, 0x64),
+        '€' to key(ALTGR, 0x08)
+    )
+
+    /** Spanish (Spain) QWERTY. */
+    private val ES_KEYS: Map<Char, Pair<Byte, Byte>> = mapOf(
+        '!' to key(SHIFT, 0x1E), '|' to key(ALTGR, 0x1E),
+        '"' to key(SHIFT, 0x1F), '@' to key(ALTGR, 0x1F),
+        '·' to key(SHIFT, 0x20), '#' to key(ALTGR, 0x20),
+        '$' to key(SHIFT, 0x21), '%' to key(SHIFT, 0x22),
+        '&' to key(SHIFT, 0x23), '¬' to key(ALTGR, 0x23),
+        '/' to key(SHIFT, 0x24), '(' to key(SHIFT, 0x25), ')' to key(SHIFT, 0x26),
+        '=' to key(SHIFT, 0x27),
+        '\'' to key(NONE, 0x2D), '?' to key(SHIFT, 0x2D),
+        '¡' to key(NONE, 0x2E), '¿' to key(SHIFT, 0x2E),
+        '[' to key(ALTGR, 0x2F),
+        '+' to key(NONE, 0x30), '*' to key(SHIFT, 0x30), ']' to key(ALTGR, 0x30),
+        'ñ' to key(NONE, 0x33), 'Ñ' to key(SHIFT, 0x33),
+        '{' to key(ALTGR, 0x34),
+        'ç' to key(NONE, 0x32), 'Ç' to key(SHIFT, 0x32), '}' to key(ALTGR, 0x32),
+        'º' to key(NONE, 0x35), 'ª' to key(SHIFT, 0x35), '\\' to key(ALTGR, 0x35),
+        ',' to key(NONE, 0x36), ';' to key(SHIFT, 0x36),
+        '.' to key(NONE, 0x37), ':' to key(SHIFT, 0x37),
+        '-' to key(NONE, 0x38), '_' to key(SHIFT, 0x38),
+        '<' to key(NONE, 0x64), '>' to key(SHIFT, 0x64),
+        '€' to key(ALTGR, 0x08)
+    )
+
+    /** Letters that sit on a different key than on US QWERTY: typed letter to the US key. */
+    private val LETTER_MOVES: Map<Layout, Map<Char, Char>> = mapOf(
+        Layout.DE to mapOf('z' to 'y', 'y' to 'z'),
+        Layout.FR to mapOf('a' to 'q', 'q' to 'a', 'z' to 'w', 'w' to 'z')
+    )
+
+    /**
+     * Continental layouts: the table first, then only what is genuinely
+     * shared with US (letters, moved where needed, plus digits where they
+     * are unshifted, space, Enter and Tab). Anything else is untypable
+     * rather than typed as the wrong symbol.
+     */
+    private fun encodeContinental(c: Char, layout: Layout, table: Map<Char, Pair<Byte, Byte>>): Pair<Byte, Byte>? {
+        table[c]?.let { return it }
+        if (c == ' ' || c == '\n' || c == '\t') return encodeUs(c)
+        val lower = c.lowercaseChar()
+        if (lower in 'a'..'z') {
+            val on = LETTER_MOVES[layout]?.get(lower) ?: lower
+            return (if (c in 'A'..'Z') SHIFT else NONE) to (0x04 + (on - 'a')).toByte()
         }
+        if (c in '0'..'9' && layout != Layout.FR) return encodeUs(c)
+        return null
+    }
 
     /** String used to check what the receiver actually produces. */
     const val PROBE = "@#2$~|"
@@ -229,8 +333,13 @@ object HidReports {
      * own layout. These codes are correct only when the receiver uses US QWERTY.
      * Letters survive most Latin layouts; symbols do not.
      */
-    fun encode(c: Char, layout: Layout = Layout.US): Pair<Byte, Byte>? =
-        overridesFor(layout)[c] ?: encodeUs(c)
+    fun encode(c: Char, layout: Layout = Layout.US): Pair<Byte, Byte>? = when (layout) {
+        Layout.US -> encodeUs(c)
+        Layout.UK -> UK_OVERRIDES[c] ?: encodeUs(c)
+        Layout.DE -> encodeContinental(c, layout, DE_KEYS)
+        Layout.FR -> encodeContinental(c, layout, FR_KEYS)
+        Layout.ES -> encodeContinental(c, layout, ES_KEYS)
+    }
 
     private fun encodeUs(c: Char): Pair<Byte, Byte>? = when (c) {
         in 'a'..'z' -> MOD_NONE to (0x04 + (c - 'a')).toByte()

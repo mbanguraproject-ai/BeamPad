@@ -42,7 +42,8 @@ class CompatibilityActivity : PageActivity() {
             Entry(R.string.compat_windows, R.string.compat_windows_body, R.drawable.ic_desktop, Level.FULL),
             Entry(R.string.compat_mac, R.string.compat_mac_body, R.drawable.ic_laptop, Level.FULL),
             Entry(R.string.compat_chromeos, R.string.compat_chromeos_body, R.drawable.ic_laptop, Level.FULL),
-            Entry(R.string.compat_linux, R.string.compat_linux_body, R.drawable.ic_desktop, Level.FULL)
+            Entry(R.string.compat_linux, R.string.compat_linux_body, R.drawable.ic_desktop, Level.FULL),
+            Entry(R.string.compat_minipc, R.string.compat_minipc_body, R.drawable.ic_desktop, Level.FULL)
         ))
         group(content, R.string.compat_group_other, listOf(
             Entry(R.string.compat_projector, R.string.compat_projector_body, R.drawable.ic_projector_screen, Level.VARIES),
