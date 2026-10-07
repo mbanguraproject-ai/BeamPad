@@ -163,6 +163,15 @@ class ScreenshotTest {
     }
 
     @Test
+    fun home() {
+        appearance(Appearance.DARK)
+        seedDevices()
+        Prefs(app).lastHome = true
+        shoot(main(), "control_home")
+        Prefs(app).lastHome = false
+    }
+
+    @Test
     fun panels() {
         appearance(Appearance.DARK)
         shoot(main(tab = R.id.tab_panels), "tab_panels_free")
