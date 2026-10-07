@@ -25,7 +25,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/bg_mouse_left"
-            android:stateListAnimator="@animator/press_scale_subtle"
+            android:stateListAnimator="?attr/bpPressAnimatorSubtle"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="@string/act_left_click">
@@ -54,7 +54,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/bg_mouse_right"
-            android:stateListAnimator="@animator/press_scale_subtle"
+            android:stateListAnimator="?attr/bpPressAnimatorSubtle"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="@string/act_right_click">

@@ -44,6 +44,11 @@ class MediaFragment : SurfaceFragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        scaleKeys(ui.root)
+    }
+
     override fun onVolumeKey(up: Boolean): Boolean {
         if (!connected) return false
         consumer(if (up) HidReports.CC_VOLUME_UP else HidReports.CC_VOLUME_DOWN)

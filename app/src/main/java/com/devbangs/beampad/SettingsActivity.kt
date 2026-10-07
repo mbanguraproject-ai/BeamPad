@@ -280,6 +280,19 @@ class SettingsActivity : PageActivity() {
     private fun snippets(c: ViewGroup) {
         Ui.section(c, getString(R.string.set_group_snippets))
         val card = Ui.card(c)
+        Ui.switchRow(card, getString(R.string.set_biometric), getString(R.string.set_biometric_body),
+            R.drawable.ic_fingerprint, prefs.lockAllSnippets) { on ->
+            // Without a screen lock there is nothing to unlock with.
+            if (on && !Auth.isAvailable(this)) {
+                Toast.makeText(this, R.string.set_biometric_no_lock, Toast.LENGTH_LONG).show()
+                false
+            } else {
+                prefs.lockAllSnippets = on
+                SnippetLock.lock()
+                on
+            }
+        }
+        Ui.divider(card)
         picker(card, R.string.set_autolock, R.drawable.ic_lock_simple, prefs.snippetAutoLock, listOf(
             Prefs.AutoLock.EVERY_SEND to getString(R.string.set_autolock_every),
             Prefs.AutoLock.ONE_MINUTE to getString(R.string.set_autolock_minute),

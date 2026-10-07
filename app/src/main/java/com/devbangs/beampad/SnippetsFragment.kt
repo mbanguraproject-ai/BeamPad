@@ -102,6 +102,10 @@ class SnippetsFragment : Fragment() {
 
     // ---- Sending ----------------------------------------------------------------
 
+    /** Protected snippets always; every snippet when Settings locks them all. */
+    private fun needsUnlock(snippet: Snippet): Boolean =
+        snippet.secret || Prefs(requireContext()).lockAllSnippets
+
     /** The snippet going out. A second tap meanwhile would type it twice. */
     private var sending: InputEngine.Job? = null
 
@@ -115,7 +119,7 @@ class SnippetsFragment : Fragment() {
             toast(getString(R.string.typing_busy))
             return
         }
-        if (!snippet.secret || SnippetLock.isUnlocked(requireContext())) {
+        if (!needsUnlock(snippet) || SnippetLock.isUnlocked(requireContext())) {
             type(snippet)
             return
         }
@@ -167,7 +171,7 @@ class SnippetsFragment : Fragment() {
 
     /** Protected snippets ask for the screen lock before their value can be seen or changed. */
     private fun startEdit(snippet: Snippet) {
-        if (!snippet.secret || SnippetLock.isUnlocked(requireContext())) {
+        if (!needsUnlock(snippet) || SnippetLock.isUnlocked(requireContext())) {
             editor(snippet)
             return
         }

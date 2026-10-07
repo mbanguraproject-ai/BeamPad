@@ -18,6 +18,7 @@ abstract class BeamActivity : FragmentActivity() {
 
     private var appliedTheme = 0
     private var appliedContrast = false
+    private var appliedReducedMotion = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         applyAppearance()
@@ -31,6 +32,13 @@ abstract class BeamActivity : FragmentActivity() {
         setTheme(appliedTheme)
         appliedContrast = Prefs(this).highContrast
         if (appliedContrast) theme.applyStyle(R.style.ThemeOverlay_BeamPad_HighContrast, true)
+        // Keys scale when pressed unless motion is reduced (here or system-wide).
+        appliedReducedMotion = Motion.reduced(this)
+        theme.applyStyle(
+            if (appliedReducedMotion) R.style.ThemeOverlay_BeamPad_PressStill
+            else R.style.ThemeOverlay_BeamPad_PressMotion,
+            true
+        )
     }
 
     override fun setContentView(view: View?) {
@@ -46,7 +54,8 @@ abstract class BeamActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         val changed = appliedTheme != Appearance.themeFor(this) ||
-            appliedContrast != Prefs(this).highContrast
+            appliedContrast != Prefs(this).highContrast ||
+            appliedReducedMotion != Motion.reduced(this)
         if (appliedTheme != 0 && changed) recreate()
     }
 

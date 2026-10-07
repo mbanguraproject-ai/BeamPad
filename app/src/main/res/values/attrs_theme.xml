@@ -23,4 +23,8 @@
     <attr name="bpKeyStroke" format="color" />
     <attr name="bpScrim" format="color" />
     <attr name="bpDanger" format="color" />
+
+    <!-- Press feedback on keys; empty when motion is reduced (BeamActivity). -->
+    <attr name="bpPressAnimator" format="reference" />
+    <attr name="bpPressAnimatorSubtle" format="reference" />
 </resources>

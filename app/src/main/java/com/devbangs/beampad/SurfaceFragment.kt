@@ -4,8 +4,11 @@ import android.annotation.SuppressLint
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.android.material.button.MaterialButton
+import kotlin.math.roundToInt
 
 /**
  * Base for every control surface (keyboard, trackpad, remote, media,
@@ -143,6 +146,30 @@ abstract class SurfaceFragment : Fragment() {
     }
 
     protected fun dp(value: Number): Int = Ui.dp(requireContext(), value)
+
+    /**
+     * Applies Button size and Large controls to every fixed-height key under
+     * [root]; the heights in the layouts are the Regular size. Safe to call
+     * on every resume (Settings may have changed): the size always comes
+     * from the layout's value, kept in a tag, never from the current height.
+     */
+    protected fun scaleKeys(root: View) {
+        val scale = ControlSizing.scale(root.context)
+        fun walk(view: View) {
+            if (view is MaterialButton) {
+                val params = view.layoutParams
+                val base = view.getTag(R.id.base_height) as? Int
+                    ?: params.height.also { view.setTag(R.id.base_height, it) }
+                val target = (base * scale).roundToInt()
+                if (base > 0 && params.height != target) {
+                    params.height = target
+                    view.layoutParams = params
+                }
+            }
+            if (view is ViewGroup) for (i in 0 until view.childCount) walk(view.getChildAt(i))
+        }
+        walk(root)
+    }
 
     /**
      * Connects a pad to the engine. Movement and scrolling are continuous

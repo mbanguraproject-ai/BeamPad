@@ -440,6 +440,9 @@
     <string name="set_strength_light">Light</string>
     <string name="set_strength_medium">Medium</string>
     <string name="set_strength_strong">Strong</string>
+    <string name="set_biometric">Biometric lock for all snippets</string>
+    <string name="set_biometric_body">Ask for fingerprint, face or PIN before any snippet is sent or edited, not only protected ones</string>
+    <string name="set_biometric_no_lock">Set a screen lock on this phone first, then turn this on.</string>
     <string name="set_autolock">Lock protected snippets</string>
     <string name="set_autolock_body">How long an unlock lasts before the screen lock is asked again</string>
     <string name="set_autolock_every">Every time</string>

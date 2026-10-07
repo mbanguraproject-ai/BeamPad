@@ -70,11 +70,12 @@ class ControlFragment : Fragment() {
             return
         }
         if (mode == next && panelId == null) return
+        val from = position()
         mode = next
         panelId = null
         prefs.lastMode = next
         prefs.lastPanelId = null
-        swapChild(animate = true)
+        swapChild(animate = true, forward = position() >= from)
         buildChips()
     }
 
@@ -87,10 +88,11 @@ class ControlFragment : Fragment() {
         }
         if (PanelStore(context).get(id) == null) return
         if (panelId == id) return
+        val from = position()
         panelId = id
         mode = null
         prefs.lastPanelId = id
-        swapChild(animate = true)
+        swapChild(animate = true, forward = position() >= from)
         buildChips()
     }
 
@@ -98,14 +100,25 @@ class ControlFragment : Fragment() {
     fun currentSurface(): SurfaceFragment? =
         if (_ui == null) null else childFragmentManager.findFragmentById(R.id.modeContainer) as? SurfaceFragment
 
-    private fun swapChild(animate: Boolean) {
+    /** Where the showing surface sits in the track: modes in order, then panels. */
+    private fun position(): Int {
+        panelId?.let { id ->
+            val index = PanelStore(requireContext()).all().indexOfFirst { it.id == id }
+            return ControlMode.entries.size + index.coerceAtLeast(0)
+        }
+        return (mode ?: ControlMode.KEYBOARD).ordinal
+    }
+
+    private fun swapChild(animate: Boolean, forward: Boolean = true) {
         if (_ui == null) return
         val fragment = panelId?.let { PanelFragment.newInstance(it) }
             ?: (mode ?: ControlMode.KEYBOARD).newFragment()
         val tx = childFragmentManager.beginTransaction()
-        // A quick cross-fade: switching modes is spatial, never a wait.
+        // A short slide in the direction of the segment tapped, so the
+        // surfaces read as a row: switching modes is spatial, never a wait.
         if (animate && !Motion.reduced(requireContext())) {
-            tx.setCustomAnimations(R.animator.mode_in, R.animator.mode_out)
+            if (forward) tx.setCustomAnimations(R.animator.mode_in_forward, R.animator.mode_out_forward)
+            else tx.setCustomAnimations(R.animator.mode_in_back, R.animator.mode_out_back)
         }
         tx.replace(R.id.modeContainer, fragment).commit()
     }

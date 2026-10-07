@@ -163,6 +163,15 @@ class Prefs(context: Context) {
         get() = enumOf(KEY_AUTO_LOCK, AutoLock.EVERY_SEND)
         set(value) = putString(KEY_AUTO_LOCK, value.name)
 
+    /**
+     * The blueprint's snippet biometric lock: every snippet, not only
+     * protected ones, asks for fingerprint, face or PIN before it is sent
+     * or edited (the auto-lock window still applies).
+     */
+    var lockAllSnippets: Boolean
+        get() = bool(KEY_LOCK_ALL_SNIPPETS, false)
+        set(value) = putBool(KEY_LOCK_ALL_SNIPPETS, value)
+
     /** Ask before typing the phone's clipboard onto the device. */
     var confirmClipboard: Boolean
         get() = bool(KEY_CONFIRM_CLIPBOARD, false)
@@ -262,6 +271,7 @@ class Prefs(context: Context) {
         private const val KEY_VOLUME_BUTTONS = "volume_buttons"
         private const val KEY_AUTO_LOCK = "snippet_auto_lock"
         private const val KEY_CONFIRM_CLIPBOARD = "confirm_clipboard"
+        private const val KEY_LOCK_ALL_SNIPPETS = "lock_all_snippets"
         private const val KEY_APPEARANCE = "appearance"
         private const val KEY_LARGE_CONTROLS = "large_controls"
         private const val KEY_HIGH_CONTRAST = "high_contrast"

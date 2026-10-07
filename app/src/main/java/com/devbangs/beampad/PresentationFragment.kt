@@ -68,6 +68,7 @@ class PresentationFragment : SurfaceFragment() {
     override fun onResume() {
         super.onResume()
         applyPadPrefs(ui.pointer)
+        scaleKeys(ui.root)
     }
 
     override fun onVolumeKey(up: Boolean): Boolean {
