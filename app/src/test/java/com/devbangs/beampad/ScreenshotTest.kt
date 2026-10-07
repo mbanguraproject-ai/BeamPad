@@ -186,9 +186,9 @@ class ScreenshotTest {
     fun home() {
         appearance(Appearance.DARK)
         seedDevices()
-        Prefs(app).lastHome = true
+        Prefs(app).lastPage = "HOME"
         shoot(main(), "control_home")
-        Prefs(app).lastHome = false
+        Prefs(app).lastPage = null
     }
 
     @Test

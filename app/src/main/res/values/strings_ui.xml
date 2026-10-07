@@ -571,4 +571,17 @@
     <string name="home_snippets_body">Wi-Fi passwords and logins, typed in one tap</string>
     <!-- Short enough for one line at large text; read aloud as "Fast forward". -->
     <string name="media_forward">Forward</string>
+    <!-- Launch (Pro): favourite apps per device -->
+    <string name="launch_segment">Launch</string>
+    <string name="launch_title">Apps</string>
+    <string name="launch_for">Apps on %1$s</string>
+    <string name="launch_note">Apps open through your TV’s search: Home, search, the app’s name, Enter. Works on Google TV, Android TV and Fire TV.</string>
+    <string name="launch_edit">Edit</string>
+    <string name="launch_edit_title">Apps on this device</string>
+    <string name="launch_edit_body">Choose the apps to show. Each device keeps its own list.</string>
+    <string name="launch_add">Add an app</string>
+    <string name="launch_add_body">Any app your TV’s search can find</string>
+    <string name="launch_add_label">App name</string>
+    <string name="launch_add_hint">For example, BBC iPlayer</string>
+    <string name="launch_opening">Open %1$s</string>
 </resources>

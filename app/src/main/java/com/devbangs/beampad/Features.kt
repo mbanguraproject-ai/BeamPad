@@ -18,6 +18,9 @@ object Features {
     /** Pro features, in paywall order. [key] is passed to the paywall to highlight one. */
     enum class Pro(val key: String) {
         FULL_KEYBOARD("full_keyboard"),
+        COMMANDS("commands"),
+        LAUNCH("launch"),
+        AIR_MOUSE("air_mouse"),
         NO_ADS("no_ads"),
         PANELS("panels"),
         MACROS("macros"),

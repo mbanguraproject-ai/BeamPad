@@ -21,8 +21,11 @@ class ControlFragment : Fragment() {
 
     private val prefs get() = (requireActivity().application as BeamPadApp).prefs
 
-    /** What is showing: Home, a built-in mode, or a panel id. */
-    private var home = false
+    /** The two pages that are not control surfaces. */
+    private enum class Page { HOME, LAUNCH }
+
+    /** What is showing: a page (Home, Launch), a built-in mode, or a panel id. */
+    private var page: Page? = null
     private var mode: ControlMode? = null
     private var panelId: String? = null
 
@@ -36,9 +39,12 @@ class ControlFragment : Fragment() {
     override fun onViewCreated(view: View, state: Bundle?) {
         val savedPanel = state?.getString(KEY_PANEL)
         val savedMode = enumOrNull<ControlMode>(state?.getString(KEY_MODE))
+        val savedPage = enumOrNull<Page>(state?.getString(KEY_PAGE))
+        val lastPage = enumOrNull<Page>(prefs.lastPage)
+            ?.takeUnless { it == Page.LAUNCH && !Features.isPro(requireContext()) }
         when {
-            state?.getBoolean(KEY_HOME) == true -> home = true
-            state == null && prefs.lastHome -> home = true
+            savedPage != null -> page = savedPage
+            state == null && lastPage != null -> page = lastPage
             savedPanel != null -> panelId = savedPanel
             savedMode != null -> mode = savedMode
             prefs.lastPanelId != null && PanelStore(requireContext()).get(prefs.lastPanelId) != null &&
@@ -61,7 +67,7 @@ class ControlFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(KEY_HOME, home)
+        outState.putString(KEY_PAGE, page?.name)
         outState.putString(KEY_MODE, mode?.name)
         outState.putString(KEY_PANEL, panelId)
     }
@@ -73,10 +79,10 @@ class ControlFragment : Fragment() {
             next.pro?.let { ProActivity.open(context, it) }
             return
         }
-        if (mode == next && panelId == null && !home) return
+        if (mode == next && panelId == null && page == null) return
         val from = position()
-        home = false
-        prefs.lastHome = false
+        page = null
+        prefs.lastPage = null
         mode = next
         panelId = null
         prefs.lastMode = next
@@ -93,10 +99,10 @@ class ControlFragment : Fragment() {
             return
         }
         if (PanelStore(context).get(id) == null) return
-        if (panelId == id && !home) return
+        if (panelId == id && page == null) return
         val from = position()
-        home = false
-        prefs.lastHome = false
+        page = null
+        prefs.lastPage = null
         panelId = id
         mode = null
         prefs.lastPanelId = id
@@ -109,13 +115,25 @@ class ControlFragment : Fragment() {
         if (_ui == null) null else childFragmentManager.findFragmentById(R.id.modeContainer) as? SurfaceFragment
 
     /** Home: the four big modes, recent devices and quick actions. */
-    fun showHome() {
-        if (home) return
+    fun showHome() = showPage(Page.HOME)
+
+    /** Launch (Pro): the device's favourite apps. */
+    fun showLaunch() {
+        val context = context ?: return
+        if (!Features.isPro(context)) {
+            ProActivity.open(context, Features.Pro.LAUNCH)
+            return
+        }
+        showPage(Page.LAUNCH)
+    }
+
+    private fun showPage(next: Page) {
+        if (page == next) return
         val from = position()
-        home = true
+        page = next
         mode = null
         panelId = null
-        prefs.lastHome = true
+        prefs.lastPage = next.name
         swapChild(animate = true, forward = position() >= from)
         buildChips()
     }
@@ -127,7 +145,11 @@ class ControlFragment : Fragment() {
 
     /** Where the showing surface sits in the track: Home, modes in order, then panels. */
     private fun position(): Int {
-        if (home) return -1
+        when (page) {
+            Page.HOME -> return -2
+            Page.LAUNCH -> return -1
+            null -> Unit
+        }
         panelId?.let { id ->
             val index = PanelStore(requireContext()).all().indexOfFirst { it.id == id }
             return ControlMode.entries.size + index.coerceAtLeast(0)
@@ -138,7 +160,8 @@ class ControlFragment : Fragment() {
     private fun swapChild(animate: Boolean, forward: Boolean = true) {
         if (_ui == null) return
         val fragment = when {
-            home -> HomeFragment()
+            page == Page.HOME -> HomeFragment()
+            page == Page.LAUNCH -> LaunchFragment()
             panelId != null -> PanelFragment.newInstance(panelId!!)
             else -> (mode ?: ControlMode.KEYBOARD).newFragment()
         }
@@ -172,15 +195,22 @@ class ControlFragment : Fragment() {
                 key = "home",
                 label = getString(R.string.home_segment),
                 icon = R.drawable.ic_house,
-                selected = home,
+                selected = page == Page.HOME,
                 locked = false
-            ) { showHome() }
+            ) { showHome() },
+            Segment(
+                key = "launch",
+                label = getString(R.string.launch_segment),
+                icon = R.drawable.ic_rocket_launch,
+                selected = page == Page.LAUNCH,
+                locked = !pro
+            ) { showLaunch() }
         ) + ControlMode.entries.map { m ->
             Segment(
                 key = "mode:${m.name}",
                 label = getString(m.labelRes),
                 icon = m.iconRes,
-                selected = !home && panelId == null && mode == m,
+                selected = page == null && panelId == null && mode == m,
                 locked = !Features.allowed(context, m)
             ) { showMode(m) }
         } + PanelStore(context).all().map { panel ->
@@ -246,6 +276,6 @@ class ControlFragment : Fragment() {
     private companion object {
         const val KEY_MODE = "mode"
         const val KEY_PANEL = "panel"
-        const val KEY_HOME = "home"
+        const val KEY_PAGE = "page"
     }
 }

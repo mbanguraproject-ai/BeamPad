@@ -162,6 +162,12 @@
     <string name="feat_profiles_body">Each device opens its own mode, panel and keyboard layout</string>
     <string name="feat_presentation">Presentation mode</string>
     <string name="feat_presentation_body">Big next and previous, black screen and a pointer for talks</string>
+    <string name="feat_commands">Command palette</string>
+    <string name="feat_commands_body">Search any action, app, macro or device, and run it in one tap</string>
+    <string name="feat_launch">App launcher</string>
+    <string name="feat_launch_body">Your favourite TV apps for each device, opened in one tap</string>
+    <string name="feat_air_mouse">Air mouse</string>
+    <string name="feat_air_mouse_body">Point at the TV by moving your phone, like a laser pointer</string>
     <string name="feat_snippets">Unlimited snippets</string>
     <string name="feat_snippets_body">Save every password and login, not just three</string>
     <string name="feat_trackpad">Precision trackpad</string>
@@ -178,6 +184,7 @@
     <string name="cmp_profiles_presentation">Device profiles and presentation mode</string>
     <string name="cmp_live_voice">Live and voice typing</string>
     <string name="cmp_keys_clipboard">Function keys and paste to device</string>
+    <string name="cmp_commands_launch">Command palette, app launcher, air mouse</string>
     <string name="cmp_trackpad">Precision trackpad</string>
     <string name="cmp_ads">Ads</string>
     <string name="cmp_ads_free">Yes</string>

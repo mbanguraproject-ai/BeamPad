@@ -68,10 +68,10 @@ class Prefs(context: Context) {
         get() = string(KEY_LAST_PANEL)
         set(value) = putString(KEY_LAST_PANEL, value)
 
-    /** Home was the last thing shown on the Control tab (instead of a mode or panel). */
-    var lastHome: Boolean
-        get() = bool(KEY_LAST_HOME, false)
-        set(value) = putBool(KEY_LAST_HOME, value)
+    /** The page last shown on the Control tab (Home or Launch), or null for a mode or panel. */
+    var lastPage: String?
+        get() = prefs.getString(KEY_LAST_PAGE, null)
+        set(value) = prefs.edit().putString(KEY_LAST_PAGE, value).apply()
 
     // ---- Keyboard ---------------------------------------------------------
 
@@ -277,7 +277,7 @@ class Prefs(context: Context) {
         private const val KEY_AUTO_LOCK = "snippet_auto_lock"
         private const val KEY_CONFIRM_CLIPBOARD = "confirm_clipboard"
         private const val KEY_LOCK_ALL_SNIPPETS = "lock_all_snippets"
-        private const val KEY_LAST_HOME = "last_home"
+        private const val KEY_LAST_PAGE = "last_page"
         private const val KEY_APPEARANCE = "appearance"
         private const val KEY_LARGE_CONTROLS = "large_controls"
         private const val KEY_HIGH_CONTRAST = "high_contrast"

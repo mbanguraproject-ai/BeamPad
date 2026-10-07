@@ -85,13 +85,8 @@ object Library {
         QUIET(R.string.ex_quiet, R.string.ex_quiet_body)
     }
 
-    /** Home, then the TV's search, then [app] typed and opened (Google TV and Android TV). */
-    private fun openApp(app: String): List<Action> = listOf(
-        Action.Consumer(HidReports.CC_HOME), Action.Delay(1500),
-        Action.Consumer(HidReports.CC_SEARCH), Action.Delay(1200),
-        Action.Text(app), Action.Delay(400),
-        Action.Key(HidReports.KEY_ENTER.toInt())
-    )
+    /** Home, then the TV's search, then [app] typed and opened, as the launcher does. */
+    private fun openApp(app: String): List<Action> = Launcher.steps(TvApp(app.lowercase(), app))
 
     fun steps(example: MacroExample): List<Action> = when (example) {
         MacroExample.YOUTUBE -> openApp("YouTube")

@@ -53,6 +53,9 @@ class ProActivity : BeamActivity() {
 
     private val features = listOf(
         Feature(Features.Pro.FULL_KEYBOARD, R.drawable.ic_keyboard, R.string.feat_full_keyboard, R.string.feat_full_keyboard_body),
+        Feature(Features.Pro.COMMANDS, R.drawable.ic_command, R.string.feat_commands, R.string.feat_commands_body),
+        Feature(Features.Pro.LAUNCH, R.drawable.ic_rocket_launch, R.string.feat_launch, R.string.feat_launch_body),
+        Feature(Features.Pro.AIR_MOUSE, R.drawable.ic_hand_pointing, R.string.feat_air_mouse, R.string.feat_air_mouse_body),
         Feature(Features.Pro.NO_ADS, R.drawable.ic_sparkle_fill, R.string.feat_no_ads, R.string.feat_no_ads_body),
         Feature(Features.Pro.PANELS, R.drawable.ic_layout, R.string.feat_panels, R.string.feat_panels_body),
         Feature(Features.Pro.MACROS, R.drawable.ic_magic_wand, R.string.feat_macros, R.string.feat_macros_body),
@@ -72,6 +75,7 @@ class ProActivity : BeamActivity() {
         Triple(R.string.cmp_reconnect, CHECK, CHECK),
         Triple(R.string.cmp_themes, CHECK, CHECK),
         Triple(R.string.cmp_full_keyboard, null, CHECK),
+        Triple(R.string.cmp_commands_launch, null, CHECK),
         Triple(R.string.cmp_panels_macros, null, CHECK),
         Triple(R.string.cmp_profiles_presentation, null, CHECK),
         Triple(R.string.cmp_trackpad, null, CHECK),

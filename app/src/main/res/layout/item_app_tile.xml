@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch: one favourite app. A monogram, not the app's logo: logos are
+     the owners' trademarks and would not match the TV's own icons anyway. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:minHeight="104dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="@dimen/space_sm"
+    android:background="@drawable/bg_choice_card"
+    android:clickable="true"
+    android:focusable="true">
+
+    <FrameLayout
+        android:id="@+id/tile"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_icon_tile_accent">
+
+        <TextView
+            android:id="@+id/monogram"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAppearance="@style/Text.Title"
+            android:textColor="?attr/bpAccent2"
+            android:importantForAccessibility="no" />
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:tint="?attr/bpAccent2"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xs"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textAppearance="@style/Text.Label" />
+</LinearLayout>
