@@ -1,23 +1,35 @@
 package com.devbangs.beampad
 
 import android.content.Context
+import android.os.SystemClock
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
+/** What a snippet is for, which decides its icon, its field and its filter. */
+enum class SnippetCategory(val labelRes: Int, val iconRes: Int) {
+    WIFI(R.string.snip_cat_wifi, R.drawable.ic_wifi_high),
+    ACCOUNT(R.string.snip_cat_account, R.drawable.ic_user),
+    TEXT(R.string.snip_cat_text, R.drawable.ic_note),
+    LINK(R.string.snip_cat_link, R.drawable.ic_link)
+}
+
 /**
  * A saved piece of text the user can type to a paired device.
  *
- * [value] is held encrypted; call [SnippetStore.reveal] to decrypt.
- * [secret] marks entries that must not be displayed without authentication.
+ * [encrypted] is held encrypted; call [SnippetStore.reveal] to decrypt.
+ * [secret] marks entries that must not be displayed or sent without
+ * authentication.
  */
 data class Snippet(
     val id: String,
     val label: String,
     val encrypted: String,
-    val secret: Boolean
+    val secret: Boolean,
+    val category: SnippetCategory = SnippetCategory.TEXT
 )
 
+/** Local only: snippets never leave the phone except as keystrokes to a paired device. */
 class SnippetStore(context: Context) {
 
     private val prefs = context.getSharedPreferences("beampad_snippets", Context.MODE_PRIVATE)
@@ -32,11 +44,14 @@ class SnippetStore(context: Context) {
                     id = o.getString("id"),
                     label = o.getString("label"),
                     encrypted = o.getString("value"),
-                    secret = o.optBoolean("secret", false)
+                    secret = o.optBoolean("secret", false),
+                    category = enumOrNull<SnippetCategory>(o.optString("cat")) ?: SnippetCategory.TEXT
                 )
             }
         }.getOrDefault(emptyList())
     }
+
+    fun get(id: String): Snippet? = all().firstOrNull { it.id == id }
 
     /** Thrown when a secret snippet is saved on a device with no screen lock. */
     class NoScreenLockException : IllegalStateException(Auth.NO_LOCK_MESSAGE)
@@ -49,17 +64,39 @@ class SnippetStore(context: Context) {
         label: String,
         plaintext: String,
         secret: Boolean,
-        screenLockAvailable: Boolean = true
+        screenLockAvailable: Boolean = true,
+        category: SnippetCategory = SnippetCategory.TEXT
     ): Snippet {
         if (secret && !screenLockAvailable) throw NoScreenLockException()
         val snippet = Snippet(
             id = UUID.randomUUID().toString(),
             label = label,
             encrypted = Vault.encrypt(plaintext),
-            secret = secret
+            secret = secret,
+            category = category
         )
         persist(all() + snippet)
         return snippet
+    }
+
+    /** Replaces a snippet in place, keeping its position. A null [plaintext] keeps the stored value. */
+    fun update(
+        id: String,
+        label: String,
+        plaintext: String?,
+        secret: Boolean,
+        category: SnippetCategory,
+        screenLockAvailable: Boolean = true
+    ) {
+        if (secret && !screenLockAvailable) throw NoScreenLockException()
+        persist(all().map { s ->
+            if (s.id != id) s else s.copy(
+                label = label,
+                encrypted = plaintext?.let { Vault.encrypt(it) } ?: s.encrypted,
+                secret = secret,
+                category = category
+            )
+        })
     }
 
     fun delete(id: String) {
@@ -78,6 +115,7 @@ class SnippetStore(context: Context) {
                     put("label", s.label)
                     put("value", s.encrypted)
                     put("secret", s.secret)
+                    put("cat", s.category.name)
                 }
             )
         }
@@ -86,5 +124,28 @@ class SnippetStore(context: Context) {
 
     private companion object {
         const val KEY = "snippets"
+    }
+}
+
+/**
+ * Remembers a successful unlock for the auto-lock window chosen in
+ * Settings, in memory only: leaving the app or restarting the phone
+ * always locks again.
+ */
+object SnippetLock {
+
+    private var unlockedAt = 0L
+
+    fun isUnlocked(context: Context): Boolean {
+        val grace = Prefs(context).snippetAutoLock.graceMillis
+        return grace > 0 && unlockedAt != 0L && SystemClock.elapsedRealtime() - unlockedAt < grace
+    }
+
+    fun unlocked() {
+        unlockedAt = SystemClock.elapsedRealtime()
+    }
+
+    fun lock() {
+        unlockedAt = 0L
     }
 }

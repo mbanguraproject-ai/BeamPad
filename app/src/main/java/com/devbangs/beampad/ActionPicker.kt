@@ -85,7 +85,7 @@ object ActionPicker {
         Actions.find(action)?.let { return Actions.label(context, it) }
         return when (action) {
             is Action.Text -> context.getString(R.string.act_type_text, action.text.take(24))
-            is Action.Delay -> context.getString(R.string.act_wait_ms, action.millis)
+            is Action.Delay -> context.getString(R.string.act_wait_seconds, action.millis / 1000f)
             is Action.RunMacro -> MacroStore(context).get(action.macroId)?.name
                 ?: context.getString(R.string.act_missing_macro)
             is Action.Key -> context.getString(R.string.act_key_code, action.usage)

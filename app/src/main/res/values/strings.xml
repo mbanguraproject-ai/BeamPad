@@ -110,9 +110,9 @@
     <string name="right_click">Right click</string>
 
     <!-- Snippets tab -->
-    <string name="snippets_title">Saved snippets</string>
+    <string name="snippets_title">Snippets</string>
     <string name="snippets_empty_title">No snippets yet</string>
-    <string name="snippets_empty_body">Save a wifi password or login and send it\nto your TV with one tap.</string>
+    <string name="snippets_empty_body">Save a Wi-Fi password, a login or a link once, then type it on your device with one tap.</string>
     <string name="snippet_count_free">%1$d of %2$d free</string>
     <plurals name="snippet_count">
         <item quantity="one">%1$d saved</item>
@@ -123,7 +123,7 @@
     <string name="snippet_delete">Delete</string>
     <string name="snippet_label">Label</string>
     <string name="snippet_value">Text to type</string>
-    <string name="snippet_protect">Protect this snippet</string>
+    <string name="snippet_protect">Protect with screen lock</string>
     <string name="snippet_protect_hint">Requires unlock before sending</string>
     <string name="snippet_label_hint">e.g. Home wifi, Netflix login</string>
     <string name="snippet_value_hint">The text to type on your TV</string>

@@ -213,15 +213,18 @@ class PanelGrid @JvmOverloads constructor(
             gravity = Gravity.CENTER_VERTICAL
             val up = Action.fromJson(c.config.optJSONObject(CONFIG_UP)) ?: Action.Consumer(HidReports.CC_VOLUME_UP)
             val down = Action.fromJson(c.config.optJSONObject(CONFIG_DOWN)) ?: Action.Consumer(HidReports.CC_VOLUME_DOWN)
-            addView(TextView(context).apply {
-                setTextAppearance(R.style.Text_Label_Small)
-                text = c.label?.takeIf { it.isNotBlank() } ?: context.getString(R.string.volume)
-                setPadding(Ui.dp(context, 4), 0, 0, Ui.dp(context, 6))
-            })
+            // A one-row slider is all track; taller ones have room to name it.
+            if (c.rows > 1) {
+                addView(TextView(context).apply {
+                    setTextAppearance(R.style.Text_Label_Small)
+                    text = c.label?.takeIf { it.isNotBlank() } ?: context.getString(R.string.volume)
+                    setPadding(Ui.dp(context, 4), 0, 0, Ui.dp(context, 6))
+                })
+            }
             addView(StepSliderView(context).apply {
                 onStep = { dir -> send(if (dir > 0) up else down) }
                 contentDescription = label(c)
-            }, LinearLayout.LayoutParams(MATCH, Ui.dp(context, 48)))
+            }, LinearLayout.LayoutParams(MATCH, minOf(Ui.dp(context, 52), cell)))
         }
 
         ComponentType.TOGGLE -> {

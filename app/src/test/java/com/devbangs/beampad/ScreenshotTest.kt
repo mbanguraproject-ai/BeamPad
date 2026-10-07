@@ -184,12 +184,6 @@ class ScreenshotTest {
     }
 
     @Test
-    fun tabs() {
-        appearance(Appearance.DARK)
-        shoot(main(tab = R.id.tab_snippets), "tab_snippets")
-    }
-
-    @Test
     fun light() {
         appearance(Appearance.LIGHT)
         shoot(main(ControlMode.KEYBOARD), "light_control_keyboard")
@@ -203,14 +197,49 @@ class ScreenshotTest {
         appearance(Appearance.DARK)
         shoot(screen<SettingsActivity>(), "settings")
         shoot(screen<ProActivity>(), "pro")
-        shoot(screen<OnboardingActivity>(), "onboarding")
+    }
+
+    /** The keystore is not available under Robolectric, so rows are written as stored. */
+    private fun seedSnippets() {
+        val rows = listOf(
+            Triple("Home Wi-Fi", "WIFI", true),
+            Triple("Netflix email", "ACCOUNT", false),
+            Triple("Holiday photos", "LINK", false),
+            Triple("Address", "TEXT", false)
+        )
+        val arr = org.json.JSONArray()
+        rows.forEachIndexed { i, (label, cat, secret) ->
+            arr.put(org.json.JSONObject().put("id", "s$i").put("label", label).put("value", "x")
+                .put("secret", secret).put("cat", cat))
+        }
+        app.getSharedPreferences("beampad_snippets", Context.MODE_PRIVATE).edit()
+            .putString("snippets", arr.toString()).commit()
     }
 
     @Test
-    fun addSnippet() {
+    fun snippets() {
         appearance(Appearance.DARK)
+        shoot(main(tab = R.id.tab_snippets), "tab_snippets_empty")
         val activity = main(tab = R.id.tab_snippets)
-        activity.findViewById<View>(R.id.add).performClick()
+        activity.findViewById<android.widget.LinearLayout>(R.id.actions).getChildAt(0).performClick()
         shootDialog("sheet_add_snippet")
+        pro(true)
+        seedSnippets()
+        shoot(main(tab = R.id.tab_snippets), "tab_snippets")
+        pro(false)
+    }
+
+    @Test
+    fun onboarding() {
+        appearance(Appearance.DARK)
+        app.getSharedPreferences(Prefs.FILE, Context.MODE_PRIVATE).edit().putBoolean("onboarding_seen", false).commit()
+        val activity = screen<OnboardingActivity>()
+        shoot(activity, "onboarding_1")
+        activity.findViewById<View>(R.id.next).performClick()
+        settle()
+        shoot(activity, "onboarding_2")
+        activity.findViewById<View>(R.id.next).performClick()
+        settle()
+        shoot(activity, "onboarding_3")
     }
 }

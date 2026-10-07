@@ -318,4 +318,53 @@
     <string name="ex_youtube_body">Home, search, type YouTube, Enter (Google TV)</string>
     <string name="ex_quiet">Turn it down</string>
     <string name="ex_quiet_body">Five steps of volume down</string>
+
+    <!-- Snippets -->
+    <string name="snippets_subtitle">Typed for you, kept on this phone</string>
+    <string name="snip_cat_wifi">Wi-Fi</string>
+    <string name="snip_cat_account">Accounts</string>
+    <string name="snip_cat_text">Text</string>
+    <string name="snip_cat_link">Links</string>
+    <string name="snip_all">All</string>
+    <string name="snip_protected">Protected · %1$s</string>
+    <string name="snippet_send_short">Send</string>
+    <string name="snip_sent">Sent %1$s</string>
+    <string name="snip_privacy_title">Your keystrokes stay between your phone and your paired device.</string>
+    <string name="snip_privacy_body">Snippets are encrypted with a key held in this phone’s secure hardware. Nothing is synced or uploaded.</string>
+    <string name="auth_reason_edit">Unlock to view or change this snippet</string>
+    <string name="snip_edit">Edit snippet</string>
+    <string name="snip_editor_body">Stored encrypted on this phone. Sent only as keystrokes when you tap Send.</string>
+    <string name="snip_kind">Kind</string>
+    <string name="snip_hint_wifi_label">e.g. Home Wi-Fi</string>
+    <string name="snip_hint_account_label">e.g. Netflix email</string>
+    <string name="snip_hint_link_label">e.g. Holiday photos</string>
+    <string name="snip_value_wifi">Wi-Fi password</string>
+    <string name="snip_value_account">Username, email or password</string>
+    <string name="snip_value_link">Link</string>
+    <string name="snip_hint_wifi">The network password</string>
+    <string name="snip_hint_account">What to type into the field</string>
+    <string name="snip_hint_link">https://</string>
+    <string name="snip_protect_body">Asks for your fingerprint, face or PIN before sending or showing it</string>
+    <string name="snip_delete_confirm">Delete %1$s?</string>
+
+    <!-- Onboarding -->
+    <string name="ob_step">Step %1$d of %2$d</string>
+    <string name="ob_start">Start controlling</string>
+    <string name="ob_q1_title">What are you controlling?</string>
+    <string name="ob_q1_body">BeamPad sets itself up for it. You can add more devices any time.</string>
+    <string name="ob_type_tv">Google TV, Fire TV, Samsung, LG and more</string>
+    <string name="ob_type_computer">Windows, Mac, Chromebook or Linux</string>
+    <string name="ob_type_projector">For presentations and movies</string>
+    <string name="ob_type_other">Tablets, mini PCs, anything with Bluetooth</string>
+    <string name="ob_q2_title">Pair it once</string>
+    <string name="ob_q2_body">Your phone appears to it as a Bluetooth keyboard and mouse. Nothing to install on the other side.</string>
+    <string name="ob_q2_note">You’ll make the phone visible from the next screen. After the first time, BeamPad reconnects by itself.</string>
+    <string name="ob_q3_title">Start with which controls?</string>
+    <string name="ob_q3_body">Switch any time from the bar at the top of Control.</string>
+    <string name="ob_mode_remote">D-pad, Home, Back, volume and channels</string>
+    <string name="ob_mode_keyboard">Type with your phone’s keyboard, plus navigation keys</string>
+    <string name="ob_mode_trackpad">A precise pointer with clicks, scrolling and gestures</string>
+    <string name="ob_mode_media">Play, pause, skip, seek and volume</string>
+    <string name="ob_layout_body">Match the computer’s layout so symbols arrive right</string>
+    <string name="act_wait_seconds">Wait %1$.2g s</string>
 </resources>
