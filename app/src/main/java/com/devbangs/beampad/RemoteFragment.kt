@@ -107,7 +107,7 @@ class RemoteFragment : SurfaceFragment() {
         listOf(ui.topRow, ui.navRow, ui.mediaRow).forEach(::alignRow)
 
         fun height(view: View, base: Int) = view.updateLayoutParams { height = (dp(base) * scale).roundToInt() }
-        listOf(ui.power, ui.sleep, ui.search, ui.subtitles, ui.mute).forEach { height(it, 44) }
+        listOf(ui.power, ui.sleep, ui.search, ui.subtitles, ui.mute).forEach { height(it, 48) }
         listOf(ui.back, ui.home, ui.menu).forEach { height(it, 60) }
         listOf(ui.prev, ui.rewind, ui.playPause, ui.forward, ui.next).forEach { height(it, 52) }
         listOf(ui.volRocker, ui.chRocker).forEach { it.updateLayoutParams { width = (dp(60) * scale).roundToInt() } }

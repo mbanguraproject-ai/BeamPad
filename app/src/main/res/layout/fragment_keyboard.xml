@@ -48,8 +48,8 @@
                 android:importantForAutofill="no" />
 
             <FrameLayout
-                android:layout_width="44dp"
-                android:layout_height="44dp">
+                android:layout_width="48dp"
+                android:layout_height="48dp">
 
                 <ImageButton
                     android:id="@+id/mic"
@@ -258,7 +258,7 @@
         <LinearLayout
             android:id="@+id/fkeys"
             android:layout_width="wrap_content"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:orientation="horizontal" />
     </HorizontalScrollView>
 
