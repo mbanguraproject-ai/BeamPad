@@ -68,14 +68,17 @@ abstract class SurfaceFragment : Fragment() {
         if (store.getBoolean(key, false)) return
         store.edit().putBoolean(key, true).apply()
         val context = view.context
-        Snackbar.make(view, tip, Snackbar.LENGTH_LONG)
+        val bar = Snackbar.make(view, tip, Snackbar.LENGTH_LONG)
             .setDuration(TIP_DURATION_MS)
             .setAction(R.string.got_it) { }
             // In the app's palette, not Material's default inverse bar.
             .setBackgroundTint(context.themeColor(R.attr.bpSurfaceHigh))
             .setTextColor(context.themeColor(R.attr.bpText))
             .setActionTextColor(context.themeColor(R.attr.bpAccent2))
-            .show()
+        // Two lines by default, which cuts a tip short at large text sizes.
+        bar.view.findViewById<android.widget.TextView>(com.google.android.material.R.id.snackbar_text)
+            ?.maxLines = TIP_MAX_LINES
+        bar.show()
     }
 
     override fun onStart() {
@@ -276,6 +279,7 @@ abstract class SurfaceFragment : Fragment() {
     companion object {
         const val TIPS_FILE = "beampad_tips"
         const val TIP_DURATION_MS = 7000
+        const val TIP_MAX_LINES = 5
 
         const val NUDGE_INTERVAL_MS = 3000L
         const val REPEAT_DELAY_MS = 420L

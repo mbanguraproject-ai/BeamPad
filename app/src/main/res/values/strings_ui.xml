@@ -569,4 +569,6 @@
     <string name="home_pro_title">Panels and macros</string>
     <string name="home_pro_body">Your own remotes, and whole routines on one tap</string>
     <string name="home_snippets_body">Wi-Fi passwords and logins, typed in one tap</string>
+    <!-- Short enough for one line at large text; read aloud as "Fast forward". -->
+    <string name="media_forward">Forward</string>
 </resources>
