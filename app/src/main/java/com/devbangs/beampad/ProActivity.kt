@@ -158,10 +158,9 @@ class ProActivity : BeamActivity() {
             return
         }
 
-        // A plan with a free trial leads, then shortest period first.
-        val plans = billing.plans.sortedWith(
-            compareBy<Billing.Plan>({ it.freeTrial == null }, { it.period.ordinal })
-        )
+        // Shortest period first, lifetime last: yearly sits in the middle,
+        // preselected, between a pricier monthly and a one-time lifetime.
+        val plans = billing.plans.sortedBy { it.period.ordinal }
         ui.plansHeader.isVisible = true
         ui.planList.isVisible = plans.isNotEmpty()
         ui.plansStatus.isVisible = plans.isEmpty()
@@ -270,10 +269,13 @@ class ProActivity : BeamActivity() {
                 }
             }
 
-            // A trial is the strongest reason to start; it outranks any saving.
-            plan.freeTrial?.let { trialLabel(it) }?.let {
-                row.badge.text = it
-                row.badge.isVisible = true
+            // The trial is already in the title, button and detail line, so
+            // an honest saving keeps the badge; otherwise the trial takes it.
+            if (!row.badge.isVisible) {
+                plan.freeTrial?.let { trialLabel(it) }?.let {
+                    row.badge.text = it
+                    row.badge.isVisible = true
+                }
             }
 
             row.root.isSelected = plan === selected
