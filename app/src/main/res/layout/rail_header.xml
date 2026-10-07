@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Rail header for short landscape windows, where the top header row is
-     hidden to give the controls more height: Get Pro and Settings move here. -->
+<!-- Rail header for short landscape windows, where the top bar is hidden to
+     give the controls more height: the device, Get Pro and Settings move
+     here as icons. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:paddingTop="8dp"
+    android:paddingTop="@dimen/space_xs"
     android:paddingBottom="4dp">
+
+    <ImageButton
+        android:id="@+id/railDevice"
+        style="@style/Widget.BeamPad.IconButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_television_simple"
+        android:contentDescription="@string/devices_sheet_title" />
 
     <ImageButton
         android:id="@+id/railPro"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:padding="12dp"
+        android:layout_marginTop="@dimen/space_xs"
+        android:padding="13dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_crown_simple_fill"
         android:background="@drawable/bg_pro_button"
@@ -22,13 +33,11 @@
 
     <ImageButton
         android:id="@+id/railSettings"
+        style="@style/Widget.BeamPad.IconButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/space_xs"
         android:padding="12dp"
-        android:scaleType="fitCenter"
         android:src="@drawable/ic_gear"
-        android:background="@drawable/bg_icon_button"
-        android:tint="?attr/bpText"
         android:contentDescription="@string/settings" />
 </LinearLayout>

@@ -1,14 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hairline on top only: the inset keeps the stroke off the other edges. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="?attr/bpStroke" />
-        </shape>
-    </item>
-    <item android:top="1dp">
-        <shape android:shape="rectangle">
-            <solid android:color="?attr/bpSurface" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Same colour as the page, with a hairline on top: the bar is part of the screen, not a separate slab. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"><item><shape android:shape="rectangle"><solid android:color="?attr/bpStroke" /></shape></item><item android:top="1dp"><shape android:shape="rectangle"><solid android:color="?attr/bpBg" /></shape></item></layer-list>

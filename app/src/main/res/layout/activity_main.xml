@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The shell: one continuous page from top bar to nav. Everything sits on
+     the page background; only content (cards, keys, pads) is raised, so the
+     top, middle and bottom of every tab read as one surface. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -11,130 +14,41 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Header: name and plan on the left, the upgrade and settings on the
-         right. Nothing here changes width with connection state, so the
-         header never reflows when a TV connects. -->
+    <!-- Top bar: the active device first, as the blueprint asks. Tapping it
+         opens the device sheet (switch, disconnect, pair). Pro and Settings
+         on the right. Fixed height, so it never reflows with state. -->
     <LinearLayout
         android:id="@+id/headerRow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/top_bar_height"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="20dp"
-        android:paddingEnd="14dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
+        android:paddingStart="10dp"
+        android:paddingEnd="@dimen/gutter">
 
         <LinearLayout
+            android:id="@+id/deviceButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_weight="1"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="-0.01"
-                    android:textColor="?attr/bpText" />
-
-                <TextView
-                    android:id="@+id/proBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_pro_badge"
-                    android:paddingStart="7dp"
-                    android:paddingEnd="7dp"
-                    android:paddingTop="2dp"
-                    android:paddingBottom="2dp"
-                    android:text="@string/pro_badge"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08"
-                    android:textColor="@color/bp_on_pro"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/planLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:text="@string/plan_free_label"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?attr/bpTextDim" />
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/getPro"
-            style="@style/Widget.BeamPad.ProButton"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:minHeight="40dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="16dp"
-            android:text="@string/get_pro"
-            android:textSize="14sp"
-            app:icon="@drawable/ic_crown_simple_fill"
-            app:iconSize="18dp"
-            app:iconPadding="6dp" />
-
-        <ImageButton
-            android:id="@+id/settings"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="10dp"
-            android:padding="11dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_gear"
-            android:background="@drawable/bg_icon_button"
-            android:tint="?attr/bpText"
-            android:contentDescription="@string/settings" />
-    </LinearLayout>
-
-    <!-- One card for every connection state. Disconnected it explains the
-         next step and offers one button for it; connected it shrinks to a
-         single row with the TV's name, returning space to the controls. -->
-    <FrameLayout
-        android:id="@+id/statusCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
-        android:background="@drawable/bg_card">
-
-        <LinearLayout
-            android:id="@+id/setupRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp">
+            android:paddingStart="6dp"
+            android:paddingEnd="8dp"
+            android:background="@drawable/bg_row"
+            android:clickable="true"
+            android:focusable="true">
 
             <FrameLayout
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/bg_icon_chip">
+                android:id="@+id/deviceTile"
+                android:layout_width="@dimen/icon_tile"
+                android:layout_height="@dimen/icon_tile"
+                android:background="@drawable/bg_icon_tile">
 
                 <ImageView
-                    android:id="@+id/statusIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:id="@+id/deviceIcon"
+                    android:layout_width="@dimen/icon"
+                    android:layout_height="@dimen/icon"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_television_simple"
                     android:tint="?attr/bpText"
@@ -145,91 +59,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/statusTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:text="@string/status_ready"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
-                    android:textStyle="bold"
-                    android:textColor="?attr/bpText" />
-
-                <TextView
-                    android:id="@+id/statusDetail"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/bpTextDim" />
-            </LinearLayout>
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/statusProgress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="8dp"
-                android:indeterminate="true"
-                android:visibility="gone"
-                app:indicatorSize="24dp"
-                app:trackThickness="3dp"
-                app:indicatorColor="?attr/bpAccent2"
-                app:trackColor="@android:color/transparent" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/statusAction"
-                style="@style/Widget.BeamPad.PrimaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:minHeight="44dp"
-                android:minWidth="96dp"
-                android:layout_marginStart="10dp"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
-                android:text="@string/action_connect" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/connectedRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_row"
-            android:paddingStart="14dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone">
-
-            <FrameLayout
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/bg_icon_chip_mint">
-
-                <ImageView
-                    android:id="@+id/connectedIcon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_television_simple"
-                    android:tint="?attr/bpLive"
-                    android:contentDescription="@null" />
-            </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_sm"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -238,43 +68,158 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
 
+                    <TextView
+                        android:id="@+id/deviceName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxWidth="200dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textAppearance="@style/Text.Subtitle" />
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/ic_caret_down"
+                        android:tint="?attr/bpTextDim"
+                        android:contentDescription="@null" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
                     <View
+                        android:id="@+id/deviceDot"
                         android:layout_width="7dp"
                         android:layout_height="7dp"
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/dot_online" />
 
                     <TextView
+                        android:id="@+id/deviceStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/status_connected"
-                        android:textAppearance="?attr/textAppearanceLabelSmall"
-                        android:textColor="?attr/bpLive" />
+                        android:maxLines="1"
+                        android:textAppearance="@style/Text.Small" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/connectedName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
-                    android:textStyle="bold"
-                    android:textColor="?attr/bpText" />
             </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/disconnect"
-                style="@style/Widget.BeamPad.SecondaryButton"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:minHeight="38dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/action_disconnect"
-                android:textSize="13sp" />
         </LinearLayout>
-    </FrameLayout>
+
+        <TextView
+            android:id="@+id/proBadge"
+            style="@style/ProTag"
+            android:layout_marginEnd="@dimen/space_xs"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/getPro"
+            style="@style/Widget.BeamPad.ProButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_small"
+            android:minHeight="@dimen/button_height_small"
+            android:layout_marginStart="@dimen/space_xs"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
+            android:text="@string/get_pro"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_crown_simple_fill"
+            app:iconSize="16dp"
+            app:iconPadding="6dp" />
+
+        <ImageButton
+            android:id="@+id/settings"
+            style="@style/Widget.BeamPad.IconButton"
+            android:layout_marginStart="@dimen/space_xs"
+            android:src="@drawable/ic_gear"
+            android:contentDescription="@string/settings" />
+    </LinearLayout>
+
+    <!-- Shown only while something needs doing (permission, Bluetooth off,
+         pairing, a dropped link). Connected, it disappears and the controls
+         get the space; the top bar alone carries the state. -->
+    <LinearLayout
+        android:id="@+id/statusCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/gutter"
+        android:layout_marginEnd="@dimen/gutter"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="@dimen/space_xs"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_card"
+        android:paddingStart="14dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp">
+
+        <FrameLayout
+            android:id="@+id/statusTile"
+            android:layout_width="@dimen/icon_tile"
+            android:layout_height="@dimen/icon_tile"
+            android:layout_marginEnd="@dimen/space_sm"
+            android:background="@drawable/bg_icon_tile_accent">
+
+            <ImageView
+                android:id="@+id/statusIcon"
+                android:layout_width="@dimen/icon_small"
+                android:layout_height="@dimen/icon_small"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_bluetooth"
+                android:tint="?attr/bpAccent2"
+                android:contentDescription="@null" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/statusTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="@style/Text.Subtitle"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/statusDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:textAppearance="@style/Text.Small" />
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/statusProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="6dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorSize="22dp"
+            app:trackThickness="2.5dp"
+            app:indicatorColor="?attr/bpAccent2"
+            app:trackColor="@android:color/transparent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/statusAction"
+            style="@style/Widget.BeamPad.SmallButton.Primary"
+            android:layout_width="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/action_connect" />
+    </LinearLayout>
 
     <!-- Banner sits here, not above the nav: the trackpad is a drag surface
          and a banner below it would collect accidental clicks, which AdMob
@@ -316,6 +261,8 @@
             app:itemActiveIndicatorStyle="@style/Nav.ActiveIndicator"
             app:itemTextColor="@color/nav_item"
             app:itemIconTint="@color/nav_item"
+            app:itemTextAppearanceActive="@style/TextAppearance.BeamPad.LabelMedium"
+            app:itemTextAppearanceInactive="@style/TextAppearance.BeamPad.LabelMedium"
             app:menu="@menu/bottom_nav" />
 
         <FrameLayout
@@ -336,6 +283,8 @@
         app:itemActiveIndicatorStyle="@style/Nav.ActiveIndicator"
         app:itemTextColor="@color/nav_item"
         app:itemIconTint="@color/nav_item"
+        app:itemTextAppearanceActive="@style/TextAppearance.BeamPad.LabelMedium"
+        app:itemTextAppearanceInactive="@style/TextAppearance.BeamPad.LabelMedium"
         app:menu="@menu/bottom_nav" />
 
 </LinearLayout>

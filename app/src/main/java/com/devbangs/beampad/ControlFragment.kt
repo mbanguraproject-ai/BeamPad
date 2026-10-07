@@ -106,23 +106,32 @@ class ControlFragment : Fragment() {
         tx.replace(R.id.modeContainer, fragment).commit()
     }
 
+    /** One segment's content; [key] identifies it across rebuilds. */
+    private data class Segment(
+        val key: String,
+        val label: String,
+        val icon: Int,
+        val selected: Boolean,
+        val locked: Boolean,
+        val onTap: () -> Unit
+    )
+
     private fun buildChips() {
         val ui = _ui ?: return
         val context = requireContext()
         val pro = Features.isPro(context)
-        ui.modeChips.removeAllViews()
 
-        ControlMode.entries.forEach { m ->
-            addChip(
+        val segments = ControlMode.entries.map { m ->
+            Segment(
+                key = "mode:${m.name}",
                 label = getString(m.labelRes),
                 icon = m.iconRes,
                 selected = panelId == null && mode == m,
                 locked = !Features.allowed(context, m)
             ) { showMode(m) }
-        }
-
-        PanelStore(context).all().forEach { panel ->
-            addChip(
+        } + PanelStore(context).all().map { panel ->
+            Segment(
+                key = "panel:${panel.id}",
                 label = panel.name,
                 icon = R.drawable.ic_layout,
                 selected = panelId == panel.id,
@@ -130,7 +139,29 @@ class ControlFragment : Fragment() {
             ) { showPanel(panel.id) }
         }
 
-        // Keep the selected chip in view after a rebuild.
+        val sameSet = ui.modeChips.childCount == segments.size &&
+            segments.indices.all { ui.modeChips.getChildAt(it).tag == segments[it].key }
+        if (sameSet) {
+            // Update in place so the selected segment visibly widens to show
+            // its name instead of the row being rebuilt under the finger.
+            if (!Motion.reduced(context)) {
+                android.transition.TransitionManager.beginDelayedTransition(
+                    ui.modeScroll,
+                    android.transition.AutoTransition().setDuration(170)
+                )
+            }
+            segments.forEachIndexed { i, seg -> bindSegment(ItemModeChipBinding.bind(ui.modeChips.getChildAt(i)), seg) }
+        } else {
+            ui.modeChips.removeAllViews()
+            segments.forEach { seg ->
+                val chip = ItemModeChipBinding.inflate(layoutInflater, ui.modeChips, false)
+                chip.root.tag = seg.key
+                bindSegment(chip, seg)
+                ui.modeChips.addView(chip.root)
+            }
+        }
+
+        // Keep the selected segment in view.
         ui.modeChips.post {
             val selected = (0 until ui.modeChips.childCount)
                 .map { ui.modeChips.getChildAt(it) }
@@ -139,24 +170,18 @@ class ControlFragment : Fragment() {
         }
     }
 
-    private fun addChip(
-        label: String,
-        icon: Int,
-        selected: Boolean,
-        locked: Boolean,
-        onTap: () -> Unit
-    ) {
-        val chip = ItemModeChipBinding.inflate(layoutInflater, ui.modeChips, false)
-        chip.label.text = label
-        chip.icon.setImageResource(icon)
-        chip.lock.isVisible = locked
-        chip.root.isSelected = selected
-        chip.root.contentDescription = label
+    private fun bindSegment(chip: ItemModeChipBinding, seg: Segment) {
+        chip.label.text = seg.label
+        chip.label.isVisible = seg.selected
+        chip.icon.setImageResource(seg.icon)
+        chip.lock.isVisible = seg.locked
+        chip.root.isSelected = seg.selected
+        chip.root.contentDescription = seg.label
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(chip.root, seg.label)
         chip.root.setOnClickListener {
             Haptics.tick(it)
-            onTap()
+            seg.onTap()
         }
-        ui.modeChips.addView(chip.root)
     }
 
     override fun onDestroyView() {

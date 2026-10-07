@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A numbered instruction: pairing, onboarding, help. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/number"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="14dp"
+        android:gravity="center"
+        android:background="@drawable/bg_step"
+        android:textAppearance="@style/Text.Label"
+        android:textSize="13sp"
+        android:textColor="?attr/bpAccent2" />
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginTop="3dp"
+        android:lineSpacingExtra="3dp"
+        android:textAppearance="@style/Text.Body" />
+</LinearLayout>

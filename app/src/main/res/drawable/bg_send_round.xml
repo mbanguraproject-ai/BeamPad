@@ -1,18 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#33FFFFFF">
-    <item>
-            <selector>
-                <item android:state_enabled="false">
-                <shape android:shape="oval">
-                    <solid android:color="?attr/bpSurfaceRaised" />
-                </shape>
-                </item>
-                <item>
-                <shape android:shape="oval">
-                    <solid android:color="?attr/bpAccent" />
-                </shape>
-                </item>
-            </selector>
-    </item>
-</ripple>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#33FFFFFF"><item><selector xmlns:android="http://schemas.android.com/apk/res/android"><item android:state_enabled="false"><shape android:shape="oval"><solid android:color="?attr/bpSurfaceRaised" /></shape></item><item><shape android:shape="oval"><solid android:color="?attr/bpAccent" /></shape></item></selector></item></ripple>

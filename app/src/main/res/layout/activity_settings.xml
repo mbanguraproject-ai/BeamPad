@@ -256,7 +256,7 @@
         </LinearLayout>
         <com.google.android.material.slider.Slider
             android:id="@+id/sliderPointer"
-            style="@style/Widget.BeamPad.Slider"
+            style="@style/Widget.BeamPad.Slider.Row"
             android:valueFrom="0.8"
             android:valueTo="3.2"
             android:stepSize="0.2" />
@@ -279,7 +279,7 @@
         </LinearLayout>
         <com.google.android.material.slider.Slider
             android:id="@+id/sliderScroll"
-            style="@style/Widget.BeamPad.Slider"
+            style="@style/Widget.BeamPad.Slider.Row"
             android:valueFrom="0.5"
             android:valueTo="2.5"
             android:stepSize="0.25" />

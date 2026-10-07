@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Components. Every screen is assembled from these; nothing restyles a
+     button, field, key or row locally. Sizes come from dimens.xml, type
+     from type.xml, colour from the theme tokens. -->
+<resources>
+
+    <!-- High contrast, layered over any appearance: secondary text at full
+         strength and strokes at the strong weight, so edges and labels never
+         rely on subtle greys. -->
+    <style name="ThemeOverlay.BeamPad.HighContrast" parent="">
+        <item name="bpTextDim">?attr/bpText</item>
+        <item name="bpTextFaint">?attr/bpTextDim</item>
+        <item name="bpStroke">?attr/bpStrokeStrong</item>
+        <item name="bpKeyStroke">?attr/bpStrokeStrong</item>
+    </style>
+
+    <!-- ===== Sheets and dialogs ===== -->
+
+    <style name="ThemeOverlay.BeamPad.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.BeamPad.BottomSheet</item>
+        <item name="android:navigationBarColor">?attr/bpSurface</item>
+    </style>
+
+    <style name="Widget.BeamPad.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">?attr/bpSurface</item>
+        <item name="shapeAppearance">@style/Shape.Sheet</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+
+    <style name="Shape.Sheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/radius_sheet</item>
+        <item name="cornerSizeTopRight">@dimen/radius_sheet</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="Theme.BeamPad.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">?attr/bpSurface</item>
+        <item name="colorSurfaceContainerHigh">?attr/bpSurface</item>
+        <item name="colorOnSurface">?attr/bpText</item>
+        <item name="colorPrimary">?attr/bpAccent2</item>
+        <item name="colorOnSurfaceVariant">?attr/bpTextDim</item>
+        <item name="colorOutline">?attr/bpStroke</item>
+        <item name="shapeAppearanceOverlay">@style/Shape.Dialog</item>
+    </style>
+
+    <style name="Shape.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_lg</item>
+    </style>
+
+    <style name="Shape.Fab.Squircle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_md</item>
+    </style>
+
+    <!-- ===== Buttons ===== -->
+    <!-- Backgrounds are drawables so shapes and ripples are shared;
+         backgroundTint is cleared or Material would flatten them. -->
+    <style name="Widget.BeamPad.Button" parent="Widget.Material3.Button.UnelevatedButton">
+        <item name="backgroundTint">@null</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">22dp</item>
+        <item name="android:paddingEnd">22dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textAppearance">@style/Text.Label</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="iconSize">@dimen/icon_small</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconGravity">textStart</item>
+    </style>
+
+    <style name="Widget.BeamPad.PrimaryButton" parent="Widget.BeamPad.Button">
+        <item name="android:background">@drawable/bg_primary_button</item>
+        <item name="android:textColor">?attr/bpOnAccent</item>
+        <item name="iconTint">?attr/bpOnAccent</item>
+    </style>
+
+    <style name="Widget.BeamPad.SecondaryButton" parent="Widget.BeamPad.Button">
+        <item name="android:background">@drawable/bg_secondary_button</item>
+        <item name="android:textColor">?attr/bpText</item>
+        <item name="iconTint">?attr/bpText</item>
+    </style>
+
+    <style name="Widget.BeamPad.DangerButton" parent="Widget.BeamPad.Button">
+        <item name="android:background">@drawable/bg_danger_button</item>
+        <item name="android:textColor">?attr/bpDanger</item>
+        <item name="iconTint">?attr/bpDanger</item>
+    </style>
+
+    <style name="Widget.BeamPad.ProButton" parent="Widget.BeamPad.Button">
+        <item name="android:background">@drawable/bg_pro_button</item>
+        <item name="android:textColor">@color/bp_on_pro</item>
+        <item name="iconTint">@color/bp_on_pro</item>
+    </style>
+
+    <!-- Compact pill for headers and rows. -->
+    <style name="Widget.BeamPad.SmallButton" parent="Widget.BeamPad.SecondaryButton">
+        <item name="android:minHeight">@dimen/button_height_small</item>
+        <item name="android:layout_height">@dimen/button_height_small</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="iconPadding">6dp</item>
+    </style>
+
+    <style name="Widget.BeamPad.SmallButton.Primary">
+        <item name="android:background">@drawable/bg_primary_button</item>
+        <item name="android:textColor">?attr/bpOnAccent</item>
+        <item name="iconTint">?attr/bpOnAccent</item>
+    </style>
+
+    <style name="Widget.BeamPad.TextButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textAppearance">@style/Text.Label</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textColor">?attr/bpAccent2</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="rippleColor">?attr/bpKeyPressed</item>
+    </style>
+
+    <style name="Widget.BeamPad.LinkButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="rippleColor">?attr/bpKeyPressed</item>
+    </style>
+
+    <!-- 44dp circle with a hairline: back, settings, overflow. -->
+    <style name="Widget.BeamPad.IconButton" parent="">
+        <item name="android:layout_width">@dimen/icon_button</item>
+        <item name="android:layout_height">@dimen/icon_button</item>
+        <item name="android:padding">11dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">@drawable/bg_icon_button</item>
+        <item name="android:tint">?attr/bpText</item>
+    </style>
+
+    <style name="Widget.BeamPad.IconButton.Plain">
+        <item name="android:background">@drawable/bg_icon_button_plain</item>
+        <item name="android:tint">?attr/bpTextDim</item>
+    </style>
+
+    <!-- ===== Inputs ===== -->
+
+    <style name="Widget.BeamPad.Field" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/field_height</item>
+        <item name="android:background">@drawable/bg_field</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:textAppearance">@style/Text.Body</item>
+        <item name="android:textColor">?attr/bpText</item>
+        <item name="android:textColorHint">?attr/bpTextFaint</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+    <style name="FieldLabel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/space_md</item>
+        <item name="android:layout_marginBottom">@dimen/space_xs</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:textAppearance">@style/Text.Label.Small</item>
+    </style>
+
+    <style name="Widget.BeamPad.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="thumbTint">@color/switch_thumb</item>
+        <item name="trackTint">@color/switch_track</item>
+        <item name="trackDecorationTint">@color/switch_track_stroke</item>
+    </style>
+
+    <style name="Widget.BeamPad.Slider" parent="Widget.Material3.Slider">
+        <item name="labelBehavior">gone</item>
+        <item name="thumbColor">?attr/bpOnAccent</item>
+        <item name="thumbStrokeColor">?attr/bpAccent</item>
+        <item name="thumbStrokeWidth">2dp</item>
+        <item name="trackColorActive">?attr/bpAccent</item>
+        <item name="trackColorInactive">?attr/bpSurfaceHigh</item>
+        <item name="haloColor">?attr/bpAccentSoft</item>
+        <item name="tickVisible">false</item>
+        <item name="trackHeight">6dp</item>
+    </style>
+
+    <!-- Full-width slider under a settings row's title. -->
+    <style name="Widget.BeamPad.Slider.Row">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">52dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_marginTop">-6dp</item>
+    </style>
+
+    <!-- ===== Navigation ===== -->
+
+    <style name="Nav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">?attr/bpSurfaceHigh</item>
+        <item name="android:width">60dp</item>
+        <item name="android:height">32dp</item>
+    </style>
+
+    <!-- ===== Rows and groups ===== -->
+
+    <style name="SectionHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">28dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:textAppearance">@style/Text.Overline</item>
+    </style>
+
+    <style name="SettingsGroup">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">@dimen/gutter</item>
+        <item name="android:layout_marginEnd">@dimen/gutter</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+    </style>
+
+    <style name="SettingsRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/row_min_height</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:layout_marginEnd">4dp</item>
+        <item name="android:background">@drawable/bg_row</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="SettingsRowText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="SettingsIconTile">
+        <item name="android:layout_width">@dimen/icon_tile_small</item>
+        <item name="android:layout_height">@dimen/icon_tile_small</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:background">@drawable/bg_icon_tile</item>
+    </style>
+
+    <style name="SettingsIcon">
+        <item name="android:layout_width">@dimen/icon_small</item>
+        <item name="android:layout_height">@dimen/icon_small</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:tint">?attr/bpText</item>
+        <item name="android:contentDescription">@null</item>
+    </style>
+
+    <style name="SettingsChevron">
+        <item name="android:layout_width">18dp</item>
+        <item name="android:layout_height">18dp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:src">@drawable/ic_caret_right</item>
+        <item name="android:tint">?attr/bpTextFaint</item>
+        <item name="android:contentDescription">@null</item>
+    </style>
+
+    <style name="RowTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/Text.Body</item>
+    </style>
+
+    <style name="RowSubtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textAppearance">@style/Text.Small</item>
+    </style>
+
+    <style name="ProTag">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:background">@drawable/bg_pro_badge</item>
+        <item name="android:paddingStart">7dp</item>
+        <item name="android:paddingEnd">7dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:text">@string/pro_badge</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">@color/bp_on_pro</item>
+    </style>
+
+    <!-- ===== Chips ===== -->
+
+    <style name="ToolChip">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">@dimen/chip_height</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="ToolChipBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:background">@drawable/bg_tool_chip</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
+    <style name="ToolChipIcon">
+        <item name="android:layout_width">16dp</item>
+        <item name="android:layout_height">16dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:tint">@color/chip_text</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:contentDescription">@null</item>
+    </style>
+
+    <style name="ToolChipText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/Text.Label</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/chip_text</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="ToolChipLock">
+        <item name="android:layout_width">16dp</item>
+        <item name="android:layout_height">16dp</item>
+        <item name="android:layout_gravity">top|end</item>
+        <item name="android:layout_marginTop">-2dp</item>
+        <item name="android:layout_marginEnd">2dp</item>
+        <item name="android:background">@drawable/bg_lock_badge</item>
+    </style>
+
+    <style name="ToolChipLockIcon">
+        <item name="android:layout_width">9dp</item>
+        <item name="android:layout_height">9dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:src">@drawable/ic_lock_simple_fill</item>
+        <item name="android:tint">@color/bp_on_pro</item>
+        <item name="android:contentDescription">@null</item>
+    </style>
+
+    <!-- ===== Keys ===== -->
+    <!-- One key family for every control surface. Icon-only and text keys
+         share the face, height and press behaviour. -->
+
+    <style name="Key" parent="Widget.Material3.Button.TextButton">
+        <item name="android:stateListAnimator">@animator/press_scale</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">@dimen/key_height</item>
+        <item name="android:background">@drawable/bg_key</item>
+        <item name="backgroundTint">@null</item>
+        <item name="rippleColor">@android:color/transparent</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textAppearance">@style/Text.Key</item>
+        <item name="android:textColor">@color/key_content</item>
+        <item name="android:maxLines">1</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconTint">@color/key_content</item>
+        <item name="iconSize">22dp</item>
+    </style>
+
+    <style name="Key.Accent">
+        <item name="android:background">@drawable/bg_key_accent</item>
+        <item name="android:textColor">?attr/bpOnAccent</item>
+        <item name="iconTint">?attr/bpOnAccent</item>
+    </style>
+
+    <!-- Icon over a caption, for keys that need naming (Search, Input). -->
+    <style name="Key.Stacked">
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">7dp</item>
+        <item name="android:textAppearance">@style/Text.Label.Small</item>
+        <item name="android:textColor">?attr/bpTextDim</item>
+        <item name="iconGravity">top</item>
+        <item name="iconPadding">2dp</item>
+        <item name="iconSize">20dp</item>
+    </style>
+
+    <style name="Key.Small">
+        <item name="android:layout_height">44dp</item>
+        <item name="android:textAppearance">@style/Text.Key.Small</item>
+        <item name="iconSize">18dp</item>
+    </style>
+
+    <style name="IconKey" parent="Key">
+        <item name="android:layout_height">48dp</item>
+        <item name="iconSize">21dp</item>
+    </style>
+
+    <style name="TextKey" parent="Key">
+        <item name="android:layout_height">52dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="WideKey" parent="Key">
+        <item name="android:layout_height">52dp</item>
+        <item name="iconSize">20dp</item>
+    </style>
+
+    <style name="StackedKey" parent="Key.Stacked">
+        <item name="android:layout_height">58dp</item>
+    </style>
+
+    <style name="DpadKey" parent="Key">
+        <item name="android:layout_width">96dp</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_height">62dp</item>
+    </style>
+
+    <style name="RockerKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/bg_rocker_key</item>
+        <item name="android:stateListAnimator">@animator/press_scale</item>
+        <item name="backgroundTint">@null</item>
+        <item name="rippleColor">@android:color/transparent</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconTint">?attr/bpText</item>
+        <item name="iconSize">22dp</item>
+    </style>
+</resources>

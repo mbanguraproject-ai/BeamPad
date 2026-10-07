@@ -1,51 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One segment of the mode switcher. The label is shown only when
+     selected (ControlFragment toggles it), so the segment widens to name
+     the current surface and shrinks back to an icon otherwise. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="48dp"
-    android:layout_marginEnd="8dp"
+    android:layout_height="match_parent"
     android:clickable="true"
     android:focusable="true">
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_gravity="center_vertical"
+        android:layout_height="match_parent"
+        android:minWidth="48dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="14dp"
-        android:paddingEnd="16dp"
-        android:background="@drawable/bg_tool_chip"
+        android:gravity="center"
+        android:paddingStart="13dp"
+        android:paddingEnd="13dp"
+        android:background="@drawable/bg_segment"
         android:duplicateParentState="true">
 
         <ImageView
             android:id="@+id/icon"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/bpText"
+            android:layout_width="@dimen/icon_small"
+            android:layout_height="@dimen/icon_small"
+            android:tint="@color/segment_text"
+            android:duplicateParentState="true"
             android:contentDescription="@null" />
 
         <TextView
             android:id="@+id/label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:maxLines="1"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="?attr/bpText" />
+            android:textAppearance="@style/Text.Label"
+            android:textColor="@color/segment_text"
+            android:duplicateParentState="true" />
     </LinearLayout>
 
     <FrameLayout
         android:id="@+id/lock"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
         android:layout_gravity="top|end"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
         android:background="@drawable/bg_lock_badge">
 
         <ImageView
-            android:layout_width="9dp"
-            android:layout_height="9dp"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_lock_simple_fill"
             android:tint="@color/bp_on_pro"

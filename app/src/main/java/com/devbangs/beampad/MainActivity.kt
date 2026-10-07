@@ -20,6 +20,7 @@ import android.provider.Settings
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.WindowManager
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -30,11 +31,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import com.devbangs.beampad.databinding.ActivityMainBinding
-import com.devbangs.beampad.databinding.ItemDeviceBinding
 import com.devbangs.beampad.databinding.RailHeaderBinding
-import com.devbangs.beampad.databinding.SheetDevicesBinding
-import com.devbangs.beampad.databinding.SheetPairBinding
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.navigation.NavigationBarView
 
@@ -198,8 +195,7 @@ class MainActivity : BeamActivity() {
         ui.settings.setOnClickListener { openSettings() }
         ui.getPro.setOnClickListener { ProActivity.open(this, null) }
         ui.statusAction.setOnClickListener { onStatusAction() }
-        ui.connectedRow.setOnClickListener { showDevicePicker() }
-        ui.disconnect.setOnClickListener { disconnect() }
+        ui.deviceButton.setOnClickListener { showDeviceSheet() }
 
         // Select before listening when restoring: the restored tab fragment
         // is already in place and must not be replaced by a fresh one.
@@ -247,6 +243,7 @@ class MainActivity : BeamActivity() {
         if (wide && config.screenHeightDp < COMPACT_HEIGHT_DP) {
             ui.headerRow.isVisible = false
             val header = RailHeaderBinding.inflate(layoutInflater, ui.navRail, false)
+            header.railDevice.setOnClickListener { showDeviceSheet() }
             header.railPro.setOnClickListener { ProActivity.open(this, null) }
             header.railSettings.setOnClickListener { openSettings() }
             ui.navRail.addHeaderView(header.root)
@@ -372,7 +369,7 @@ class MainActivity : BeamActivity() {
             Step.NEEDS_PERMISSION -> requestPermissions()
             Step.BLUETOOTH_OFF -> turnOnBluetooth()
             Step.UNSUPPORTED -> service?.restart()
-            Step.READY -> showDevicePicker()
+            Step.READY -> showDeviceSheet()
             Step.LOST -> service?.reconnect()
             else -> Unit
         }
@@ -390,15 +387,10 @@ class MainActivity : BeamActivity() {
             })
         }
 
-        ui.connectedRow.isVisible = connected
-        ui.setupRow.isVisible = !connected
+        renderTopBar(step, s)
+        ui.statusCard.isVisible = !connected
 
         if (connected) {
-            val device = s?.connectedDevice
-            ui.connectedName.text = device?.let { s.deviceLabel(it) }
-            ui.connectedIcon.setImageResource(
-                device?.let { s.typeOf(it).iconRes } ?: R.drawable.ic_television_simple
-            )
             // A sheet about finding the device has nothing left to say.
             sheet?.dismiss()
         } else {
@@ -412,6 +404,47 @@ class MainActivity : BeamActivity() {
         }
 
         connectionObservers.forEach { it(connected) }
+    }
+
+    /**
+     * The device in the top bar and its state in the blueprint's five words:
+     * Connected, Connecting, Available, Disconnected, Action required.
+     */
+    private fun renderTopBar(step: Step, s: HidService?) {
+        val device = when (step) {
+            Step.CONNECTED -> s?.connectedDevice
+            Step.CONNECTING -> s?.connectingDevice
+            Step.LOST -> s?.lostDevice
+            else -> null
+        }
+        val name = device?.let { s?.deviceLabel(it) }
+            ?: s?.lastHostName()
+            ?: getString(R.string.no_device)
+        val icon = device?.let { s?.typeOf(it)?.iconRes } ?: prefs.targetType.iconRes
+
+        val (status, dot, tone) = when (step) {
+            Step.CONNECTED -> Triple(R.string.state_connected, R.attr.bpLive, Ui.Tone.LIVE)
+            Step.CONNECTING -> Triple(R.string.state_connecting, R.attr.bpAccent2, Ui.Tone.ACCENT)
+            Step.READY, Step.STARTING -> Triple(R.string.state_available, R.attr.bpTextFaint, Ui.Tone.NEUTRAL)
+            Step.LOST -> Triple(R.string.state_disconnected, R.attr.bpDanger, Ui.Tone.NEUTRAL)
+            else -> Triple(R.string.state_action, R.attr.bpDanger, Ui.Tone.NEUTRAL)
+        }
+
+        ui.deviceName.text = name
+        ui.deviceStatus.setText(status)
+        ui.deviceStatus.setTextColor(themeColor(if (step == Step.CONNECTED) R.attr.bpLive else R.attr.bpTextDim))
+        ui.deviceDot.background.mutate().setTint(themeColor(dot))
+        ui.deviceIcon.setImageResource(icon)
+        ui.deviceTile.setBackgroundResource(tone.tile)
+        ui.deviceIcon.imageTintList = android.content.res.ColorStateList.valueOf(themeColor(tone.tint))
+        ui.deviceButton.contentDescription = getString(R.string.device_button_description, name, getString(status))
+
+        railHeader?.let { header ->
+            header.railDevice.setImageResource(icon)
+            header.railDevice.imageTintList =
+                android.content.res.ColorStateList.valueOf(themeColor(tone.tint))
+            header.railDevice.contentDescription = ui.deviceButton.contentDescription
+        }
     }
 
     private fun renderSetup(step: Step, s: HidService?) {
@@ -490,6 +523,11 @@ class MainActivity : BeamActivity() {
         }
 
         ui.statusIcon.setImageResource(icon)
+        val warn = step == Step.LOST || step == Step.UNSUPPORTED || step == Step.NO_BLUETOOTH
+        ui.statusTile.setBackgroundResource(if (warn) R.drawable.bg_icon_tile else R.drawable.bg_icon_tile_accent)
+        ui.statusIcon.imageTintList = android.content.res.ColorStateList.valueOf(
+            themeColor(if (warn) R.attr.bpDanger else R.attr.bpAccent2)
+        )
         ui.statusTitle.setText(title)
         ui.statusDetail.text = detail
         ui.statusAction.isVisible = action != null
@@ -527,7 +565,6 @@ class MainActivity : BeamActivity() {
         ui.proBadge.isVisible = pro
         ui.getPro.isVisible = !pro
         railHeader?.railPro?.isVisible = !pro
-        ui.planLabel.setText(if (pro) R.string.plan_pro_label else R.string.plan_free_label)
     }
 
     /** One gentle bounce, at most once a day, so the button is noticed without nagging. */
@@ -550,41 +587,74 @@ class MainActivity : BeamActivity() {
         if (!launched) openBluetoothSettings()
     }
 
-    /** Lists devices this phone has paired with, or goes straight to pairing when there are none. */
-    fun showDevicePicker() {
-        val s = service ?: return
+    /**
+     * The device sheet behind the top bar: every paired host with its state,
+     * plus disconnect, pairing and the Devices tab. With nothing paired it
+     * goes straight to pairing.
+     */
+    fun showDeviceSheet() {
+        val s = service
+        if (s == null) {
+            onStatusAction()
+            return
+        }
         val hosts = s.pairedHosts()
         if (hosts.isEmpty()) {
             startPairing()
             return
         }
 
-        val view = SheetDevicesBinding.inflate(layoutInflater)
-        val dialog = newSheet()
         val current = s.connectedDevice
+        val built = Sheet(this)
+            .title(getString(R.string.devices_sheet_title))
+            .subtitle(getString(R.string.picker_body))
+        sheet?.dismiss()
+        sheet = built.dialog
+        built.onDismiss { if (sheet === built.dialog) sheet = null }
 
         hosts.forEach { device ->
-            val row = ItemDeviceBinding.inflate(layoutInflater, view.deviceList, false)
-            row.name.text = s.deviceLabel(device)
-            row.icon.setImageResource(s.typeOf(device).iconRes)
             val isCurrent = device == current
-            row.lastUsed.isVisible = isCurrent || (current == null && device.address == prefs.lastHost)
-            row.lastUsed.setText(if (isCurrent) R.string.status_connected else R.string.last_used)
-            row.root.setOnClickListener {
-                dialog.dismiss()
+            val detail = when {
+                isCurrent -> getString(R.string.state_connected)
+                device == s.connectingDevice -> getString(R.string.state_connecting)
+                device.address == prefs.lastHost -> getString(R.string.last_used)
+                else -> getString(s.typeOf(device).labelRes)
+            }
+            built.option(s.deviceLabel(device), detail, s.typeOf(device).iconRes, selected = isCurrent) {
                 if (!isCurrent) connectTo(device)
             }
-            view.deviceList.addView(row.root)
         }
 
-        view.pairNew.setOnClickListener {
-            dialog.dismiss()
+        val actions = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, Ui.dp(this@MainActivity, 12), 0, Ui.dp(this@MainActivity, 4))
+        }
+        built.content.addView(actions)
+        if (current != null) {
+            actions.addView(Ui.button(actions, Ui.ButtonKind.DANGER, getString(R.string.action_disconnect)) {
+                built.dismiss()
+                disconnect()
+            }.apply { layoutParams = fullWidth() })
+        }
+        actions.addView(Ui.button(actions, Ui.ButtonKind.SECONDARY, getString(R.string.pair_new), R.drawable.ic_plus) {
+            built.dismiss()
             startPairing()
-        }
+        }.apply { layoutParams = fullWidth(top = if (current != null) 10 else 0) })
+        actions.addView(Ui.button(actions, Ui.ButtonKind.TEXT, getString(R.string.manage_devices)) {
+            built.dismiss()
+            nav.selectedItemId = R.id.tab_devices
+        }.apply { layoutParams = fullWidth(top = 4) })
 
-        dialog.setContentView(view.root)
-        dialog.show()
+        built.show()
     }
+
+    /** Kept for callers that predate the device sheet. */
+    fun showDevicePicker() = showDeviceSheet()
+
+    private fun fullWidth(top: Int = 0) = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    ).apply { topMargin = Ui.dp(this@MainActivity, top) }
 
     /** Connects to [device]. Exposed for the Devices tab. */
     fun connectTo(device: BluetoothDevice) {
@@ -610,24 +680,49 @@ class MainActivity : BeamActivity() {
         if (!launched) showPairSteps()
     }
 
+    /**
+     * Where to look on the other device once this phone is visible. TVs and
+     * computers bury Bluetooth in different places, so the steps follow the
+     * kind of device the user said they control, switchable in place.
+     */
     private fun showPairSteps() {
-        val view = SheetPairBinding.inflate(layoutInflater)
-        val dialog = newSheet()
         val name = service?.localBluetoothName() ?: getString(R.string.this_phone)
-        view.step3.text = getString(R.string.pair_step_3, name)
-        view.done.setOnClickListener { dialog.dismiss() }
-        dialog.setContentView(view.root)
-        dialog.show()
-    }
-
-    private fun newSheet(): BottomSheetDialog {
+        val built = Sheet(this)
+            .title(getString(R.string.pair_steps_title))
+            .subtitle(getString(R.string.pair_steps_body))
         sheet?.dismiss()
-        return BottomSheetDialog(this).also { dialog ->
-            dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            dialog.behavior.skipCollapsed = true
-            dialog.setOnDismissListener { if (sheet === dialog) sheet = null }
-            sheet = dialog
+        sheet = built.dialog
+        built.onDismiss { if (sheet === built.dialog) sheet = null }
+
+        val steps = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        fun render(type: DeviceType) {
+            steps.removeAllViews()
+            val lines = when (type) {
+                DeviceType.COMPUTER -> listOf(
+                    getString(R.string.pair_pc_1),
+                    getString(R.string.pair_pc_2, name),
+                    getString(R.string.pair_pc_3)
+                )
+                else -> listOf(
+                    getString(R.string.pair_step_1),
+                    getString(R.string.pair_step_2),
+                    getString(R.string.pair_step_3, name)
+                )
+            }
+            lines.forEachIndexed { i, line -> Ui.step(steps, i + 1, line) }
         }
+        val initial = if (prefs.targetType == DeviceType.COMPUTER) DeviceType.COMPUTER else DeviceType.TV
+        Ui.space(built.content, 4)
+        Ui.chipGroup(
+            built.content,
+            listOf(DeviceType.TV to getString(R.string.pair_for_tv), DeviceType.COMPUTER to getString(R.string.pair_for_computer)),
+            initial
+        ) { render(it) }
+        Ui.space(built.content, 8)
+        built.content.addView(steps)
+        render(initial)
+        built.primary(getString(R.string.close)) { true }
+        built.show()
     }
 
     private fun disconnect() {
@@ -641,7 +736,7 @@ class MainActivity : BeamActivity() {
         // a failed pairing is exactly what Play penalises.
         if (worked) {
             Reviews.recordGoodSession(this)
-            ui.disconnect.postDelayed({ Reviews.ask(this) }, 600)
+            ui.root.postDelayed({ Reviews.ask(this) }, 600)
         }
     }
 

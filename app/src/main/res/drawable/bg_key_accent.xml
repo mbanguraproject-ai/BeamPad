@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The one primary key on a surface (OK, play). -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#33FFFFFF"><item><selector xmlns:android="http://schemas.android.com/apk/res/android"><item android:state_enabled="false"><shape android:shape="rectangle"><solid android:color="?attr/bpSurfaceHigh" /><corners android:radius="@dimen/radius_md" /></shape></item><item><shape android:shape="rectangle"><solid android:color="?attr/bpAccent" /><corners android:radius="@dimen/radius_md" /></shape></item></selector></item></ripple>

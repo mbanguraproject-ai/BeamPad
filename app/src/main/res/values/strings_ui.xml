@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared -->
+    <string name="field_required">This can’t be empty.</string>
+    <string name="done">Done</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="more_options">More options</string>
+    <string name="add">Add</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="none">None</string>
+
+    <!-- Top bar: the active device and its state -->
+    <string name="no_device">No device yet</string>
+    <string name="state_connected">Connected</string>
+    <string name="state_connecting">Connecting…</string>
+    <string name="state_available">Not connected</string>
+    <string name="state_disconnected">Disconnected</string>
+    <string name="state_action">Action required</string>
+    <string name="device_button_description">%1$s, %2$s. Opens your devices.</string>
+    <string name="devices_sheet_title">Your devices</string>
+    <string name="manage_devices">Manage devices</string>
+
+    <!-- Pairing -->
+    <string name="pair_for_tv">TV or streaming box</string>
+    <string name="pair_for_computer">Computer</string>
+    <string name="pair_pc_1">Open Bluetooth settings. Windows: Settings › Bluetooth &amp; devices › Add device. Mac: System Settings › Bluetooth. ChromeOS: Quick Settings › Bluetooth.</string>
+    <string name="pair_pc_2">Wait for “%1$s” to appear, then select it.</string>
+    <string name="pair_pc_3">If a code appears on both screens, confirm it matches.</string>
+</resources>

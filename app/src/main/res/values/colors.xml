@@ -1,73 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Palettes for the three appearances. Deep neutral greys with one
-         restrained indigo accent; mint marks live states (connected, on). -->
+    <!-- Palettes for the three appearances. A deep neutral ladder (bg ->
+         surface -> raised -> high) carries all depth; one restrained indigo
+         accent marks primary actions and selection; mint marks live states
+         (connected, on). Keys press to a lighter neutral, never to colour. -->
 
     <!-- dark -->
-    <color name="dark_bg">#0E0F13</color>
-    <color name="dark_surface">#16181E</color>
-    <color name="dark_surface_raised">#1D2028</color>
-    <color name="dark_surface_high">#262A34</color>
-    <color name="dark_stroke">#262A33</color>
-    <color name="dark_stroke_strong">#3A3F4C</color>
+    <color name="dark_bg">#0B0C10</color>
+    <color name="dark_surface">#14161C</color>
+    <color name="dark_surface_raised">#1C1F27</color>
+    <color name="dark_surface_high">#272B35</color>
+    <color name="dark_stroke">#22252E</color>
+    <color name="dark_stroke_strong">#353A47</color>
     <color name="dark_accent">#6366F1</color>
-    <color name="dark_accent_2">#A5A7FA</color>
-    <color name="dark_accent_soft">#296366F1</color>
+    <color name="dark_accent_2">#A9ABFB</color>
+    <color name="dark_accent_soft">#2B6366F1</color>
     <color name="dark_on_accent">#FFFFFF</color>
     <color name="dark_live">#3DD9B0</color>
-    <color name="dark_live_soft">#243DD9B0</color>
-    <color name="dark_text">#F2F3F7</color>
-    <color name="dark_text_dim">#A3A8B8</color>
-    <color name="dark_text_faint">#6E7385</color>
-    <color name="dark_key">#1D2028</color>
-    <color name="dark_key_pressed">#2F3160</color>
-    <color name="dark_key_stroke">#2B2F39</color>
-    <color name="dark_scrim">#E60E0F13</color>
+    <color name="dark_live_soft">#223DD9B0</color>
+    <color name="dark_text">#F3F4F7</color>
+    <color name="dark_text_dim">#A2A7B5</color>
+    <color name="dark_text_faint">#6B7081</color>
+    <color name="dark_key">#1C1F27</color>
+    <color name="dark_key_pressed">#2C303B</color>
+    <color name="dark_key_stroke">#2A2E38</color>
+    <color name="dark_scrim">#E60B0C10</color>
     <color name="dark_danger">#F87171</color>
 
     <!-- black -->
     <color name="black_bg">#000000</color>
-    <color name="black_surface">#0B0C0F</color>
-    <color name="black_surface_raised">#121419</color>
-    <color name="black_surface_high">#1A1D24</color>
-    <color name="black_stroke">#1C1F26</color>
-    <color name="black_stroke_strong">#2E323C</color>
+    <color name="black_surface">#0C0D11</color>
+    <color name="black_surface_raised">#14161B</color>
+    <color name="black_surface_high">#1E2129</color>
+    <color name="black_stroke">#1B1E25</color>
+    <color name="black_stroke_strong">#2D313B</color>
     <color name="black_accent">#6366F1</color>
-    <color name="black_accent_2">#A5A7FA</color>
+    <color name="black_accent_2">#A9ABFB</color>
     <color name="black_accent_soft">#2E6366F1</color>
     <color name="black_on_accent">#FFFFFF</color>
     <color name="black_live">#3DD9B0</color>
-    <color name="black_live_soft">#263DD9B0</color>
-    <color name="black_text">#F2F3F7</color>
-    <color name="black_text_dim">#9EA3B3</color>
-    <color name="black_text_faint">#646979</color>
-    <color name="black_key">#111317</color>
-    <color name="black_key_pressed">#2A2C58</color>
-    <color name="black_key_stroke">#22252D</color>
+    <color name="black_live_soft">#243DD9B0</color>
+    <color name="black_text">#F3F4F7</color>
+    <color name="black_text_dim">#9DA2B1</color>
+    <color name="black_text_faint">#636878</color>
+    <color name="black_key">#121418</color>
+    <color name="black_key_pressed">#22252D</color>
+    <color name="black_key_stroke">#20232A</color>
     <color name="black_scrim">#E6000000</color>
     <color name="black_danger">#F87171</color>
 
     <!-- light -->
-    <color name="light_bg">#F4F5F8</color>
+    <color name="light_bg">#F2F3F6</color>
     <color name="light_surface">#FFFFFF</color>
-    <color name="light_surface_raised">#F0F1F5</color>
-    <color name="light_surface_high">#E6E8EE</color>
-    <color name="light_stroke">#E1E3EA</color>
-    <color name="light_stroke_strong">#C9CCD6</color>
+    <color name="light_surface_raised">#F4F5F8</color>
+    <color name="light_surface_high">#E7E9EE</color>
+    <color name="light_stroke">#E2E4EA</color>
+    <color name="light_stroke_strong">#CBCED8</color>
     <color name="light_accent">#4F46E5</color>
     <color name="light_accent_2">#4338CA</color>
-    <color name="light_accent_soft">#1F4F46E5</color>
+    <color name="light_accent_soft">#1A4F46E5</color>
     <color name="light_on_accent">#FFFFFF</color>
-    <color name="light_live">#0E8F6E</color>
-    <color name="light_live_soft">#1F0E8F6E</color>
-    <color name="light_text">#12141A</color>
-    <color name="light_text_dim">#5A6072</color>
-    <color name="light_text_faint">#8A90A2</color>
+    <color name="light_live">#0B8A69</color>
+    <color name="light_live_soft">#1A0B8A69</color>
+    <color name="light_text">#111318</color>
+    <color name="light_text_dim">#585E70</color>
+    <color name="light_text_faint">#8B91A2</color>
     <color name="light_key">#FFFFFF</color>
-    <color name="light_key_pressed">#E3E3FC</color>
-    <color name="light_key_stroke">#DADDE5</color>
-    <color name="light_scrim">#E6F4F5F8</color>
-    <color name="light_danger">#DC2626</color>
+    <color name="light_key_pressed">#E9EBF0</color>
+    <color name="light_key_stroke">#DADDE4</color>
+    <color name="light_scrim">#E6F2F3F6</color>
+    <color name="light_danger">#D92D2D</color>
 
     <!-- Pro is warm on purpose and identical in every appearance: it is the
          one warm colour, so the eye finds it first. -->

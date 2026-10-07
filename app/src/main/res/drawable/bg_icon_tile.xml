@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Leading icon tile in rows and headers. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="?attr/bpSurfaceHigh" /><corners android:radius="@dimen/radius_sm" /></shape>
