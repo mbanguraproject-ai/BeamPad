@@ -91,7 +91,6 @@
                 android:text="@string/pro_title"
                 android:textSize="30sp"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="-0.02"
                 android:letterSpacing="-0.01"
                 android:textColor="?attr/bpText" />
 
