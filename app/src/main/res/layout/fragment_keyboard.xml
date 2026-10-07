@@ -139,8 +139,8 @@
             android:layout_marginStart="@dimen/space_xs">
 
             <LinearLayout style="@style/ToolChipBody">
-                <ImageView style="@style/ToolChipIcon" android:src="@drawable/ic_squares_four" />
-                <TextView style="@style/ToolChipText" android:text="@string/tool_keys" />
+                <ImageView style="@style/ToolChipIcon" android:src="@drawable/ic_keyboard" />
+                <TextView style="@style/ToolChipText" android:text="@string/tool_full" />
             </LinearLayout>
 
             <FrameLayout android:id="@+id/lockKeys" style="@style/ToolChipLock">
@@ -152,6 +152,7 @@
     <!-- What was sent this session, newest first, tap to send again. Held in
          memory only: typed text is never written to storage. -->
     <FrameLayout
+        android:id="@+id/recentArea"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -353,5 +354,161 @@
             android:layout_marginStart="@dimen/gap"
             android:contentDescription="@string/key_home"
             app:icon="@drawable/ic_house" />
+    </LinearLayout>
+
+    <!-- The full PC keyboard (Pro). Replaces everything above when on:
+         shortcuts along the top, F-keys, then every key of a real keyboard.
+         Free users see it behind an upgrade card. -->
+    <LinearLayout
+        android:id="@+id/fullPanel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/fullType"
+                style="@style/Key.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_weight="0"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:text="@string/fullkb_type"
+                android:textColor="?attr/bpAccent2"
+                android:contentDescription="@string/fullkb_type_desc"
+                app:icon="@drawable/ic_text_aa"
+                app:iconTint="?attr/bpAccent2"
+                app:iconPadding="6dp"
+                app:iconGravity="textStart" />
+
+            <HorizontalScrollView
+                android:id="@+id/shortcutScroll"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_xs"
+                android:scrollbars="none"
+                android:overScrollMode="never">
+
+                <LinearLayout
+                    android:id="@+id/shortcutStrip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="@dimen/space_xs">
+
+            <LinearLayout
+                android:id="@+id/fullBody"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:scrollbars="none"
+                    android:overScrollMode="never">
+
+                    <LinearLayout
+                        android:id="@+id/fullFkeys"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <com.devbangs.beampad.FullKeyboardView
+                    android:id="@+id/fullKeyboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="@dimen/gap" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/fullLock"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="false"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_md"
+                    android:layout_marginEnd="@dimen/space_md"
+                    android:background="@drawable/bg_card"
+                    android:elevation="6dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_lg">
+
+                    <FrameLayout
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:background="@drawable/bg_pro_icon">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_keyboard"
+                            android:tint="@color/bp_on_pro"
+                            android:contentDescription="@null" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_sm"
+                        android:gravity="center"
+                        android:text="@string/fullkb_lock_title"
+                        android:textAppearance="@style/Text.Title" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:lineSpacingExtra="2dp"
+                        android:text="@string/fullkb_lock_body"
+                        android:textAppearance="@style/Text.Small" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/fullUnlock"
+                        style="@style/Widget.BeamPad.ProButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height"
+                        android:layout_marginTop="@dimen/space_md"
+                        android:text="@string/fullkb_lock_unlock"
+                        app:icon="@drawable/ic_crown_simple_fill"
+                        app:iconGravity="textStart" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/fullBack"
+                        style="@style/Widget.BeamPad.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/fullkb_lock_back" />
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
     </LinearLayout>
 </LinearLayout>

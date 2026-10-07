@@ -91,6 +91,11 @@ class Prefs(context: Context) {
         get() = bool(KEY_SHOW_MODIFIERS, true)
         set(value) = putBool(KEY_SHOW_MODIFIERS, value)
 
+    /** The keyboard tab shows the full PC keyboard instead of the phone's. */
+    var fullKeyboard: Boolean
+        get() = bool(KEY_FULL_KEYBOARD, false)
+        set(value) = putBool(KEY_FULL_KEYBOARD, value)
+
     // ---- Trackpad and mouse -----------------------------------------------
 
     var pointerSpeed: Float
@@ -241,6 +246,7 @@ class Prefs(context: Context) {
         private const val KEY_ENTER_BEHAVIOR = "enter_behavior"
         private const val KEY_SHOW_FKEYS = "show_fkeys"
         private const val KEY_SHOW_MODIFIERS = "show_modifiers"
+        private const val KEY_FULL_KEYBOARD = "full_keyboard"
         private const val KEY_POINTER_SPEED = "pointer_speed"
         private const val KEY_ACCELERATION = "acceleration"
         private const val KEY_SCROLL_SPEED = "scroll_speed"

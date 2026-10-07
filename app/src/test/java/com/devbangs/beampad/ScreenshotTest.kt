@@ -196,6 +196,21 @@ class ScreenshotTest {
     }
 
     @Test
+    fun fullKeyboard() {
+        Prefs(app).fullKeyboard = true
+        appearance(Appearance.LIGHT)
+        pro(true)
+        shoot(main(ControlMode.KEYBOARD), "fullkb_light_pro")
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.KEYBOARD), "fullkb_dark_pro")
+        pro(false)
+        shoot(main(ControlMode.KEYBOARD), "fullkb_dark_locked")
+        appearance(Appearance.LIGHT)
+        shoot(main(ControlMode.KEYBOARD), "fullkb_light_locked")
+        shoot(screen<ProActivity>(), "light_pro")
+    }
+
+    @Test
     fun screens() {
         appearance(Appearance.DARK)
         shoot(screen<SettingsActivity>(), "settings")

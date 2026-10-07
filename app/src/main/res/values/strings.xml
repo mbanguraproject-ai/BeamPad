@@ -68,7 +68,6 @@
     <string name="chars_skipped">%1$d characters could not be sent</string>
     <string name="tool_live">Live</string>
     <string name="tool_paste">Paste</string>
-    <string name="tool_keys">Keys</string>
     <string name="live_on">Live typing on. Keys reach the TV as you type.</string>
     <string name="live_off">Live typing off</string>
     <string name="voice_typing">Voice typing</string>
@@ -79,8 +78,6 @@
         <item quantity="one">Sent %1$d character from your clipboard</item>
         <item quantity="other">Sent %1$d characters from your clipboard</item>
     </plurals>
-    <string name="keys_title">More keys</string>
-    <string name="keys_body">Keys a TV remote doesn’t have, for browsers and apps.</string>
     <string name="key_tab">Tab</string>
     <string name="key_esc">Esc</string>
     <string name="key_enter">Enter</string>

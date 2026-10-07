@@ -55,9 +55,6 @@
     <string name="mod_alt">Alt</string>
     <string name="mod_shift">Shift</string>
     <string name="mod_meta">Windows or Command key</string>
-    <string name="keys_group_editing">Editing</string>
-    <string name="keys_group_shortcuts">Shortcuts</string>
-    <string name="keys_group_system">System</string>
     <string name="clipboard_confirm_title">Send your clipboard?</string>
     <string name="clipboard_confirm_send">Send</string>
 
@@ -498,4 +495,34 @@
     <string name="feat_full_keyboard">Full PC keyboard</string>
     <string name="feat_full_keyboard_body">Every key in one immersive layout: numbers, symbols, arrows, Home and End, F-keys and one-tap shortcuts</string>
     <string name="cmp_full_keyboard">Full PC keyboard</string>
+
+    <!-- Full PC keyboard -->
+    <string name="tool_full">PC keys</string>
+    <string name="fullkb_type">Type</string>
+    <string name="fullkb_type_desc">Back to the phone keyboard</string>
+    <string name="fullkb_win">Win</string>
+    <string name="fullkb_end">End</string>
+    <string name="fullkb_del">Del</string>
+    <string name="fullkb_pgup">PgUp</string>
+    <string name="fullkb_pgdn">PgDn</string>
+    <string name="fullkb_lock_title">The full PC keyboard</string>
+    <string name="fullkb_lock_body">Every key in one place: numbers, symbols, arrows, Home and End, F-keys and one-tap shortcuts. Part of Pro.</string>
+    <string name="fullkb_lock_trial">Try it free</string>
+    <string name="fullkb_lock_unlock">Unlock with Pro</string>
+    <string name="fullkb_lock_back">Back to typing</string>
+    <string name="act_redo">Redo</string>
+    <string name="act_find">Find</string>
+    <string name="act_save">Save</string>
+    <string name="act_new_tab">New tab</string>
+    <string name="act_close_tab">Close tab</string>
+    <string name="act_refresh">Refresh</string>
+    <string name="act_task_view">Task view</string>
+    <string name="act_file_explorer">File Explorer</string>
+    <string name="act_lock_pc">Lock PC</string>
+    <string name="act_task_manager">Task Manager</string>
+    <string name="act_screenshot">Screenshot</string>
+    <string name="act_print_screen">Print Screen</string>
+    <string name="act_insert">Insert</string>
+    <string name="act_caps_lock">Caps Lock</string>
+    <string name="act_context_menu">Menu key</string>
 </resources>

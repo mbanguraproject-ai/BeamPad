@@ -140,6 +140,10 @@ object Actions {
         for (n in 1..12) {
             add(Named("f$n", R.string.act_f_template, null, g, key(HidReports.functionKey(n).toInt())))
         }
+        add(Named("print_screen", R.string.act_print_screen, null, g, key(0x46)))
+        add(Named("insert", R.string.act_insert, null, g, key(0x49)))
+        add(Named("caps_lock", R.string.act_caps_lock, null, g, key(0x39)))
+        add(Named("context_menu", R.string.act_context_menu, null, g, key(0x65)))
     } + buildList {
         val g = Group.SHORTCUTS
         add(Named("select_all", R.string.act_select_all, null, g, key(HidReports.KEY_A.toInt(), CTRL)))
@@ -154,6 +158,17 @@ object Actions {
         add(Named("start_menu", R.string.act_start_menu, null, g, key(0, META)))
         add(Named("zoom_in", R.string.act_zoom_in, R.drawable.ic_magnifying_glass_plus, g, key(HidReports.KEY_EQUALS.toInt(), CTRL)))
         add(Named("zoom_out", R.string.act_zoom_out, R.drawable.ic_magnifying_glass_minus, g, key(HidReports.KEY_MINUS.toInt(), CTRL)))
+        add(Named("redo", R.string.act_redo, R.drawable.ic_arrow_clockwise, g, key(0x1C, CTRL)))
+        add(Named("find", R.string.act_find, R.drawable.ic_magnifying_glass, g, key(HidReports.KEY_F.toInt(), CTRL)))
+        add(Named("save", R.string.act_save, null, g, key(0x16, CTRL)))
+        add(Named("new_tab", R.string.act_new_tab, null, g, key(0x17, CTRL)))
+        add(Named("close_tab", R.string.act_close_tab, null, g, key(0x1A, CTRL)))
+        add(Named("refresh", R.string.act_refresh, R.drawable.ic_arrow_clockwise, g, key(HidReports.KEY_F5.toInt())))
+        add(Named("task_view", R.string.act_task_view, null, g, key(HidReports.KEY_TAB.toInt(), META)))
+        add(Named("file_explorer", R.string.act_file_explorer, null, g, key(0x08, META)))
+        add(Named("lock_pc", R.string.act_lock_pc, R.drawable.ic_lock_simple, g, key(0x0F, META)))
+        add(Named("task_manager", R.string.act_task_manager, null, g, key(HidReports.KEY_ESC.toInt(), CTRL or SHIFT)))
+        add(Named("screenshot", R.string.act_screenshot, null, g, key(0x16, META or SHIFT)))
     } + buildList {
         val g = Group.MOUSE
         add(Named("left_click", R.string.act_left_click, R.drawable.ic_mouse_left_click, g, Action.Click(HidReports.BUTTON_LEFT.toInt())))

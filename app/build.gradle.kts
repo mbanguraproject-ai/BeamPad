@@ -87,6 +87,8 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.window:window:1.3.0")
+    // ExploreByTouchHelper: TalkBack reads and presses each key of the full keyboard.
+    implementation("androidx.customview:customview:1.1.0")
 
     // Ads. UMP is required: consent must be collected before any ad request.
     implementation("com.google.android.gms:play-services-ads:25.0.0")

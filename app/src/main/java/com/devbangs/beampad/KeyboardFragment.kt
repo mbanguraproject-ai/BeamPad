@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -26,14 +25,13 @@ import kotlin.math.roundToInt
  * The keyboard surface. The phone's own keyboard types (so autocorrect,
  * swipe, voice and every language work); this screen adds navigation
  * keys, sticky modifiers, optional F1-F12, TV search, and the Pro tools:
- * live typing, voice, clipboard and the extra keys sheet.
+ * live typing, voice, clipboard and the full PC keyboard, which takes
+ * over the whole surface when on.
  */
 class KeyboardFragment : SurfaceFragment() {
 
     private var _ui: FragmentKeyboardBinding? = null
     private val ui get() = _ui!!
-
-    private var keysSheet: Sheet? = null
 
     /** Modifier bits armed for the next key, cleared after it is sent. */
     private var modifiers = 0
@@ -44,7 +42,10 @@ class KeyboardFragment : SurfaceFragment() {
     /** Sent this session, newest first. Memory only; never stored. */
     private val recent = ArrayDeque<String>()
 
-    private val entitlementObserver: (Entitlements.Change) -> Unit = { renderTools() }
+    private val entitlementObserver: (Entitlements.Change) -> Unit = {
+        renderTools()
+        renderMode()
+    }
 
     private val speech = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -116,7 +117,17 @@ class KeyboardFragment : SurfaceFragment() {
         ui.chipLive.setOnClickListener { toggleLive() }
         ui.chipSearch.setOnClickListener { startTvSearch() }
         ui.chipPaste.setOnClickListener { pasteClipboard() }
-        ui.chipKeys.setOnClickListener { showKeys() }
+        ui.chipKeys.setOnClickListener { setFull(true) }
+        ui.fullType.setOnClickListener {
+            Haptics.tick(it)
+            setFull(false)
+        }
+        ui.fullBack.setOnClickListener { setFull(false) }
+        ui.fullUnlock.setOnClickListener {
+            ProActivity.open(requireContext(), Features.Pro.FULL_KEYBOARD)
+        }
+        ui.fullKeyboard.onKey = { key, mods -> sendFullKey(key, mods) }
+        buildFullStrips()
 
         bindNav(ui.esc, HidReports.KEY_ESC)
         bindNav(ui.tab, HidReports.KEY_TAB)
@@ -153,12 +164,112 @@ class KeyboardFragment : SurfaceFragment() {
         super.onResume()
         // Pro may have started or lapsed, and settings may have changed.
         renderTools()
-        val prefs = app.prefs
-        ui.modsRow.isVisible = prefs.showModifiers
-        ui.fkeysScroll.isVisible = prefs.showFunctionKeys
+        renderMode()
         val scale = ControlSizing.scale(requireContext())
         listOf(ui.esc, ui.up, ui.backspace, ui.tab, ui.left, ui.down, ui.right, ui.enter, ui.space, ui.home)
             .forEach { it.updateLayoutParams { height = (dp(56) * scale).roundToInt() } }
+        ui.fullKeyboard.maxKeyHeight = dp(56) * scale
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Nothing stays armed while the user is away.
+        _ui?.fullKeyboard?.clearModifiers()
+    }
+
+    // ---- Full PC keyboard -------------------------------------------------------
+
+    private fun setFull(full: Boolean) {
+        if (app.prefs.fullKeyboard == full) return
+        app.prefs.fullKeyboard = full
+        if (full) {
+            // The phone keyboard would cover the full one.
+            ui.input.clearFocus()
+            requireContext().getSystemService(InputMethodManager::class.java)
+                ?.hideSoftInputFromWindow(ui.input.windowToken, 0)
+        } else {
+            ui.fullKeyboard.clearModifiers()
+        }
+        renderMode()
+    }
+
+    /** Shows either the phone-keyboard surface or the full keyboard. */
+    private fun renderMode() {
+        val ui = _ui ?: return
+        val prefs = app.prefs
+        val full = prefs.fullKeyboard
+        listOf(ui.inputRow, ui.toolsRow, ui.recentArea, ui.navRow1, ui.navRow2, ui.navRow3)
+            .forEach { it.isVisible = !full }
+        ui.modsRow.isVisible = !full && prefs.showModifiers
+        ui.fkeysScroll.isVisible = !full && prefs.showFunctionKeys
+        ui.fullPanel.isVisible = full
+        if (!full) return
+
+        // Free users see the keyboard, dimmed and inert, behind the upgrade card.
+        val pro = Features.isPro(requireContext())
+        ui.fullLock.isVisible = !pro
+        ui.fullBody.alpha = if (pro) 1f else LOCKED_ALPHA
+        ui.fullBody.importantForAccessibility =
+            if (pro) View.IMPORTANT_FOR_ACCESSIBILITY_AUTO else View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        ui.fullKeyboard.locked = !pro
+        ui.fullUnlock.setText(
+            if (app.billing.plans.any { it.freeTrial != null }) R.string.fullkb_lock_trial
+            else R.string.fullkb_lock_unlock
+        )
+    }
+
+    /**
+     * Characters go through the keyboard layout setting, so the key labelled
+     * "z" types z (and Ctrl+Z undoes) whatever layout the device uses; every
+     * other key is sent by position.
+     */
+    private fun sendFullKey(key: FullKeyboardView.Key, mods: Int) {
+        val service = service() ?: return
+        val shift = HidReports.MOD_LEFT_SHIFT.toInt()
+        if (key.kind == FullKeyboardView.Kind.CHAR) {
+            val char = (if (mods and shift != 0) key.shifted else key.label)?.firstOrNull()
+            val encoded = char?.let { HidReports.encode(it, app.prefs.layout) }
+            if (encoded != null) {
+                val (charMods, code) = encoded
+                service.typeKey((charMods.toInt() or (mods and shift.inv())).toByte(), code)
+                return
+            }
+        }
+        service.typeKey(mods.toByte(), key.code.toByte())
+    }
+
+    /** Shortcuts along the top and the extra keys row above the keyboard. */
+    private fun buildFullStrips() {
+        val shortcuts = listOf(
+            "copy", "paste", "cut", "undo", "redo", "select_all", "find", "save",
+            "app_switch", "task_view", "show_desktop", "file_explorer", "lock_pc",
+            "task_manager", "screenshot", "new_tab", "close_tab", "refresh",
+            "browser_back", "browser_forward", "close_window", "zoom_in", "zoom_out"
+        )
+        val extraKeys = (1..12).map { "f$it" } +
+            listOf("print_screen", "insert", "caps_lock", "context_menu", "start_menu")
+        fill(ui.shortcutStrip, shortcuts)
+        fill(ui.fullFkeys, extraKeys)
+    }
+
+    private fun fill(strip: LinearLayout, ids: List<String>) {
+        strip.removeAllViews()
+        ids.mapNotNull { Actions.byId(it) }.forEachIndexed { i, named ->
+            val key = layoutInflater.inflate(R.layout.ui_key_small, strip, false) as MaterialButton
+            key.text = Actions.label(requireContext(), named)
+            key.minWidth = dp(52)
+            key.setPadding(dp(14), 0, dp(14), 0)
+            key.layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            ).apply { if (i > 0) marginStart = dp(8) }
+            key.setOnClickListener {
+                if (!requireProKeys(Features.Pro.FULL_KEYBOARD)) return@setOnClickListener
+                Haptics.tick(it)
+                perform(named.action)
+            }
+            strip.addView(key)
+        }
     }
 
     override fun onConnectionChanged(connected: Boolean, changed: Boolean) {
@@ -242,10 +353,10 @@ class KeyboardFragment : SurfaceFragment() {
     }
 
     /** Modifiers and function keys are part of Pro keys; navigation keys are free. */
-    private fun requireProKeys(): Boolean {
+    private fun requireProKeys(feature: Features.Pro = Features.Pro.PRO_KEYS): Boolean {
         val context = requireContext()
         if (Features.isPro(context)) return true
-        ProActivity.open(context, Features.Pro.PRO_KEYS)
+        ProActivity.open(context, feature)
         return false
     }
 
@@ -452,62 +563,15 @@ class KeyboardFragment : SurfaceFragment() {
         }
     }
 
-    /** Pro keys: navigation and shortcuts a phone keyboard has no way to send. */
-    private fun showKeys() {
-        val context = requireContext()
-        if (!Features.isPro(context)) {
-            ProActivity.open(context, Features.Pro.PRO_KEYS)
-            return
-        }
-        keysSheet?.dismiss()
-        val sheet = Sheet(context)
-            .title(getString(R.string.keys_title))
-            .subtitle(getString(R.string.keys_body))
-        val groups = listOf(
-            R.string.keys_group_editing to listOf("line_start", "line_end", "page_up", "page_down", "delete", "select_all"),
-            R.string.keys_group_shortcuts to listOf("copy", "cut", "paste", "undo", "zoom_in", "zoom_out"),
-            R.string.keys_group_system to listOf("app_switch", "close_window", "show_desktop", "start_menu", "browser_back", "browser_forward")
-        )
-        groups.forEach { (title, ids) ->
-            sheet.content.addView(TextView(context).apply {
-                setTextAppearance(R.style.Text_Overline)
-                text = getString(title)
-                setPadding(dp(4), dp(16), 0, dp(8))
-            })
-            val grid = GridLayout(context).apply { columnCount = 3 }
-            ids.mapNotNull { Actions.byId(it) }.forEachIndexed { i, named ->
-                val key = layoutInflater.inflate(R.layout.ui_key_small, grid, false) as MaterialButton
-                key.text = Actions.label(context, named)
-                key.layoutParams = GridLayout.LayoutParams(
-                    GridLayout.spec(i / 3), GridLayout.spec(i % 3, 1f)
-                ).apply {
-                    width = 0
-                    height = dp(48)
-                    if (i % 3 > 0) marginStart = dp(8)
-                    if (i >= 3) topMargin = dp(8)
-                }
-                key.setOnClickListener {
-                    Haptics.tick(it)
-                    perform(named.action)
-                }
-                grid.addView(key)
-            }
-            sheet.content.addView(grid)
-        }
-        sheet.primary(getString(R.string.done)) { true }
-        keysSheet = sheet.show()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-        keysSheet?.dismiss()
-        keysSheet = null
         app.stopObservingEntitlement(entitlementObserver)
         _ui = null
     }
 
     private companion object {
         const val MAX_RECENT = 12
+        const val LOCKED_ALPHA = 0.35f
         const val CLIPBOARD_PREVIEW = 400
     }
 }
