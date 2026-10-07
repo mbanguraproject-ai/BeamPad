@@ -102,10 +102,17 @@ class SnippetsFragment : Fragment() {
 
     // ---- Sending ----------------------------------------------------------------
 
+    /** The snippet going out. A second tap meanwhile would type it twice. */
+    private var sending: InputEngine.Job? = null
+
     private fun send(snippet: Snippet) {
         val service = host?.service
         if (service == null || !service.isReady()) {
             toast(getString(R.string.not_connected_hint))
+            return
+        }
+        if (sending != null) {
+            toast(getString(R.string.typing_busy))
             return
         }
         if (!snippet.secret || SnippetLock.isUnlocked(requireContext())) {
@@ -129,10 +136,17 @@ class SnippetsFragment : Fragment() {
             toast(getString(R.string.snippet_decrypt_failed))
             return
         }
-        service.typeText(plaintext) { sent, skipped ->
-            activity?.runOnUiThread {
-                if (skipped > 0) toast(getString(R.string.snippet_partly_sent, sent, skipped))
-                else {
+        if (sending != null) return
+        sending = service.engine.keyboard.type(plaintext) done@{ result ->
+            sending = null
+            if (context == null) return@done
+            when {
+                result.interrupted ->
+                    toast(getString(R.string.paste_interrupted, result.consumed, plaintext.length))
+                result.cancelled -> Unit
+                result.skipped > 0 ->
+                    toast(getString(R.string.snippet_partly_sent, result.sent, result.skipped))
+                else -> {
                     toast(getString(R.string.snip_sent, snippet.label))
                     activity?.let { Reviews.success(it) }
                 }

@@ -41,14 +41,20 @@ class InputEngine(
 
     /**
      * How a text send ended. [interrupted] means the connection dropped part
-     * way, so the caller can keep the unsent text rather than clear it.
+     * way, so the caller can keep the unsent text rather than clear it:
+     * [consumed] characters of it were dealt with (sent or skipped), and
+     * everything from there on never reached the device.
      */
     data class TypeResult(
         val sent: Int,
         val skipped: Int,
         val interrupted: Boolean,
-        val cancelled: Boolean
-    )
+        val cancelled: Boolean,
+        val consumed: Int
+    ) {
+        /** Everything went out, or was knowingly skipped. */
+        val complete: Boolean get() = !interrupted && !cancelled
+    }
 
     private val exec = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
@@ -94,15 +100,51 @@ class InputEngine(
 
     private fun pause(millis: Long) = runCatching { Thread.sleep(millis) }
 
+    /**
+     * Queues work on the report thread. After [shutdown] (the service is
+     * going away) the work is dropped instead of throwing on that thread.
+     */
+    private fun queue(work: Runnable) {
+        runCatching { exec.execute(work) }
+    }
+
     // ------------------------------------------------------------------ keys
 
     inner class KeyboardEngine {
 
         private val typing = mutableSetOf<Job>()
 
+        /**
+         * Text sends run one at a time, in the order they were asked for.
+         * Each character is still its own queue slot, so a key tapped
+         * meanwhile goes out between characters; but a second text never
+         * interleaves with the first (two quick Sends, or a live-typing
+         * correction behind the text it corrects, used to come out jumbled).
+         */
+        private val waitingTexts = ArrayDeque<Runnable>()
+        private var textRunning = false
+
+        private fun startText(start: Runnable) {
+            synchronized(waitingTexts) {
+                if (textRunning) {
+                    waitingTexts.addLast(start)
+                    return
+                }
+                textRunning = true
+            }
+            queue(start)
+        }
+
+        private fun textFinished() {
+            val next = synchronized(waitingTexts) {
+                waitingTexts.removeFirstOrNull().also { if (it == null) textRunning = false }
+            }
+            next?.let { queue(it) }
+        }
+
         /** Press and release one key with [modifiers] held. Usage 0 sends the modifiers alone. */
         fun tap(usage: Int, modifiers: Int = 0) {
-            exec.execute { tapNow(usage, modifiers) }
+            queue { tapNow(usage, modifiers) }
         }
 
         /** On the report thread only. */
@@ -128,40 +170,65 @@ class InputEngine(
             text: String,
             progress: ((Int, Int) -> Unit)? = null,
             done: (TypeResult) -> Unit
+        ): Job = typeAfter(0, text, progress, done)
+
+        /**
+         * Live typing's edit: [backspaces] Backspaces, then [text], as one
+         * ordered step behind any text still going out.
+         */
+        fun replace(backspaces: Int, text: String, done: (TypeResult) -> Unit = {}): Job =
+            typeAfter(backspaces, text, null, done)
+
+        private fun typeAfter(
+            backspaces: Int,
+            text: String,
+            progress: ((Int, Int) -> Unit)?,
+            done: (TypeResult) -> Unit
         ): Job {
             val job = Job()
             synchronized(typing) { typing += job }
             val total = text.length
+            var erased = 0
             var index = 0
             var sent = 0
             var skipped = 0
 
-            fun finish(interrupted: Boolean) {
+            fun finish(interrupted: Boolean, consumed: Int) {
                 synchronized(typing) { typing -= job }
-                val result = TypeResult(sent, skipped, interrupted, job.cancelled)
+                val result = TypeResult(sent, skipped, interrupted, job.cancelled, consumed)
                 main.post { done(result) }
+                textFinished()
             }
 
             fun step() {
-                if (job.cancelled) return finish(interrupted = false)
-                if (index >= total) return finish(interrupted = false)
-                val c = text[index++]
+                if (job.cancelled) return finish(interrupted = false, consumed = index)
+                if (erased < backspaces) {
+                    if (!tapNow(HidReports.KEY_BACKSPACE.toInt(), 0)) {
+                        return finish(interrupted = true, consumed = 0)
+                    }
+                    erased++
+                    queue { step() }
+                    return
+                }
+                if (index >= total) return finish(interrupted = false, consumed = total)
+                val c = text[index]
                 val enc = HidReports.encode(c, layout())
                 if (enc == null) {
                     skipped++
                 } else if (tapNow(enc.second.toInt(), enc.first.toInt())) {
                     sent++
                 } else {
-                    return finish(interrupted = true)
+                    return finish(interrupted = true, consumed = index)
                 }
+                index++
                 if (progress != null && (index % PROGRESS_EVERY == 0 || index == total)) {
                     val s = index
                     main.post { progress(s, total) }
                 }
-                exec.execute { step() }
+                queue { step() }
             }
 
-            exec.execute { step() }
+            startText { step() }
             return job
         }
 
@@ -224,11 +291,11 @@ class InputEngine(
         }
 
         fun click(button: Int) {
-            exec.execute { clickNow(button) }
+            queue { clickNow(button) }
         }
 
         fun doubleClick(button: Int) {
-            exec.execute {
+            queue {
                 if (clickNow(button)) {
                     pause(DOUBLE_CLICK_GAP_MS)
                     clickNow(button)
@@ -246,12 +313,12 @@ class InputEngine(
         /** Holds [button] down until [release]: the start of a drag. */
         fun press(button: Int) {
             held = held or button
-            exec.execute { report(held, 0, 0, 0) }
+            queue { report(held, 0, 0, 0) }
         }
 
         fun release(button: Int) {
             held = held and button.inv()
-            exec.execute { report(held, 0, 0, 0) }
+            queue { report(held, 0, 0, 0) }
         }
 
         fun isHeld(button: Int): Boolean = held and button != 0
@@ -259,7 +326,7 @@ class InputEngine(
         fun releaseAll() {
             if (held == 0) return
             held = 0
-            exec.execute { report(0, 0, 0, 0) }
+            queue { report(0, 0, 0, 0) }
         }
     }
 
@@ -269,7 +336,7 @@ class InputEngine(
 
         /** Media, volume, power and the like. A release always follows or the key sticks. */
         fun press(usage: Int) {
-            exec.execute { pressNow(usage) }
+            queue { pressNow(usage) }
         }
 
         internal fun pressNow(usage: Int): Boolean {

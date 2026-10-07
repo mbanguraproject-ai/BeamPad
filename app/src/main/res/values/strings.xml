@@ -66,6 +66,11 @@
     <string name="keyboard_send">Send</string>
     <string name="not_connected_hint">Not connected yet. Tap your device at the top to connect.</string>
     <string name="chars_skipped">%1$d characters could not be sent</string>
+    <string name="send_stop">Stop typing</string>
+    <string name="typing_busy">Still typing the last one. Wait, or tap Stop.</string>
+    <string name="send_interrupted">Connection lost before it all went. The rest is still in the box.</string>
+    <string name="send_failed">Your device didn’t take that. Check it’s on and in range.</string>
+    <string name="paste_interrupted">Connection lost after %1$d of %2$d characters.</string>
     <string name="tool_live">Live</string>
     <string name="tool_paste">Paste</string>
     <string name="live_on">Live typing on. Keys reach the TV as you type.</string>

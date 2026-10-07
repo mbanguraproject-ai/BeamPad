@@ -81,11 +81,11 @@ class KeyboardFragment : SurfaceFragment() {
                 return
             }
             val common = liveBaseline.commonPrefixWith(now).length
-            repeat(liveBaseline.length - common) {
-                service.typeKey(HidReports.MOD_NONE, HidReports.KEY_BACKSPACE)
-            }
+            val erase = liveBaseline.length - common
             val added = now.substring(common)
-            if (added.isNotEmpty()) service.typeText(added) { _, _ -> }
+            // One ordered step, so an autocorrect's backspaces cannot land in
+            // the middle of the characters it is correcting.
+            if (erase > 0 || added.isNotEmpty()) service.engine.keyboard.replace(erase, added)
             liveBaseline = now
         }
     }
@@ -98,7 +98,9 @@ class KeyboardFragment : SurfaceFragment() {
     override fun onViewCreated(view: View, state: Bundle?) {
         ui.send.setOnClickListener {
             Haptics.tick(it)
-            submit()
+            // While text is going out the button is Stop.
+            val inFlight = sending
+            if (inFlight != null) inFlight.cancel() else submit()
         }
 
         // The phone keyboard's action key also presses Enter on the device
@@ -106,6 +108,7 @@ class KeyboardFragment : SurfaceFragment() {
         // The Send button types without Enter, for fields that should not.
         ui.input.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
+                if (sending != null) return@setOnEditorActionListener true
                 val enter = searchMode || app.prefs.enterBehavior == Prefs.EnterBehavior.SEND_AND_ENTER
                 if (liveTyping()) pressEnterLive() else sendInput(withEnter = enter)
                 true
@@ -382,10 +385,55 @@ class KeyboardFragment : SurfaceFragment() {
                 else -> R.string.keyboard_hint
             }
         )
+        renderSendButton()
+    }
+
+    private fun renderSendButton() {
+        val ui = _ui ?: return
+        val live = liveTyping()
         ui.send.setIconResource(
-            if (live) R.drawable.ic_arrow_elbow_down_left else R.drawable.ic_paper_plane_right
+            when {
+                sending != null -> R.drawable.ic_stop
+                live -> R.drawable.ic_arrow_elbow_down_left
+                else -> R.drawable.ic_paper_plane_right
+            }
         )
-        ui.send.contentDescription = getString(if (live) R.string.key_enter else R.string.keyboard_send)
+        ui.send.contentDescription = getString(
+            when {
+                sending != null -> R.string.send_stop
+                live -> R.string.key_enter
+                else -> R.string.keyboard_send
+            }
+        )
+    }
+
+    /** The text send in flight. Another Send meanwhile would type the text twice. */
+    private var sending: InputEngine.Job? = null
+
+    /**
+     * Types [payload] unless a send is already going out; [done] gets the
+     * outcome on the main thread. False when refused as busy.
+     */
+    private fun typeOut(
+        service: HidService,
+        payload: String,
+        done: (InputEngine.TypeResult) -> Unit
+    ): Boolean {
+        if (sending != null) {
+            toast(getString(R.string.typing_busy))
+            return false
+        }
+        sending = service.engine.keyboard.type(payload) { result ->
+            sending = null
+            renderSendButton()
+            done(result)
+        }
+        renderSendButton()
+        return true
+    }
+
+    private fun toast(message: String) {
+        context?.let { Toast.makeText(it, message, Toast.LENGTH_SHORT).show() }
     }
 
     private fun submit() {
@@ -429,17 +477,36 @@ class KeyboardFragment : SurfaceFragment() {
             }
         }
 
-        remember(text)
-        service.typeText(if (withEnter) text + "\n" else text) { _, skipped ->
-            activity?.runOnUiThread {
-                if (_ui == null) return@runOnUiThread
-                clearField()
+        typeOut(service, if (withEnter) text + "\n" else text) { result ->
+            if (_ui == null) return@typeOut
+            val field = ui.input.text?.toString().orEmpty()
+            // Only touch the field if it still holds what was sent: the user
+            // may have started the next message meanwhile.
+            val untouched = field == text
+            if (result.complete) {
+                remember(text)
+                if (untouched) clearField()
                 endSearch()
-                if (skipped > 0) {
-                    Toast.makeText(requireContext(), getString(R.string.chars_skipped, skipped), Toast.LENGTH_SHORT).show()
-                }
+                if (result.skipped > 0) toast(getString(R.string.chars_skipped, result.skipped))
+                return@typeOut
             }
+            // Dropped or stopped part way: what never reached the device
+            // stays in the box, ready to send again.
+            if (result.consumed > 0) remember(text.take(result.consumed))
+            if (untouched) {
+                val rest = text.drop(result.consumed)
+                if (rest.isEmpty()) clearField() else setField(rest)
+            }
+            if (result.interrupted) toast(getString(R.string.send_interrupted))
         }
+    }
+
+    private fun setField(text: String) {
+        suppressWatcher = true
+        ui.input.setText(text)
+        ui.input.setSelection(text.length)
+        suppressWatcher = false
+        liveBaseline = text
     }
 
     /** Opens the device's search, then the next send types into it and presses Enter. */
@@ -478,8 +545,11 @@ class KeyboardFragment : SurfaceFragment() {
             row.setOnClickListener {
                 Haptics.tick(it)
                 val service = service() ?: return@setOnClickListener
-                service.typeText(text) { _, _ -> }
-                remember(text)
+                typeOut(service, text) { result ->
+                    if (result.interrupted) {
+                        toast(getString(R.string.paste_interrupted, result.consumed, text.length))
+                    }
+                }
             }
             ui.recentList.addView(row)
         }
@@ -538,15 +608,15 @@ class KeyboardFragment : SurfaceFragment() {
             return
         }
         val send = {
-            service.typeText(text) { sent, _ ->
-                activity?.runOnUiThread {
-                    if (_ui == null) return@runOnUiThread
-                    Toast.makeText(
-                        requireContext(),
-                        resources.getQuantityString(R.plurals.clipboard_sent, sent, sent),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            typeOut(service, text) { result ->
+                val context = context ?: return@typeOut
+                toast(
+                    if (result.interrupted) {
+                        getString(R.string.paste_interrupted, result.consumed, text.length)
+                    } else {
+                        context.resources.getQuantityString(R.plurals.clipboard_sent, result.sent, result.sent)
+                    }
+                )
             }
         }
         // The clipboard can hold anything; with confirmation on, the user
@@ -565,6 +635,7 @@ class KeyboardFragment : SurfaceFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // A send in flight keeps going; its result just has no field to update.
         app.stopObservingEntitlement(entitlementObserver)
         _ui = null
     }

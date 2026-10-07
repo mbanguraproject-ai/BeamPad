@@ -98,6 +98,8 @@ class MainActivity : BeamActivity() {
             HidService.Notice.GAVE_UP_RETRYING ->
                 Toast.makeText(this, R.string.retry_gave_up, Toast.LENGTH_LONG).show()
             HidService.Notice.LOST -> Unit
+            HidService.Notice.SEND_FAILED ->
+                if (resumed) Toast.makeText(this, R.string.send_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

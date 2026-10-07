@@ -23,6 +23,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
@@ -77,7 +78,7 @@ class HidService : Service() {
     }
 
     /** One-off events, reported once rather than rendered. */
-    enum class Notice { CONNECTED, CONNECT_FAILED, LOST, GAVE_UP_RETRYING }
+    enum class Notice { CONNECTED, CONNECT_FAILED, LOST, GAVE_UP_RETRYING, SEND_FAILED }
 
     private val binder = LocalBinder()
 
@@ -202,6 +203,31 @@ class HidService : Service() {
         }
     }
 
+    /**
+     * Android can withdraw the keyboard registration after startup: another
+     * app took the Bluetooth keyboard role, or the Bluetooth stack
+     * restarted. Register again a few times, then say so (with Try again)
+     * instead of showing "Getting ready" for ever.
+     */
+    private var reRegisterAttempt = 0
+
+    private val reRegister = Runnable {
+        if (registered || !bluetoothOn()) return@Runnable
+        log(ConnectionLog.Kind.RETRY, "register again, attempt $reRegisterAttempt")
+        releaseProxy()
+        acquireProxy()
+    }
+
+    private fun scheduleReRegister(why: String) {
+        main.removeCallbacks(reRegister)
+        if (reRegisterAttempt >= REREGISTER_DELAYS_MS.size) {
+            markUnsupported(UnsupportedReason.NO_RESPONSE)
+            return
+        }
+        log(ConnectionLog.Kind.LOST, "registration $why")
+        main.postDelayed(reRegister, REREGISTER_DELAYS_MS[reRegisterAttempt++])
+    }
+
     private val registrationTimeout = Runnable {
         // Some phones hand out the profile but never confirm registration.
         // Saying so beats an endless "Starting".
@@ -233,15 +259,23 @@ class HidService : Service() {
 
     private val hidCallback = object : BluetoothHidDevice.Callback() {
         override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
+            val wasRegistered = this@HidService.registered
             this@HidService.registered = registered
             main.removeCallbacks(registrationTimeout)
 
             if (!registered) {
+                // A deliberate release clears hid and registered first, so
+                // only a registration Android withdrew gets here with both set.
+                val dropped = wasRegistered && hid != null
+                if (dropped) connectedDevice?.let { lostDevice = it }
                 connectedDevice = null
                 connectingDevice = null
                 setState(if (bluetoothOn()) State.STARTING else State.BLUETOOTH_OFF)
+                if (dropped && bluetoothOn()) main.post { scheduleReRegister("withdrawn") }
                 return
             }
+            reRegisterAttempt = 0
+            main.removeCallbacks(reRegister)
             log(ConnectionLog.Kind.REGISTERED)
 
             if (connectedDevice == null && connectingDevice == null) {
@@ -383,6 +417,7 @@ class HidService : Service() {
             connectedDevice = null
             connectingDevice = null
             setState(if (bluetoothOn()) State.STARTING else State.BLUETOOTH_OFF)
+            if (bluetoothOn()) scheduleReRegister("profile service lost")
         }
     }
 
@@ -423,7 +458,14 @@ class HidService : Service() {
         val ok = runCatching {
             a.getProfileProxy(this, serviceListener, BluetoothProfile.HID_DEVICE)
         }.getOrDefault(false)
-        if (!ok) markUnsupported(UnsupportedReason.NO_PROFILE)
+        if (!ok) {
+            markUnsupported(UnsupportedReason.NO_PROFILE)
+            return
+        }
+        // Covers a profile service that never answers, as well as a
+        // registration that is never confirmed (re-armed when it answers).
+        main.removeCallbacks(registrationTimeout)
+        main.postDelayed(registrationTimeout, REGISTER_TIMEOUT_MS)
     }
 
     private fun releaseProxy() {
@@ -441,6 +483,8 @@ class HidService : Service() {
 
     /** Drops the profile and registers again. Behind the Try again button. */
     fun restart() {
+        reRegisterAttempt = 0
+        main.removeCallbacks(reRegister)
         releaseProxy()
         acquireProxy()
     }
@@ -569,9 +613,20 @@ class HidService : Service() {
         val h = hid ?: return false
         val dev = connectedDevice ?: return false
         val ok = runCatching { h.sendReport(dev, id, report) }.getOrDefault(false)
-        if (!ok) log(ConnectionLog.Kind.SEND_FAILED, "report $id")
+        if (!ok) {
+            log(ConnectionLog.Kind.SEND_FAILED, "report $id")
+            // Connected but refused: say so (once in a while), rather than
+            // leave a key press that silently did nothing.
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastSendFailedNotice > SEND_FAILED_NOTICE_GAP_MS) {
+                lastSendFailedNotice = now
+                notice(Notice.SEND_FAILED)
+            }
+        }
         return ok
     }
+
+    @Volatile private var lastSendFailedNotice = 0L
 
     // Thin wrappers kept for screens written against the earlier API.
 
@@ -736,6 +791,8 @@ class HidService : Service() {
 
     companion object {
         private const val REGISTER_TIMEOUT_MS = 8_000L
+        private val REREGISTER_DELAYS_MS = longArrayOf(1_000, 3_000, 10_000)
+        private const val SEND_FAILED_NOTICE_GAP_MS = 4_000L
         private const val CHANNEL_ID = "beampad_connection"
         private const val NOTIF_ID = 1
         const val ACTION_DISCONNECT = "com.devbangs.beampad.DISCONNECT"

@@ -278,9 +278,11 @@ class PanelGrid @JvmOverloads constructor(
                     return
                 }
                 val common = baseline.commonPrefixWith(now).length
-                repeat(baseline.length - common) { service.typeKey(HidReports.MOD_NONE, HidReports.KEY_BACKSPACE) }
+                val erase = baseline.length - common
                 val added = now.substring(common)
-                if (added.isNotEmpty()) service.typeText(added) { _, _ -> }
+                // One ordered step, so autocorrect's backspaces cannot land
+                // in the middle of the characters they correct.
+                if (erase > 0 || added.isNotEmpty()) service.engine.keyboard.replace(erase, added)
                 baseline = now
             }
         })
@@ -301,9 +303,16 @@ class PanelGrid @JvmOverloads constructor(
         input.imeOptions = EditorInfo.IME_ACTION_SEND
         val submit = {
             val text = input.text?.toString().orEmpty()
-            if (text.isNotEmpty()) {
-                host?.liveService(true)?.typeText(text + "\n") { _, _ -> }
+            val service = if (text.isNotEmpty()) host?.liveService(true) else null
+            if (service != null) {
+                // Cleared at once, so a second tap has nothing to send twice;
+                // a drop part way puts back what never reached the device.
                 input.text?.clear()
+                service.engine.keyboard.type(text + "\n") { result ->
+                    if (result.interrupted && input.text.isNullOrEmpty()) {
+                        input.setText(text.drop(result.consumed))
+                    }
+                }
             }
         }
         input.setOnEditorActionListener { _, id, _ -> if (id == EditorInfo.IME_ACTION_SEND) { submit(); true } else false }
