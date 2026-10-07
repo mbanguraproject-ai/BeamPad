@@ -36,4 +36,7 @@
     <dimen name="icon">22dp</dimen>
     <dimen name="icon_small">18dp</dimen>
     <dimen name="hairline">1dp</dimen>
+
+    <!-- Widest a page of text and rows gets on tablets and foldables (ReadableColumn). -->
+    <dimen name="readable_width">720dp</dimen>
 </resources>
