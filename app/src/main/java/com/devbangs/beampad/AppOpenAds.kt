@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import com.google.android.gms.ads.AdError
@@ -38,6 +40,9 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** A remote is backgrounded constantly; an ad on every return would drive users off. */
     private const val MIN_INTERVAL_MS = 30 * 60 * 1000L
 
+    /** Retries after MainActivity opens, while consent is still being gathered. */
+    private val CONSENT_RETRIES_MS = listOf(2_000L, 6_000L, 15_000L)
+
     /** Covers a trip to Bluetooth settings or the TV's pairing screen. */
     private const val CONNECTION_FLOW_GRACE_MS = 10 * 60 * 1000L
 
@@ -46,6 +51,8 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     private var loading = false
     private var showing = false
     private var lastShownAt = 0L
+
+    private val main = Handler(Looper.getMainLooper())
 
     private var startedActivities = 0
     private var changingConfig = false
@@ -99,17 +106,25 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         skipReturnsUntil = 0L
 
         // backgroundedAt is 0 on a cold launch: there was no time away.
-        if (backgroundedAt == 0L || awayFor < MIN_AWAY_MS || skip) return
-        if (showing || (lastShownAt != 0L && now - lastShownAt < MIN_INTERVAL_MS)) return
-        if (activity !is MainActivity || !activity.allowsAppOpenAd()) return
-        if (!adsAllowed(activity)) {
-            ad = null
+        val reason = when {
+            backgroundedAt == 0L -> "cold launch"
+            awayFor < MIN_AWAY_MS -> "away ${awayFor / 1000}s, under ${MIN_AWAY_MS / 1000}s"
+            skip -> "back from Bluetooth, pairing or permissions"
+            showing -> "already showing"
+            lastShownAt != 0L && now - lastShownAt < MIN_INTERVAL_MS ->
+                "shown ${(now - lastShownAt) / 60_000} min ago, under ${MIN_INTERVAL_MS / 60_000} min"
+            activity !is MainActivity -> "not the main screen"
+            !(activity as MainActivity).allowsAppOpenAd() -> "snippets tab or connecting"
+            !adsAllowed(activity) -> "no consent yet, or ads removed"
+            !hasFreshAd(now) -> if (loading) "still loading" else "no ad loaded"
+            else -> null
+        }
+        if (reason != null) {
+            Log.i(TAG, "app open skipped: $reason")
+            if (!adsAllowed(activity)) ad = null else fetch(activity)
             return
         }
-        val current = ad?.takeIf { hasFreshAd(now) } ?: run {
-            fetch(activity)
-            return
-        }
+        val current = ad ?: return
 
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
@@ -139,9 +154,15 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityResumed(activity: Activity) {
-        // Consent is gathered asynchronously after MainActivity opens, so
-        // retry here until the first ad is cached.
-        if (activity is MainActivity) fetch(activity)
+        if (activity !is MainActivity) return
+        fetch(activity)
+        // Consent is gathered asynchronously just after MainActivity opens,
+        // so the first attempt above is usually too early. Try again
+        // shortly, so an ad is ready for the first return rather than only
+        // after the user has already left once. Each retry is a no-op once
+        // an ad is loaded or loading.
+        val app = activity.applicationContext
+        CONSENT_RETRIES_MS.forEach { delay -> main.postDelayed({ fetch(app) }, delay) }
     }
 
     override fun onActivityStopped(activity: Activity) {

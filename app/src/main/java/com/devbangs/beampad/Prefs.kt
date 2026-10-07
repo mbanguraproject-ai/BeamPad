@@ -166,7 +166,7 @@ class Prefs(context: Context) {
     // ---- Appearance and accessibility -------------------------------------
 
     var appearance: Appearance
-        get() = enumOf(KEY_APPEARANCE, Appearance.DARK)
+        get() = enumOf(KEY_APPEARANCE, Appearance.LIGHT)
         set(value) = putString(KEY_APPEARANCE, value.name)
 
     var largeControls: Boolean
