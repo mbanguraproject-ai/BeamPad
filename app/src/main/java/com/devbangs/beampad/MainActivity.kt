@@ -302,6 +302,7 @@ class MainActivity : BeamActivity() {
     fun openControl(mode: ControlMode? = null, panelId: String? = null) {
         if (mode != null) prefs.lastMode = mode
         if (panelId != null) prefs.lastPanelId = panelId else if (mode != null) prefs.lastPanelId = null
+        if (mode != null || panelId != null) prefs.lastHome = false
         val current = controlFragment()
         if (current != null) {
             panelId?.let { current.showPanel(it) } ?: mode?.let { current.showMode(it) }

@@ -108,6 +108,23 @@ class PanelGrid @JvmOverloads constructor(
         dragHelper.attachToRecyclerView(this)
     }
 
+    /** The side padding the screen asked for, before any centring. */
+    private var baseSide = -1
+
+    /**
+     * Keeps the grid at a phone-like width on wide windows (tablets,
+     * unfolded foldables, phones in landscape), centred, so four columns
+     * never stretch into long thin buttons and a giant pad.
+     */
+    override fun onMeasure(widthSpec: Int, heightSpec: Int) {
+        if (baseSide < 0) baseSide = paddingLeft
+        val available = MeasureSpec.getSize(widthSpec)
+        val max = (Ui.dp(context, MAX_WIDTH_DP) * ControlSizing.scale(context)).roundToInt()
+        val side = maxOf(baseSide, (available - max) / 2)
+        if (side != paddingLeft || side != paddingRight) setPadding(side, paddingTop, side, paddingBottom)
+        super.onMeasure(widthSpec, heightSpec)
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     fun submit(components: List<PanelComponent>) {
         items.clear()
@@ -325,6 +342,7 @@ class PanelGrid @JvmOverloads constructor(
 
     companion object {
         const val CELL_DP = 60
+        const val MAX_WIDTH_DP = 520
         const val CONFIG_UP = "up"
         const val CONFIG_DOWN = "down"
         const val CONFIG_ON = "on"

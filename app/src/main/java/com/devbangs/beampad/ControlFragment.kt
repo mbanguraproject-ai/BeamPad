@@ -21,7 +21,8 @@ class ControlFragment : Fragment() {
 
     private val prefs get() = (requireActivity().application as BeamPadApp).prefs
 
-    /** What is showing: a built-in mode, or a panel id. */
+    /** What is showing: Home, a built-in mode, or a panel id. */
+    private var home = false
     private var mode: ControlMode? = null
     private var panelId: String? = null
 
@@ -36,6 +37,8 @@ class ControlFragment : Fragment() {
         val savedPanel = state?.getString(KEY_PANEL)
         val savedMode = enumOrNull<ControlMode>(state?.getString(KEY_MODE))
         when {
+            state?.getBoolean(KEY_HOME) == true -> home = true
+            state == null && prefs.lastHome -> home = true
             savedPanel != null -> panelId = savedPanel
             savedMode != null -> mode = savedMode
             prefs.lastPanelId != null && PanelStore(requireContext()).get(prefs.lastPanelId) != null &&
@@ -58,6 +61,7 @@ class ControlFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_HOME, home)
         outState.putString(KEY_MODE, mode?.name)
         outState.putString(KEY_PANEL, panelId)
     }
@@ -69,8 +73,10 @@ class ControlFragment : Fragment() {
             next.pro?.let { ProActivity.open(context, it) }
             return
         }
-        if (mode == next && panelId == null) return
+        if (mode == next && panelId == null && !home) return
         val from = position()
+        home = false
+        prefs.lastHome = false
         mode = next
         panelId = null
         prefs.lastMode = next
@@ -87,8 +93,10 @@ class ControlFragment : Fragment() {
             return
         }
         if (PanelStore(context).get(id) == null) return
-        if (panelId == id) return
+        if (panelId == id && !home) return
         val from = position()
+        home = false
+        prefs.lastHome = false
         panelId = id
         mode = null
         prefs.lastPanelId = id
@@ -100,8 +108,21 @@ class ControlFragment : Fragment() {
     fun currentSurface(): SurfaceFragment? =
         if (_ui == null) null else childFragmentManager.findFragmentById(R.id.modeContainer) as? SurfaceFragment
 
-    /** Where the showing surface sits in the track: modes in order, then panels. */
+    /** Home: the four big modes, recent devices and quick actions. */
+    fun showHome() {
+        if (home) return
+        val from = position()
+        home = true
+        mode = null
+        panelId = null
+        prefs.lastHome = true
+        swapChild(animate = true, forward = position() >= from)
+        buildChips()
+    }
+
+    /** Where the showing surface sits in the track: Home, modes in order, then panels. */
     private fun position(): Int {
+        if (home) return -1
         panelId?.let { id ->
             val index = PanelStore(requireContext()).all().indexOfFirst { it.id == id }
             return ControlMode.entries.size + index.coerceAtLeast(0)
@@ -111,8 +132,11 @@ class ControlFragment : Fragment() {
 
     private fun swapChild(animate: Boolean, forward: Boolean = true) {
         if (_ui == null) return
-        val fragment = panelId?.let { PanelFragment.newInstance(it) }
-            ?: (mode ?: ControlMode.KEYBOARD).newFragment()
+        val fragment = when {
+            home -> HomeFragment()
+            panelId != null -> PanelFragment.newInstance(panelId!!)
+            else -> (mode ?: ControlMode.KEYBOARD).newFragment()
+        }
         val tx = childFragmentManager.beginTransaction()
         // A short slide in the direction of the segment tapped, so the
         // surfaces read as a row: switching modes is spatial, never a wait.
@@ -138,12 +162,20 @@ class ControlFragment : Fragment() {
         val context = requireContext()
         val pro = Features.isPro(context)
 
-        val segments = ControlMode.entries.map { m ->
+        val segments = listOf(
+            Segment(
+                key = "home",
+                label = getString(R.string.home_segment),
+                icon = R.drawable.ic_house,
+                selected = home,
+                locked = false
+            ) { showHome() }
+        ) + ControlMode.entries.map { m ->
             Segment(
                 key = "mode:${m.name}",
                 label = getString(m.labelRes),
                 icon = m.iconRes,
-                selected = panelId == null && mode == m,
+                selected = !home && panelId == null && mode == m,
                 locked = !Features.allowed(context, m)
             ) { showMode(m) }
         } + PanelStore(context).all().map { panel ->
@@ -209,5 +241,6 @@ class ControlFragment : Fragment() {
     private companion object {
         const val KEY_MODE = "mode"
         const val KEY_PANEL = "panel"
+        const val KEY_HOME = "home"
     }
 }

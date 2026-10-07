@@ -556,4 +556,17 @@
     <string name="tip_trackpad">Tap to click. Two fingers scroll or right-click. Double-tap and hold to drag.</string>
     <string name="tip_mouse">Hold a button to keep it pressed. Drag the wheel to scroll; tap it to middle-click.</string>
     <string name="tip_presentation">Your phone’s volume buttons change slides, so you can present without looking.</string>
+    <!-- Home, inside the Control tab -->
+    <string name="home_segment">Home</string>
+    <string name="home_recent">Recent devices</string>
+    <string name="home_quick">Quick actions</string>
+    <string name="home_pair">Pair a device</string>
+    <string name="home_no_devices">Your TV, computer or projector, in under a minute</string>
+    <string name="home_not_paired">Not paired with this phone</string>
+    <string name="home_used">Used %1$s</string>
+    <string name="home_open_panel">Open panel</string>
+    <string name="home_run_macro">Run macro</string>
+    <string name="home_pro_title">Panels and macros</string>
+    <string name="home_pro_body">Your own remotes, and whole routines on one tap</string>
+    <string name="home_snippets_body">Wi-Fi passwords and logins, typed in one tap</string>
 </resources>
