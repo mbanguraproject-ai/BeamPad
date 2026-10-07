@@ -78,6 +78,26 @@
             android:textColor="@color/chip_text"
             android:clickable="true"
             android:focusable="true" />
+
+        <!-- Air mouse (Pro): hidden on phones without a gyroscope. -->
+        <TextView
+            android:id="@+id/air"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="top|start"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="@dimen/space_sm"
+            android:gravity="center"
+            android:drawablePadding="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
+            android:background="@drawable/bg_tool_chip_tall"
+            android:text="@string/air_mouse"
+            android:textAppearance="@style/Text.Label"
+            android:textSize="13sp"
+            android:textColor="@color/chip_text"
+            android:clickable="true"
+            android:focusable="true" />
     </FrameLayout>
 
     <LinearLayout

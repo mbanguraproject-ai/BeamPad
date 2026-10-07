@@ -291,13 +291,15 @@ class TrackpadView @JvmOverloads constructor(
         if (event.pointerCount < 2) 0f
         else hypot(event.getX(0) - event.getX(1), event.getY(0) - event.getY(1))
 
-    private companion object {
-        const val DOUBLE_TAP_MS = 260L
+    companion object {
+        private const val DOUBLE_TAP_MS = 260L
+
+        /** Also used by the air mouse, so precision means the same for both. */
         const val PRECISION_FACTOR = 0.35f
 
         /** Finger dp per wheel notch. Lower scrolls faster. */
-        const val SCROLL_STEP_DP = 10f
-        const val ZOOM_STEP_DP = 40f
-        const val SWIPE_MIN_DP = 60f
+        private const val SCROLL_STEP_DP = 10f
+        private const val ZOOM_STEP_DP = 40f
+        private const val SWIPE_MIN_DP = 60f
     }
 }
