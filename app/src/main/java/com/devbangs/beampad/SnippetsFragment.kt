@@ -88,7 +88,7 @@ class SnippetsFragment : Fragment() {
                     if (s.secret) Ui.Tone.ACCENT else Ui.Tone.NEUTRAL) { startEdit(s) }
                 row.subtitle.maxLines = 1
                 row.subtitle.ellipsize = android.text.TextUtils.TruncateAt.END
-                row.trailing.addView(Ui.button(row.trailing, Ui.ButtonKind.SMALL_PRIMARY, getString(R.string.snippet_send_short),
+                row.trailing.addView(Ui.button(row.trailing, Ui.ButtonKind.SMALL, getString(R.string.snippet_send_short),
                     R.drawable.ic_paper_plane_right) { send(s) })
             }
         }

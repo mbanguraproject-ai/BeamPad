@@ -125,8 +125,8 @@
     <string name="snippet_value">Text to type</string>
     <string name="snippet_protect">Protect with screen lock</string>
     <string name="snippet_protect_hint">Requires unlock before sending</string>
-    <string name="snippet_label_hint">e.g. Home wifi, Netflix login</string>
-    <string name="snippet_value_hint">The text to type on your TV</string>
+    <string name="snippet_label_hint">e.g. Home address</string>
+    <string name="snippet_value_hint">What BeamPad types on your device</string>
     <string name="snippet_required">Label and text are both required</string>
     <string name="snippet_decrypt_failed">Could not decrypt this snippet</string>
     <string name="snippet_partly_sent">Sent %1$d characters, %2$d unsupported</string>
@@ -233,10 +233,10 @@
     <string name="settings_reconnect_hint">Connect to your last TV when BeamPad opens</string>
     <string name="settings_screen_on">Keep screen on</string>
     <string name="settings_screen_on_hint">While connected, so the remote is always ready</string>
-    <string name="settings_forget">Forget last TV</string>
-    <string name="settings_forget_none">No TV remembered</string>
+    <string name="settings_forget">Forget last device</string>
+    <string name="settings_forget_none">No device remembered</string>
     <string name="settings_forget_hint">Stop reconnecting to it automatically</string>
-    <string name="settings_forgot">BeamPad won’t reconnect to that TV by itself</string>
+    <string name="settings_forgot">BeamPad won’t reconnect to that device by itself</string>
     <string name="settings_typing">TYPING</string>
     <string name="settings_layout">Keyboard layout</string>
     <string name="settings_probe">Send test characters</string>
@@ -245,7 +245,7 @@
     <string name="probe_needs_connection">Connect your TV first, then send the test characters.</string>
     <string name="settings_live">Live typing</string>
     <string name="settings_live_hint">Send each key as you type, instead of on Send</string>
-    <string name="settings_haptics">Vibrate on key press</string>
+    <string name="settings_haptics">Haptics</string>
     <string name="settings_haptics_hint">A short tick for each remote key</string>
     <string name="settings_trackpad">TRACKPAD</string>
     <string name="settings_pointer_speed">Pointer speed</string>

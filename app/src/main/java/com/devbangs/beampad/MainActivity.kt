@@ -262,8 +262,9 @@ class MainActivity : BeamActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Arriving from the notification while already open: just show Control.
-        if (::ui.isInitialized) nav.selectedItemId = R.id.tab_control
+        // Arriving from the notification while already open shows Control;
+        // other screens can ask for a tab (Settings opens Devices).
+        if (::ui.isInitialized) nav.selectedItemId = intent.getIntExtra(EXTRA_TAB, R.id.tab_control)
     }
 
     private fun showTab(itemId: Int) {
@@ -824,17 +825,28 @@ class MainActivity : BeamActivity() {
         if (bound) runCatching { unbindService(connection) }
     }
 
-    private companion object {
-        const val PRO_NUDGE_DELAY_MS = 1600L
-        const val DISCOVERABLE_SECONDS = 180
-        const val DAY_MS = 86_400_000L
-        const val KEY_LAST_NUDGE = "last_pro_nudge_day"
-        const val KEY_TAB = "tab"
+    companion object {
+        private const val EXTRA_TAB = "tab"
+
+        /** Brings the main screen forward on [tabId], from a pushed screen. */
+        fun openTab(context: Context, tabId: Int) {
+            context.startActivity(
+                Intent(context, MainActivity::class.java)
+                    .putExtra(EXTRA_TAB, tabId)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
+        }
+
+        private const val PRO_NUDGE_DELAY_MS = 1600L
+        private const val DISCOVERABLE_SECONDS = 180
+        private const val DAY_MS = 86_400_000L
+        private const val KEY_LAST_NUDGE = "last_pro_nudge_day"
+        private const val KEY_TAB = "tab"
 
         /** Material's medium window class starts at 600dp. */
-        const val RAIL_MIN_WIDTH_DP = 600
+        private const val RAIL_MIN_WIDTH_DP = 600
 
         /** Below this, a header row costs height the controls need. */
-        const val COMPACT_HEIGHT_DP = 480
+        private const val COMPACT_HEIGHT_DP = 480
     }
 }
