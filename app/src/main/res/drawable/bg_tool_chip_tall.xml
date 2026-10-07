@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tool chip drawn 34dp tall inside a 48dp touch target. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/bg_tool_chip"
+    android:insetTop="7dp"
+    android:insetBottom="7dp" />
