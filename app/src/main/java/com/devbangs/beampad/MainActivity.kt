@@ -15,7 +15,10 @@ import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.transition.AutoTransition
 import android.transition.TransitionManager
@@ -24,6 +27,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -160,14 +164,16 @@ class MainActivity : BeamActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Before super.onCreate: it swaps the splash theme for the app theme.
-        // The splash is only held for a launch ad (AppOpenAds), never longer
-        // than its short limit; otherwise the app is usable as soon as it draws.
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        holdSplash(splash, launched = savedInstanceState == null)
 
         if (OnboardingActivity.shouldShow(this)) {
-            startActivity(Intent(this, OnboardingActivity::class.java))
-            finish()
+            // After the splash has played, as on any launch.
+            splashHandler.postDelayed({
+                startActivity(Intent(this, OnboardingActivity::class.java))
+                finish()
+            }, (splashUntil - SystemClock.uptimeMillis()).coerceAtLeast(0L))
             return
         }
 
@@ -235,7 +241,7 @@ class MainActivity : BeamActivity() {
         Ads.start(this, app.entitlements)
         // A real launch only; a screen restored after rotation or from
         // recents is the user carrying on, not opening the app.
-        if (savedInstanceState == null) AppOpenAds.onLaunch(this, splash)
+        if (savedInstanceState == null) AppOpenAds.onLaunch(this)
         renderPlan()
 
         if (hasBluetoothPermissions()) {
@@ -249,6 +255,39 @@ class MainActivity : BeamActivity() {
             ui.getPro.postDelayed({ nudgeProButton() }, PRO_NUDGE_DELAY_MS)
         }
         if (savedInstanceState == null) Updates.check(this, updateFlow)
+    }
+
+    private val splashHandler = Handler(Looper.getMainLooper())
+
+    /** When the timed part of the splash ends (uptime); 0 when it is not held. */
+    private var splashUntil = 0L
+
+    /**
+     * On a launch the splash plays its animation through, then holds a few
+     * seconds more so the brand registers instead of flashing past, then
+     * fades out. A launch ad loads meanwhile and appears as the splash
+     * ends ([AppOpenAds]). A screen restored after rotation or from recents
+     * is the user carrying on: no hold.
+     */
+    private fun holdSplash(splash: SplashScreen, launched: Boolean) {
+        if (launched) {
+            splashUntil = SystemClock.uptimeMillis() + SPLASH_ANIMATION_MS + SPLASH_HOLD_MS
+            splashHandler.postDelayed({ AppOpenAds.onSplashDone(this) }, SPLASH_ANIMATION_MS + SPLASH_HOLD_MS)
+        }
+        splash.setKeepOnScreenCondition {
+            SystemClock.uptimeMillis() < splashUntil || AppOpenAds.holds(this)
+        }
+        splash.setOnExitAnimationListener { provider ->
+            if (Motion.reduced(this)) {
+                provider.remove()
+            } else {
+                provider.view.animate()
+                    .alpha(0f)
+                    .setDuration(SPLASH_FADE_MS)
+                    .withEndAction { provider.remove() }
+                    .start()
+            }
+        }
     }
 
     /**
@@ -867,6 +906,7 @@ class MainActivity : BeamActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        splashHandler.removeCallbacksAndMessages(null)
         sheet?.dismiss()
         app.stopObservingEntitlement(entitlementObserver)
         service?.removeListener(stateListener)
@@ -887,6 +927,13 @@ class MainActivity : BeamActivity() {
         }
 
         private const val PRO_NUDGE_DELAY_MS = 1600L
+
+        /** The splash icon's animation (windowSplashScreenAnimationDuration). */
+        private const val SPLASH_ANIMATION_MS = 700L
+
+        /** How long the finished splash stays before the app (or launch ad) appears. */
+        private const val SPLASH_HOLD_MS = 3_000L
+        private const val SPLASH_FADE_MS = 280L
         private const val REVIEW_ON_RETURN_DELAY_MS = 1500L
 
         /** Lets the device settle after connecting before the first macro step. */

@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.pm.ApplicationInfo
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.window.layout.WindowMetricsCalculator
+import androidx.core.view.doOnLayout
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -78,6 +78,14 @@ object Ads {
     }
 
     private fun show(activity: Activity, slot: FrameLayout) {
+        // The banner is sized to the slot. Before layout the slot has no
+        // width, and sizing to the whole window instead made the banner
+        // wider than the card it sits in, so its right side was cut off
+        // (which AdMob also forbids). Wait for the real width.
+        if (slot.width == 0) {
+            slot.doOnLayout { if (!activity.isFinishing && !activity.isDestroyed) show(activity, slot) }
+            return
+        }
         // The AdView belongs to the Activity that created it. This object
         // outlives that Activity, so a view held from a previous instance is
         // attached to a dead slot and renders nothing. Rebuild it instead of
@@ -121,16 +129,12 @@ object Ads {
     }
 
     /**
-     * Anchored adaptive banner: the SDK picks the height for this width.
-     * Uses WindowMetrics rather than the deprecated Display.getMetrics.
+     * Anchored adaptive banner: the SDK picks the height for this width,
+     * the slot's own width inside its padding, so the creative always fits.
      */
     private fun adaptiveSize(activity: Activity, slot: FrameLayout): AdSize {
         val density = activity.resources.displayMetrics.density
-        val windowWidthPx = WindowMetricsCalculator.getOrCreate()
-            .computeCurrentWindowMetrics(activity)
-            .bounds
-            .width()
-        val widthPx = if (slot.width > 0) slot.width else windowWidthPx
+        val widthPx = slot.width - slot.paddingLeft - slot.paddingRight
         val widthDp = (widthPx / density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, widthDp)
     }

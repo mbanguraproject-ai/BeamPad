@@ -8,7 +8,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
-import androidx.core.splashscreen.SplashScreen
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -17,20 +16,23 @@ import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.ump.UserMessagingPlatform
 
 /**
- * App open ad, shown only as the app launches: it covers the splash screen,
- * and closing it reveals the app, which is where established apps put it.
- * Once the app is on screen it never appears, so it cannot land on top of
- * the remote mid-film, a half-typed message or the snippets vault.
+ * App open ad, shown only as the app launches, where established apps put
+ * it: it loads while the splash plays, appears as the splash ends, and
+ * closing it reveals the app. Once the app is on screen it never appears,
+ * so it cannot land on top of the remote mid-film, a half-typed message
+ * or the snippets vault.
  *
- * The splash waits at most [MAX_SPLASH_WAIT_MS] for an ad. Without one by
- * then the app opens as normal, and an ad that arrives late is kept for the
- * next launch (AdMob allows four hours) rather than shown over the app.
+ * MainActivity owns the splash: it plays its animation and holds a moment
+ * longer, keeping it up while [holds] is true, and calls [onSplashDone] when
+ * that time is over. An ad that is ready then is shown; one still loading
+ * is kept for the next launch (AdMob allows four hours) rather than shown
+ * over the app.
  *
  * Skipped for Pro and remove-ads users, until consent allows ads, during
  * the first [MIN_LAUNCHES] launches (onboarding and first pairing must not
  * meet an ad), when the screen is restored rather than launched, and within
  * [MIN_INTERVAL_MS] of the last one. [Ads.start] has already set up the SDK
- * and test devices by the time [onLaunch] runs.
+ * (and, in debug builds only, the test devices) by the time [onLaunch] runs.
  */
 object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
@@ -39,9 +41,6 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
     /** AdMob expires app open ads after four hours. */
     private const val MAX_AD_AGE_MS = 4 * 60 * 60 * 1000L
-
-    /** Longest the splash is held for an ad; past this the app opens without one. */
-    private const val MAX_SPLASH_WAIT_MS = 3_000L
 
     /** Covers an ad that is told to show but never reports back. */
     private const val SHOW_TIMEOUT_MS = 2_000L
@@ -60,21 +59,20 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     private var loadedAt = 0L
     private var loading = false
 
-    /** The launch whose splash is being held for an ad, if any. */
+    /** The launch that may get an ad; its splash stays up while this is set. */
     private var launch: Activity? = null
-    private var holding = false
     private var showOnResume = false
+    private var showing = false
     private var resumedActivity: Activity? = null
 
     private val main = Handler(Looper.getMainLooper())
-    private val giveUp = Runnable { endLaunch("no ad within $MAX_SPLASH_WAIT_MS ms") }
+    private val showTimeout = Runnable { release() }
 
     /**
      * Called from MainActivity.onCreate on a real launch (not a restore),
-     * after [Ads.start]. Holds the splash while an ad loads, when one may
-     * be shown at all.
+     * after [Ads.start]. Starts loading an ad, when one may be shown at all.
      */
-    fun onLaunch(activity: Activity, splash: SplashScreen) {
+    fun onLaunch(activity: Activity) {
         val store = activity.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         val launches = store.getInt(KEY_LAUNCHES, 0) + 1
         store.edit().putInt(KEY_LAUNCHES, launches).apply()
@@ -91,12 +89,23 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             Log.i(TAG, "app open skipped: $reason")
             return
         }
-
         launch = activity
-        holding = true
-        splash.setKeepOnScreenCondition { holding }
-        main.postDelayed(giveUp, MAX_SPLASH_WAIT_MS)
-        if (hasFreshAd()) showWhenReady() else fetch(activity)
+        fetch(activity)
+    }
+
+    /** Whether [activity]'s splash should stay up for the ad: until it shows or is skipped. */
+    fun holds(activity: Activity): Boolean = launch === activity
+
+    /** The splash has played: show the ad if it is ready, otherwise let the app open. */
+    fun onSplashDone(activity: Activity) {
+        if (launch !== activity) return
+        if (!hasFreshAd()) return endLaunch(if (loading) "still loading when the splash ended" else "no ad")
+        if (activity.isFinishing || activity.isDestroyed) return endLaunch("screen closed")
+        if (activity !== resumedActivity) {
+            showOnResume = true
+            return
+        }
+        show(activity)
     }
 
     private fun adsRemoved(context: Context): Boolean =
@@ -123,39 +132,23 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
                     loading = false
                     ad = loaded
                     loadedAt = SystemClock.elapsedRealtime()
-                    showWhenReady()
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     Log.w(TAG, "app open failed ${error.code}: ${error.message}")
                     loading = false
-                    endLaunch("load failed")
                 }
             }
         )
     }
 
-    /** Shows the ad over the held splash, once the launch's screen is in front. */
-    private fun showWhenReady() {
-        val activity = launch ?: return
-        if (activity.isFinishing || activity.isDestroyed) return endLaunch("screen closed")
-        if (activity !== resumedActivity) {
-            showOnResume = true
-            return
-        }
-        show(activity)
-    }
-
     private fun show(activity: Activity) {
         val current = ad ?: return endLaunch("no ad")
         ad = null
-        main.removeCallbacks(giveUp)
-        // The launch is handed to the ad: the screen stopping behind it is
-        // not the user leaving.
-        launch = null
+        showing = true
         // Keep the splash up until the ad covers it, so the app does not
         // flash on screen first; but never longer than this.
-        main.postDelayed({ release() }, SHOW_TIMEOUT_MS)
+        main.postDelayed(showTimeout, SHOW_TIMEOUT_MS)
 
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
@@ -183,10 +176,10 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
     /** Lets the app draw, and forgets the launch. */
     private fun release() {
-        main.removeCallbacks(giveUp)
-        holding = false
+        main.removeCallbacks(showTimeout)
         launch = null
         showOnResume = false
+        showing = false
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -202,9 +195,10 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStopped(activity: Activity) {
-        // Left during the splash (Home, a rotation): the launch is over. An
-        // ad still loading is kept for the next launch.
-        if (activity === launch) endLaunch("left during the splash")
+        // Left during the splash (Home, a rotation): the launch is over, and
+        // an ad still loading is kept for the next launch. The ad covering
+        // the screen also stops it; that launch ends when the ad reports.
+        if (activity === launch && !showing) endLaunch("left during the splash")
     }
 
     override fun onActivityDestroyed(activity: Activity) {
