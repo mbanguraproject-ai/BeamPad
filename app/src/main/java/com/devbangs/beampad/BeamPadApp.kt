@@ -39,5 +39,6 @@ class BeamPadApp : Application() {
             entitlementListeners.toList().forEach { it(change) }
         }
         billing.start()
+        registerActivityLifecycleCallbacks(AppOpenAds)
     }
 }

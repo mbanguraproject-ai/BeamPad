@@ -328,6 +328,7 @@ class MainActivity : BeamActivity() {
             startAndBind()
             return
         }
+        AppOpenAds.skipNextReturn()
         permissionRequest.launch(wanted.toTypedArray())
     }
 
@@ -542,6 +543,7 @@ class MainActivity : BeamActivity() {
     }
 
     private fun turnOnBluetooth() {
+        AppOpenAds.skipNextReturn()
         val launched = runCatching {
             enableBluetooth.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
         }.isSuccess
@@ -603,6 +605,7 @@ class MainActivity : BeamActivity() {
             requestPermissions()
             return
         }
+        AppOpenAds.skipNextReturn()
         val launched = runCatching { discoverable.launch(intent) }.isSuccess
         if (!launched) showPairSteps()
     }
@@ -643,6 +646,7 @@ class MainActivity : BeamActivity() {
     }
 
     private fun openAppSettings() {
+        AppOpenAds.skipNextReturn()
         runCatching {
             startActivity(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -652,8 +656,19 @@ class MainActivity : BeamActivity() {
     }
 
     private fun openBluetoothSettings() {
+        AppOpenAds.skipNextReturn()
         runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
     }
+
+    /**
+     * Whether an app open ad may cover this screen on return. Not before the
+     * screen exists, not over the snippets vault, and not while a connection
+     * is being made.
+     */
+    fun allowsAppOpenAd(): Boolean =
+        ::ui.isInitialized &&
+            currentTab != R.id.tab_snippets &&
+            service?.state != HidService.State.CONNECTING
 
     override fun onPause() {
         super.onPause()
