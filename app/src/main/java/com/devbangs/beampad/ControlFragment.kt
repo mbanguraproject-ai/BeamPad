@@ -120,6 +120,11 @@ class ControlFragment : Fragment() {
         buildChips()
     }
 
+    /** Focus mode (the full keyboard): the mode bar steps aside. */
+    fun setFocus(on: Boolean) {
+        _ui?.modeTrack?.isVisible = !on
+    }
+
     /** Where the showing surface sits in the track: Home, modes in order, then panels. */
     private fun position(): Int {
         if (home) return -1

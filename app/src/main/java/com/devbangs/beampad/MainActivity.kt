@@ -181,16 +181,16 @@ class MainActivity : BeamActivity() {
         // there is no bottom bar, so the column takes the bottom inset too,
         // and the rail takes the left edge. Cutouts are included for phones
         // with a notch on the side in landscape.
-        val railShown = nav === ui.navRail
+        // Read at each pass, not once: focus mode hides the rail or the bar.
         ViewCompat.setOnApplyWindowInsetsListener(ui.contentColumn) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             v.updatePadding(
-                if (railShown) 0 else bars.left,
+                if (ui.navRail.isVisible) 0 else bars.left,
                 bars.top,
                 bars.right,
-                if (railShown) bars.bottom else 0
+                if (ui.bottomNav.isVisible) 0 else bars.bottom
             )
             insets
         }
@@ -261,6 +261,26 @@ class MainActivity : BeamActivity() {
         nav = if (wide) ui.navRail else ui.bottomNav
         ui.navRail.isVisible = wide
         ui.bottomNav.isVisible = !wide
+    }
+
+    private var focused = false
+
+    /**
+     * Focus mode, for the full PC keyboard: the tabs (bar or rail) and the
+     * mode bar step aside so the keys get the room. The top bar stays, with
+     * the device and its state, and so does the status card whenever there
+     * is something to do, such as reconnecting.
+     */
+    fun setFocus(on: Boolean) {
+        if (!::ui.isInitialized || focused == on) return
+        focused = on
+        if (!Motion.reduced(this)) {
+            TransitionManager.beginDelayedTransition(ui.shell, AutoTransition().apply { duration = 180 })
+        }
+        nav.isVisible = !on
+        controlFragment()?.setFocus(on)
+        // The column takes over the inset the hidden bar or rail was handling.
+        ViewCompat.requestApplyInsets(ui.contentColumn)
     }
 
     private fun openSettings() {

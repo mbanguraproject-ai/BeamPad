@@ -14,6 +14,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -128,6 +129,8 @@ class KeyboardFragment : SurfaceFragment() {
             setFull(false)
         }
         ui.fullBack.setOnClickListener { setFull(false) }
+        // Back closes the full keyboard before it leaves the screen.
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, closeFull)
         ui.fullUnlock.setOnClickListener {
             ProActivity.open(requireContext(), Features.Pro.FULL_KEYBOARD)
         }
@@ -198,11 +201,19 @@ class KeyboardFragment : SurfaceFragment() {
         renderMode()
     }
 
+    private val closeFull = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = setFull(false)
+    }
+
     /** Shows either the phone-keyboard surface or the full keyboard. */
     private fun renderMode() {
         val ui = _ui ?: return
         val prefs = app.prefs
         val full = prefs.fullKeyboard
+        closeFull.isEnabled = full
+        // Focus mode only with the working keyboard: a free user looking at
+        // the upgrade card keeps the tabs to move on.
+        (activity as? MainActivity)?.setFocus(full && Features.isPro(requireContext()))
         listOf(ui.inputRow, ui.toolsRow, ui.recentArea, ui.navRow1, ui.navRow2, ui.navRow3)
             .forEach { it.isVisible = !full }
         ui.modsRow.isVisible = !full && prefs.showModifiers
@@ -637,6 +648,8 @@ class KeyboardFragment : SurfaceFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Another surface took over (a device profile, say): bring the tabs back.
+        (activity as? MainActivity)?.setFocus(false)
         // A send in flight keeps going; its result just has no field to update.
         app.stopObservingEntitlement(entitlementObserver)
         _ui = null

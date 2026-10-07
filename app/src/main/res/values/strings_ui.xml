@@ -521,8 +521,8 @@
 
     <!-- Full PC keyboard -->
     <string name="tool_full">PC keys</string>
-    <string name="fullkb_type">Type</string>
-    <string name="fullkb_type_desc">Back to the phone keyboard</string>
+    <string name="fullkb_type">Done</string>
+    <string name="fullkb_type_desc">Close the full keyboard and go back to typing</string>
     <string name="fullkb_win">Win</string>
     <string name="fullkb_end">End</string>
     <string name="fullkb_del">Del</string>

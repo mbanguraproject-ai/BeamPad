@@ -383,7 +383,7 @@
                 android:text="@string/fullkb_type"
                 android:textColor="?attr/bpAccent2"
                 android:contentDescription="@string/fullkb_type_desc"
-                app:icon="@drawable/ic_text_aa"
+                app:icon="@drawable/ic_check_circle"
                 app:iconTint="?attr/bpAccent2"
                 app:iconPadding="6dp"
                 app:iconGravity="textStart" />

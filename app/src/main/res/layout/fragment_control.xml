@@ -10,6 +10,7 @@
          put at the gutters and the segments scroll inside it (faded at the
          edges), so a long row of panels never cuts the track off. -->
     <FrameLayout
+        android:id="@+id/modeTrack"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginStart="@dimen/gutter"
