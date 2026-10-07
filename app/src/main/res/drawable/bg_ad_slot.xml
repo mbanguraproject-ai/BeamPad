@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@color/bp_surface" />
-    <corners android:radius="14dp" />
+<!-- Behind the banner: the theme's surface, so the slot belongs to the
+     page in every appearance. Only the container is styled; AdMob forbids
+     altering the ad itself. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="?attr/bpSurface" />
+    <corners android:radius="@dimen/radius_md" />
 </shape>

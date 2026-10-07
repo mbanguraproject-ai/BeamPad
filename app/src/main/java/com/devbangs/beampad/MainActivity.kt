@@ -62,9 +62,8 @@ class MainActivity : BeamActivity() {
 
     private val entitlementObserver: (Entitlements.Change) -> Unit = { change ->
         if (::ui.isInitialized) {
-            // Same switch the remove-ads purchase always used. Pro reaches
-            // it through Entitlements.adsRemoved, so the ad code is untouched.
-            if (app.entitlements.adsRemoved) Ads.detach(ui.adSlot)
+            // The banner lives in Settings, which detaches it there; the app
+            // open ad checks the entitlement before every show.
             renderPlan()
             val message = when (change) {
                 Entitlements.Change.ADS_REMOVED -> R.string.ads_removed
@@ -140,6 +139,13 @@ class MainActivity : BeamActivity() {
         refreshStatus()
     }
 
+    private val updateFlow = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { }
+
+    /** Whether this connection's success has been counted toward the review prompt. */
+    private var sessionCounted = false
+
     private val enableBluetooth = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { refreshStatus() }
@@ -210,9 +216,9 @@ class MainActivity : BeamActivity() {
         if (savedInstanceState == null) nav.selectedItemId = R.id.tab_control
 
         app.observeEntitlement(entitlementObserver)
-        if (!app.entitlements.adsRemoved) {
-            Ads.attach(this, ui.adSlot, app.entitlements)
-        }
+        // Consent and the ad SDK start here, so the app open ad and the
+        // privacy options entry point are ready; no banner on this screen.
+        Ads.start(this, app.entitlements)
         renderPlan()
 
         if (hasBluetoothPermissions()) {
@@ -225,6 +231,7 @@ class MainActivity : BeamActivity() {
         if (savedInstanceState == null && !app.entitlements.isPro) {
             ui.getPro.postDelayed({ nudgeProButton() }, PRO_NUDGE_DELAY_MS)
         }
+        if (savedInstanceState == null) Updates.check(this, updateFlow)
     }
 
     /**
@@ -541,6 +548,7 @@ class MainActivity : BeamActivity() {
      * profile's preferred surface (Pro).
      */
     private fun onConnected() {
+        sessionCounted = false
         Haptics.confirm(this)
         if (prefs.connectionSound) {
             runCatching {
@@ -741,7 +749,8 @@ class MainActivity : BeamActivity() {
         // Only after a session that actually did something. Asking after
         // a failed pairing is exactly what Play penalises.
         if (worked) {
-            Reviews.recordGoodSession(this)
+            if (!sessionCounted) Reviews.recordGoodSession(this)
+            sessionCounted = true
             ui.root.postDelayed({ Reviews.ask(this) }, 600)
         }
     }
@@ -806,18 +815,28 @@ class MainActivity : BeamActivity() {
     override fun onPause() {
         super.onPause()
         resumed = false
-        Ads.pause()
     }
 
     override fun onResume() {
         super.onResume()
         resumed = true
-        Ads.resume()
         if (!::ui.isInitialized) return
         // Permission may have been granted in system settings meanwhile.
         if (hasBluetoothPermissions()) startAndBind()
         renderPlan()
         refreshStatus()
+        Updates.resume(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // A session that reached the device counts toward the review prompt
+        // even if the user never disconnects; the prompt itself waits for a
+        // natural pause.
+        if (service?.sentThisSession == true && !sessionCounted) {
+            sessionCounted = true
+            Reviews.recordSuccess(this)
+        }
     }
 
     override fun onDestroy() {

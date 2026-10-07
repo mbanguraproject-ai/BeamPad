@@ -18,7 +18,7 @@ import com.google.android.gms.ads.appopen.AppOpenAd
  * App open ad, shown when the user comes back to BeamPad after time away.
  *
  * Separate from the banner in [Ads] and leans on it for setup: nothing loads
- * until [Consent] allows ads, and by then [Ads.attach] has initialised the
+ * until [Consent] allows ads, and by then [Ads.start] has initialised the
  * SDK and registered the test devices.
  *
  * Never on a cold launch (the control surface must appear at once), never

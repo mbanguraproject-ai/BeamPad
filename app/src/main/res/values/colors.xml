@@ -78,9 +78,6 @@
     <color name="bp_pro_end">#FF4F8B</color>
     <color name="bp_on_pro">#2B0A17</color>
 
-    <!-- Kept for files deliberately left as they were (the ad slot). -->
-    <color name="bp_surface">#16181E</color>
-
     <!-- Midpoint of the launcher icon gradient, so the Android 12+ launch
          animation grows out of the icon without a colour jump. -->
     <color name="splash_background">#5F51E4</color>

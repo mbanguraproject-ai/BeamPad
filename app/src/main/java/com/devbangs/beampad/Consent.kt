@@ -1,17 +1,20 @@
 package com.devbangs.beampad
 
 import android.app.Activity
-import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 
 /**
- * GDPR consent gate.
+ * Consent, through Google's User Messaging Platform (UMP).
  *
- * Ads must not be requested until consent has been gathered where it is
- * required. Outside the EEA the form usually resolves immediately with
- * nothing to show, so [onReady] fires straight away.
+ * The SDK shows the form and stores the choice (the IAB TCF string AdMob
+ * reads); the app's part is the order: refresh consent on every launch,
+ * show the form where it is required, never request an ad until
+ * [canRequestAds], and give users a way to change or withdraw consent
+ * later ([showPrivacyOptions]) wherever the regulation calls for one.
+ * Which regulations apply (GDPR, US state laws) is set up as messages in
+ * AdMob's Privacy & messaging page.
  */
 object Consent {
 
@@ -19,33 +22,81 @@ object Consent {
     var canRequestAds: Boolean = false
         private set
 
+    /** True once this process has an answer from the consent service. */
+    var updated: Boolean = false
+        private set
+
+    private fun params() = ConsentRequestParameters.Builder()
+        .setTagForUnderAgeOfConsent(false)
+        .build()
+
+    /**
+     * Refreshes consent and shows the form if required, then calls
+     * [onReady] once if ads may be requested. Consent given in an earlier
+     * session lets ads start straight away, without waiting for the
+     * network round trip, as Google recommends.
+     */
     fun gather(activity: Activity, onReady: () -> Unit) {
         val info = UserMessagingPlatform.getConsentInformation(activity)
+        var fired = false
+        fun ready() {
+            if (fired) return
+            fired = true
+            onReady()
+        }
 
-        val params = ConsentRequestParameters.Builder()
-            .setTagForUnderAgeOfConsent(false)
-            .build()
+        if (info.canRequestAds()) {
+            canRequestAds = true
+            ready()
+        }
 
         info.requestConsentInfoUpdate(
             activity,
-            params,
+            params(),
             {
-                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { error ->
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { _ ->
                     // A form error is not fatal: canRequestAds still reflects
                     // whatever consent state the SDK settled on.
+                    updated = true
                     canRequestAds = info.canRequestAds()
-                    if (canRequestAds) onReady()
+                    if (canRequestAds) ready()
                 }
             },
             {
-                canRequestAds = false
+                // Offline or the service failed: a choice made in an earlier
+                // session still applies.
+                updated = true
+                canRequestAds = info.canRequestAds()
+                if (canRequestAds) ready()
             }
         )
     }
 
-    /** Exposed so a settings entry can let users change their choice later. */
-    fun showPrivacyOptions(activity: Activity) {
-        UserMessagingPlatform.showPrivacyOptionsForm(activity) { }
+    /** Refreshes consent status without showing a form, for screens that need to know. */
+    fun update(activity: Activity, onDone: () -> Unit) {
+        val info = UserMessagingPlatform.getConsentInformation(activity)
+        info.requestConsentInfoUpdate(
+            activity,
+            params(),
+            {
+                updated = true
+                canRequestAds = info.canRequestAds()
+                onDone()
+            },
+            { onDone() }
+        )
+    }
+
+    /**
+     * The privacy options form: where users change or withdraw consent.
+     * Afterwards [canRequestAds] reflects the new choice, so a withdrawal
+     * stops ad requests at once.
+     */
+    fun showPrivacyOptions(activity: Activity, onDone: () -> Unit = {}) {
+        UserMessagingPlatform.showPrivacyOptionsForm(activity) { _ ->
+            canRequestAds = UserMessagingPlatform.getConsentInformation(activity).canRequestAds()
+            onDone()
+        }
     }
 
     fun privacyOptionsRequired(activity: Activity): Boolean =

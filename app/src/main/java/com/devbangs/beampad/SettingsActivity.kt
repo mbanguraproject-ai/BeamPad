@@ -2,7 +2,10 @@ package com.devbangs.beampad
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Toast
 import java.util.Locale
 
@@ -22,6 +25,47 @@ class SettingsActivity : PageActivity() {
     override val wantsService = true
 
     override fun title(): CharSequence = getString(R.string.settings)
+
+    /**
+     * The app's only banner: here, under Restore purchases, never on a
+     * control surface. Created once and moved between redraws, so changing
+     * a setting does not request a new ad. Zero height until an ad loads.
+     */
+    private lateinit var adSlot: FrameLayout
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        adSlot = FrameLayout(this).apply {
+            setBackgroundResource(R.drawable.bg_ad_slot)
+            clipToOutline = true
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                val side = resources.getDimensionPixelSize(R.dimen.gutter)
+                setMargins(side, Ui.dp(context, 12), side, 0)
+            }
+        }
+        Ads.attach(this, adSlot, app.entitlements)
+        // The privacy options row depends on where consent stands; ask if
+        // this process has not heard yet.
+        if (!Consent.updated) Consent.update(this) { refresh() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Ads.resume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Ads.pause()
+    }
+
+    override fun onDestroy() {
+        if (::adSlot.isInitialized) Ads.detach(adSlot)
+        super.onDestroy()
+    }
 
     override fun render() {
         val c = page.content
@@ -58,6 +102,13 @@ class SettingsActivity : PageActivity() {
         Ui.divider(card)
         Ui.row(card, getString(R.string.settings_restore), getString(R.string.settings_restore_body), R.drawable.ic_arrow_clockwise) {
             restore()
+        }
+
+        (adSlot.parent as? ViewGroup)?.removeView(adSlot)
+        if (app.entitlements.adsRemoved) {
+            Ads.detach(adSlot)
+        } else {
+            c.addView(adSlot)
         }
     }
 
@@ -276,12 +327,17 @@ class SettingsActivity : PageActivity() {
         Ui.linkRow(card, getString(R.string.set_local), getString(R.string.set_local_body), R.drawable.ic_shield_check, Ui.Tone.LIVE) {
             showDataExplanation()
         }
-        // AdMob requires a way to revisit the consent choice, but only where
-        // a consent form applies in the first place.
+        // Where a regulation applies (GDPR, US state laws), users must be
+        // able to change or withdraw consent; AdMob limits ads without it.
         if (Consent.privacyOptionsRequired(this)) {
             Ui.divider(card)
-            Ui.linkRow(card, getString(R.string.settings_privacy_options), null, R.drawable.ic_sliders) {
-                Consent.showPrivacyOptions(this)
+            Ui.linkRow(card, getString(R.string.settings_privacy_options), getString(R.string.settings_privacy_options_body),
+                R.drawable.ic_sliders) {
+                Consent.showPrivacyOptions(this) {
+                    // A withdrawal stops ads at once.
+                    if (!Consent.canRequestAds) Ads.detach(adSlot)
+                    refresh()
+                }
             }
         }
         Ui.divider(card)

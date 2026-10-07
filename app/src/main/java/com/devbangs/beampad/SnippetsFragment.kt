@@ -132,7 +132,10 @@ class SnippetsFragment : Fragment() {
         service.typeText(plaintext) { sent, skipped ->
             activity?.runOnUiThread {
                 if (skipped > 0) toast(getString(R.string.snippet_partly_sent, sent, skipped))
-                else toast(getString(R.string.snip_sent, snippet.label))
+                else {
+                    toast(getString(R.string.snip_sent, snippet.label))
+                    activity?.let { Reviews.success(it) }
+                }
             }
         }
     }

@@ -41,6 +41,7 @@ object MacroRunSheet {
                 val message = when (result) {
                     InputEngine.MacroResult.DONE -> {
                         Haptics.confirm(activity)
+                        Reviews.success(activity)
                         R.string.macro_done
                     }
                     InputEngine.MacroResult.CANCELLED -> R.string.macro_stopped

@@ -14,6 +14,8 @@ import com.google.android.gms.ads.RequestConfiguration
 
 /**
  * Banner loading, gated on consent and on the remove-ads entitlement.
+ * The banner lives in Settings, away from every control surface; [start]
+ * runs as the app opens so consent is settled before any ad loads.
  *
  * The slot has zero height until an ad actually arrives, so a failed or
  * skipped load leaves no empty gap in the layout.
@@ -35,12 +37,13 @@ object Ads {
     private var sdkStarted = false
     private var view: AdView? = null
 
-    fun attach(activity: Activity, slot: FrameLayout, entitlements: Entitlements) {
-        if (entitlements.adsRemoved) {
-            detach(slot)
-            return
-        }
-
+    /**
+     * Gathers consent and starts the SDK, without showing anything. Run as
+     * the app opens so the app open ad and the privacy options entry point
+     * know where consent stands, wherever the banner lives.
+     */
+    fun start(activity: Activity, entitlements: Entitlements, onReady: () -> Unit = {}) {
+        if (entitlements.adsRemoved) return
         Consent.gather(activity) {
             if (!sdkStarted) {
                 if (TEST_DEVICES.isNotEmpty()) {
@@ -53,8 +56,19 @@ object Ads {
                 MobileAds.initialize(activity) { }
                 sdkStarted = true
             }
-            show(activity, slot)
+            onReady()
         }
+    }
+
+    /** Shows the banner in [slot] once consent allows. Removed-ads users get nothing. */
+    fun attach(activity: Activity, slot: FrameLayout, entitlements: Entitlements) {
+        if (entitlements.adsRemoved) {
+            detach(slot)
+            return
+        }
+        // Consent was settled as the app opened; no second round trip.
+        if (sdkStarted && Consent.canRequestAds) show(activity, slot)
+        else start(activity, entitlements) { show(activity, slot) }
     }
 
     private fun show(activity: Activity, slot: FrameLayout) {

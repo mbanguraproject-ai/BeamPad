@@ -99,6 +99,10 @@ dependencies {
     // caller must treat "nothing happened" as the normal outcome.
     implementation("com.google.android.play:review:2.0.2")
 
+    // In-app updates: new releases download in the background and offer a
+    // restart; high-priority releases use the immediate flow.
+    implementation("com.google.android.play:app-update:2.1.0")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("androidx.test:core-ktx:1.6.1")

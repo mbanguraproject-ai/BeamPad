@@ -373,7 +373,8 @@
     <string name="settings_restore_body">Bought Pro on another phone? Bring it back here.</string>
     <string name="settings_pointer">Pointer speed</string>
     <string name="settings_scroll">Scroll speed</string>
-    <string name="settings_privacy_options">Ad privacy choices</string>
+    <string name="settings_privacy_options">Privacy and consent choices</string>
+    <string name="settings_privacy_options_body">Change or withdraw consent for ads at any time</string>
     <string name="set_group_connection">Connection</string>
     <string name="set_group_keyboard">Keyboard</string>
     <string name="set_group_trackpad">Trackpad and mouse</string>
@@ -467,4 +468,10 @@
     <string name="device_connect_macro">Run when connected</string>
     <string name="device_connect_macro_body">A macro BeamPad runs each time this device connects, like a work-mode setup.</string>
     <string name="device_connect_macro_none">A device can run one of your macros when it connects. Create a macro first.</string>
+
+    <!-- In-app updates -->
+    <string name="update_ready_title">Update ready</string>
+    <string name="update_ready_body">A new version of BeamPad has downloaded. Restart to finish; it takes a few seconds.</string>
+    <string name="update_restart">Restart</string>
+    <string name="update_later">Later</string>
 </resources>
