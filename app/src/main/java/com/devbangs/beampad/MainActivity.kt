@@ -212,6 +212,7 @@ class MainActivity : BeamActivity() {
         }
 
         ui.settings.setOnClickListener { openSettings() }
+        ui.commands.setOnClickListener { CommandPalette.open(this) }
         ui.getPro.setOnClickListener { ProActivity.open(this, null) }
         ui.statusAction.setOnClickListener { onStatusAction() }
         ui.deviceButton.setOnClickListener { showDeviceSheet() }

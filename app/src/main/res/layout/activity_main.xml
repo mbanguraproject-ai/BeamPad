@@ -159,6 +159,14 @@
             app:iconSize="16dp"
             app:iconPadding="6dp" />
 
+        <!-- The command palette (Pro; free users see the upgrade). -->
+        <ImageButton
+            android:id="@+id/commands"
+            style="@style/Widget.BeamPad.IconButton"
+            android:layout_marginStart="@dimen/space_xs"
+            android:src="@drawable/ic_magnifying_glass"
+            android:contentDescription="@string/cmd_open" />
+
         <ImageButton
             android:id="@+id/settings"
             style="@style/Widget.BeamPad.IconButton"

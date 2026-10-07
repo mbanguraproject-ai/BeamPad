@@ -584,4 +584,24 @@
     <string name="launch_add_label">App name</string>
     <string name="launch_add_hint">For example, BBC iPlayer</string>
     <string name="launch_opening">Open %1$s</string>
+    <!-- Command palette (Pro) -->
+    <string name="cmd_open">Commands</string>
+    <string name="cmd_title">Commands</string>
+    <string name="cmd_search_label">Search</string>
+    <string name="cmd_search_hint">Mute, Netflix, copy, a device…</string>
+    <string name="cmd_none">Nothing matches. Try another word, or type it on the TV with the first line.</string>
+    <string name="cmd_inputs_unsupported">Switching HDMI inputs isn’t possible over Bluetooth: TVs only change inputs from their own remote or settings.</string>
+    <string name="cmd_type">Type “%1$s”</string>
+    <string name="cmd_type_detail">On the connected device</string>
+    <string name="cmd_search_tv">Search the TV for “%1$s”</string>
+    <string name="cmd_search_tv_detail">Opens the TV’s search, types it and presses Enter</string>
+    <string name="cmd_kind_mode">Control surface</string>
+    <string name="cmd_kind_app">App</string>
+    <string name="cmd_kind_macro">Macro</string>
+    <string name="cmd_kind_panel">Panel</string>
+    <string name="cmd_kind_device">Device</string>
+    <string name="cmd_kind_screen">BeamPad</string>
+    <string name="cmd_connect">Connect to %1$s</string>
+    <string name="cmd_disconnect">Disconnect %1$s</string>
+    <string name="cmd_diagnostics">Diagnostics</string>
 </resources>
