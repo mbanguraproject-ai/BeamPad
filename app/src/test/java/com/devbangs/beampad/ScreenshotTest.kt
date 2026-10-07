@@ -3,6 +3,7 @@ package com.devbangs.beampad
 import android.Manifest
 import android.app.Activity
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -43,6 +44,9 @@ class ScreenshotTest {
         app.getSharedPreferences("beampad_ent", Context.MODE_PRIVATE).edit()
             .putBoolean("ads_removed", true)
             .commit()
+        // Robolectric cannot run the Bluetooth service; screens render the
+        // state they show before it binds.
+        shadowOf(app).declareComponentUnbindable(ComponentName(app, HidService::class.java))
         shadowOf(app).grantPermissions(
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_ADVERTISE,

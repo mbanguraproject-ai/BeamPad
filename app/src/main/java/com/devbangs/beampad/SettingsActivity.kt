@@ -32,7 +32,7 @@ class SettingsActivity : BeamActivity() {
     private var bound = false
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-            service = (binder as HidService.LocalBinder).service
+            service = (binder as? HidService.LocalBinder)?.service ?: return
             render()
         }
 

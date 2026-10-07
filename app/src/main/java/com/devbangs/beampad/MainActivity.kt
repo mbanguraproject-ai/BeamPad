@@ -107,7 +107,7 @@ class MainActivity : BeamActivity() {
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-            val s = (binder as HidService.LocalBinder).service
+            val s = (binder as? HidService.LocalBinder)?.service ?: return
             service = s
             s.addListener(stateListener)
             s.addNoticeListener(noticeListener)
