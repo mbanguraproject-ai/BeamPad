@@ -23,7 +23,7 @@
                 android:layout_height="match_parent"
                 android:text="@string/act_slide_prev"
                 android:textAppearance="@style/Text.Label"
-                app:iconGravity="top"
+                app:iconGravity="textTop"
                 app:iconPadding="10dp"
                 app:iconSize="30dp"
                 app:icon="@drawable/ic_caret_left" />
@@ -37,7 +37,7 @@
                 android:text="@string/act_slide_next"
                 android:textAppearance="@style/Text.Label"
                 android:textColor="?attr/bpOnAccent"
-                app:iconGravity="top"
+                app:iconGravity="textTop"
                 app:iconPadding="10dp"
                 app:iconSize="36dp"
                 app:icon="@drawable/ic_caret_right" />

@@ -725,7 +725,8 @@ class MainActivity : BeamActivity() {
         built.show()
     }
 
-    private fun disconnect() {
+    /** Disconnects, then (after a session that did something) may ask for a review. */
+    fun disconnect() {
         val s = service ?: return
         val worked = s.sentThisSession
         if (!s.disconnect()) {

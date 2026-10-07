@@ -102,6 +102,7 @@ class RemoteFragment : SurfaceFragment() {
         ui.menu.isVisible = !minimal
         ui.prev.isVisible = full
         ui.next.isVisible = full
+        listOf(ui.topRow, ui.navRow, ui.mediaRow).forEach(::alignRow)
 
         fun height(view: View, base: Int) = view.updateLayoutParams { height = (dp(base) * scale).roundToInt() }
         listOf(ui.power, ui.sleep, ui.search, ui.subtitles, ui.mute).forEach { height(it, 44) }
@@ -109,6 +110,19 @@ class RemoteFragment : SurfaceFragment() {
         listOf(ui.prev, ui.rewind, ui.playPause, ui.forward, ui.next).forEach { height(it, 52) }
         listOf(ui.volRocker, ui.chRocker).forEach { it.updateLayoutParams { width = (dp(60) * scale).roundToInt() } }
         ui.padArea.post { fitPad() }
+    }
+
+    /** The first visible key in a row sits flush with the gutter; the rest keep their gap. */
+    private fun alignRow(row: ViewGroup) {
+        var first = true
+        for (i in 0 until row.childCount) {
+            val child = row.getChildAt(i)
+            if (!child.isVisible) continue
+            child.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                marginStart = if (first) 0 else resources.getDimensionPixelSize(R.dimen.gap)
+            }
+            first = false
+        }
     }
 
     /**

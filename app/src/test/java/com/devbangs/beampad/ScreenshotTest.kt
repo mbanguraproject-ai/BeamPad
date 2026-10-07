@@ -139,10 +139,32 @@ class ScreenshotTest {
         pro(false)
     }
 
+    private fun seedDevices() {
+        val store = DeviceStore(app)
+        val now = System.currentTimeMillis()
+        store.save(SavedDevice("AA:BB:CC:00:00:01", "BRAVIA 4K", "Living room TV", DeviceType.TV,
+            listOf("Living room"), now - 3_600_000L, ControlMode.REMOTE))
+        store.save(SavedDevice("AA:BB:CC:00:00:02", "DESKTOP-7Q2", "Office PC", DeviceType.COMPUTER,
+            emptyList(), now - 86_400_000L * 2, ControlMode.TRACKPAD))
+        store.save(SavedDevice("AA:BB:CC:00:00:03", "Epson EF-12", null, DeviceType.PROJECTOR,
+            emptyList(), now - 86_400_000L * 9))
+    }
+
+    @Test
+    fun devices() {
+        appearance(Appearance.DARK)
+        shoot(main(tab = R.id.tab_devices), "tab_devices_empty")
+        seedDevices()
+        shoot(main(tab = R.id.tab_devices), "tab_devices")
+        val intent = Intent(app, DeviceActivity::class.java).putExtra(DeviceActivity.EXTRA_ADDRESS, "AA:BB:CC:00:00:01")
+        shoot(screen<DeviceActivity>(intent), "device_detail")
+        shoot(screen<CompatibilityActivity>(), "compatibility")
+        shoot(screen<DiagnosticsActivity>(), "diagnostics")
+    }
+
     @Test
     fun tabs() {
         appearance(Appearance.DARK)
-        shoot(main(tab = R.id.tab_devices), "tab_devices")
         shoot(main(tab = R.id.tab_panels), "tab_panels")
         shoot(main(tab = R.id.tab_snippets), "tab_snippets")
     }
