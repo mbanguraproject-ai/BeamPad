@@ -67,9 +67,14 @@ abstract class SurfaceFragment : Fragment() {
         val key = javaClass.simpleName
         if (store.getBoolean(key, false)) return
         store.edit().putBoolean(key, true).apply()
+        val context = view.context
         Snackbar.make(view, tip, Snackbar.LENGTH_LONG)
             .setDuration(TIP_DURATION_MS)
             .setAction(R.string.got_it) { }
+            // In the app's palette, not Material's default inverse bar.
+            .setBackgroundTint(context.themeColor(R.attr.bpSurfaceHigh))
+            .setTextColor(context.themeColor(R.attr.bpText))
+            .setActionTextColor(context.themeColor(R.attr.bpAccent2))
             .show()
     }
 
