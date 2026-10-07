@@ -136,7 +136,11 @@ class RemoteFragment : SurfaceFragment() {
         val rockers = listOf(ui.volRocker, ui.chRocker).filter { it.isVisible }
         val rockerWidth = rockers.sumOf { it.layoutParams.width + dp(12) }
         val maxByWidth = area.width - rockerWidth
-        val size = min(min(area.height - dp(24), maxByWidth), dp(MAX_PAD_DP)).coerceAtLeast(dp(140))
+        // Never larger than the area itself: a floor above that is what made
+        // the pad overlap the rows on short screens and in landscape.
+        val size = min(min(area.height - dp(24), maxByWidth), dp(MAX_PAD_DP))
+            .coerceAtLeast(dp(MIN_PAD_DP))
+            .coerceAtMost(area.height)
         ui.dpad.updateLayoutParams { width = size; height = size }
         val rockerHeight = (size * 0.86f).roundToInt()
         rockers.forEach { it.updateLayoutParams { height = rockerHeight } }
@@ -150,5 +154,6 @@ class RemoteFragment : SurfaceFragment() {
 
     private companion object {
         const val MAX_PAD_DP = 300
+        const val MIN_PAD_DP = 120
     }
 }

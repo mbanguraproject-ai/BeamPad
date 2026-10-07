@@ -8,10 +8,38 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
+<!-- Wide windows (tablets, unfolded foldables, phones in landscape) swap
+     the bottom bar for a rail down the whole left side, so the controls get
+     the height back and the top bar keeps the device in view. Only one of
+     the two is ever visible. -->
 <LinearLayout
-    android:id="@+id/contentColumn"
+    android:id="@+id/shell"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <com.google.android.material.navigationrail.NavigationRailView
+        android:id="@+id/navRail"
+        android:layout_width="wrap_content"
+        android:saveEnabled="false"
+        android:layout_height="match_parent"
+        android:background="?attr/bpBg"
+        android:visibility="gone"
+        app:elevation="0dp"
+        app:labelVisibilityMode="labeled"
+        app:menuGravity="center"
+        app:itemActiveIndicatorStyle="@style/Nav.ActiveIndicator"
+        app:itemTextColor="@color/nav_item"
+        app:itemIconTint="@color/nav_item"
+        app:itemTextAppearanceActive="@style/TextAppearance.BeamPad.LabelMedium"
+        app:itemTextAppearanceInactive="@style/TextAppearance.BeamPad.LabelMedium"
+        app:menu="@menu/bottom_nav" />
+
+<LinearLayout
+    android:id="@+id/contentColumn"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
     android:orientation="vertical">
 
     <!-- Top bar: the active device first, as the blueprint asks. Tapping it
@@ -221,38 +249,11 @@
             android:text="@string/action_connect" />
     </LinearLayout>
 
-    <!-- Wide windows (tablets, unfolded foldables, phones in landscape) swap
-         the bottom bar for a rail beside the content, so the controls get the
-         height back. Only one of the two is ever visible. -->
-    <LinearLayout
+    <FrameLayout
+        android:id="@+id/tabContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <com.google.android.material.navigationrail.NavigationRailView
-            android:id="@+id/navRail"
-            android:layout_width="wrap_content"
-            android:saveEnabled="false"
-            android:layout_height="match_parent"
-            android:background="?attr/bpBg"
-            android:visibility="gone"
-            app:elevation="0dp"
-            app:labelVisibilityMode="labeled"
-            app:menuGravity="center"
-            app:itemActiveIndicatorStyle="@style/Nav.ActiveIndicator"
-            app:itemTextColor="@color/nav_item"
-            app:itemIconTint="@color/nav_item"
-            app:itemTextAppearanceActive="@style/TextAppearance.BeamPad.LabelMedium"
-            app:itemTextAppearanceInactive="@style/TextAppearance.BeamPad.LabelMedium"
-            app:menu="@menu/bottom_nav" />
-
-        <FrameLayout
-            android:id="@+id/tabContent"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-    </LinearLayout>
+        android:layout_weight="1" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
@@ -268,6 +269,8 @@
         app:itemTextAppearanceActive="@style/TextAppearance.BeamPad.LabelMedium"
         app:itemTextAppearanceInactive="@style/TextAppearance.BeamPad.LabelMedium"
         app:menu="@menu/bottom_nav" />
+
+</LinearLayout>
 
 </LinearLayout>
 

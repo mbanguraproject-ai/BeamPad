@@ -82,6 +82,9 @@ class FullKeyboardView @JvmOverloads constructor(
     private fun sp(v: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, v, resources.displayMetrics)
 
     private val gap = dp(6f)
+
+    /** Room under the last row for the key shadow and the pressed offset, which drew past the edge. */
+    private val depth = dp(2f)
     private val radius = dp(10f)
 
     private val cKey = context.themeColor(R.attr.bpKey)
@@ -204,7 +207,7 @@ class FullKeyboardView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val n = rows.size
-        val wanted = (paddingTop + paddingBottom + n * dp(50f) + (n - 1) * gap).toInt()
+        val wanted = (paddingTop + paddingBottom + n * dp(50f) + (n - 1) * gap + depth).toInt()
         setMeasuredDimension(
             getDefaultSize(suggestedMinimumWidth, widthMeasureSpec),
             resolveSize(wanted, heightMeasureSpec)
@@ -213,11 +216,11 @@ class FullKeyboardView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         val n = rows.size
-        val usableH = h - paddingTop - paddingBottom - (n - 1) * gap
+        val usableH = h - paddingTop - paddingBottom - (n - 1) * gap - depth
         val keyH = (usableH / n).coerceIn(dp(32f), maxKeyHeight)
         val total = keyH * n + (n - 1) * gap
         // Bottom-aligned: the keys stay where thumbs are on tall screens.
-        var top = h - paddingBottom - total
+        var top = h - paddingBottom - depth - total
         val unit = (w - paddingLeft - paddingRight + gap) / ROW_UNITS
         rows.forEach { row ->
             var x = paddingLeft.toFloat()

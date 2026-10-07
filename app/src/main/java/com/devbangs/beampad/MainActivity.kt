@@ -31,7 +31,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import com.devbangs.beampad.databinding.ActivityMainBinding
-import com.devbangs.beampad.databinding.RailHeaderBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.navigation.NavigationBarView
 
@@ -41,7 +40,6 @@ class MainActivity : BeamActivity() {
 
     /** The bottom bar on narrow windows, the side rail on wide ones. */
     private lateinit var nav: NavigationBarView
-    private var railHeader: RailHeaderBinding? = null
     private var currentTab = R.id.tab_control
 
     var service: HidService? = null
@@ -180,14 +178,20 @@ class MainActivity : BeamActivity() {
         // Top inset on the content column, bottom inset on the bottom bar
         // itself: padding the whole column would leave dead space under the
         // bar and stop its background short of the screen edge. With the rail
-        // there is no bottom bar, so the column takes the bottom inset too.
-        // Cutouts are included for phones with a notch on the side in landscape.
+        // there is no bottom bar, so the column takes the bottom inset too,
+        // and the rail takes the left edge. Cutouts are included for phones
+        // with a notch on the side in landscape.
         val railShown = nav === ui.navRail
         ViewCompat.setOnApplyWindowInsetsListener(ui.contentColumn) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            v.updatePadding(bars.left, bars.top, bars.right, if (railShown) bars.bottom else 0)
+            v.updatePadding(
+                if (railShown) 0 else bars.left,
+                bars.top,
+                bars.right,
+                if (railShown) bars.bottom else 0
+            )
             insets
         }
 
@@ -197,9 +201,15 @@ class MainActivity : BeamActivity() {
             insets
         }
 
-        // The column already keeps the rail clear of the bars; without this
-        // the rail would pad itself a second time.
-        ViewCompat.setOnApplyWindowInsetsListener(ui.navRail) { _, insets -> insets }
+        // The rail runs the full height at the left edge, so it keeps itself
+        // clear of the status bar, the navigation bar and a side cutout.
+        ViewCompat.setOnApplyWindowInsetsListener(ui.navRail) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(left = bars.left, top = bars.top, bottom = bars.bottom)
+            insets
+        }
 
         ui.settings.setOnClickListener { openSettings() }
         ui.getPro.setOnClickListener { ProActivity.open(this, null) }
@@ -242,26 +252,15 @@ class MainActivity : BeamActivity() {
 
     /**
      * Wide windows (tablets, unfolded foldables, phones in landscape) get a
-     * side rail instead of the bottom bar. Short ones (phones in landscape)
-     * also drop the header row and move Get Pro and Settings into the rail,
-     * so the control surface keeps enough height. Decided per configuration:
-     * folding, unfolding and rotating recreate the activity.
+     * full-height side rail instead of the bottom bar; the top bar stays, so
+     * the device's name and state are always in view. Decided per
+     * configuration: folding, unfolding and rotating recreate the activity.
      */
     private fun setUpNavigation() {
-        val config = resources.configuration
-        val wide = config.screenWidthDp >= RAIL_MIN_WIDTH_DP
+        val wide = resources.configuration.screenWidthDp >= RAIL_MIN_WIDTH_DP
         nav = if (wide) ui.navRail else ui.bottomNav
         ui.navRail.isVisible = wide
         ui.bottomNav.isVisible = !wide
-        if (wide && config.screenHeightDp < COMPACT_HEIGHT_DP) {
-            ui.headerRow.isVisible = false
-            val header = RailHeaderBinding.inflate(layoutInflater, ui.navRail, false)
-            header.railDevice.setOnClickListener { showDeviceSheet() }
-            header.railPro.setOnClickListener { ProActivity.open(this, null) }
-            header.railSettings.setOnClickListener { openSettings() }
-            ui.navRail.addHeaderView(header.root)
-            railHeader = header
-        }
     }
 
     private fun openSettings() {
@@ -451,13 +450,6 @@ class MainActivity : BeamActivity() {
         ui.deviceTile.setBackgroundResource(tone.tile)
         ui.deviceIcon.imageTintList = android.content.res.ColorStateList.valueOf(themeColor(tone.tint))
         ui.deviceButton.contentDescription = getString(R.string.device_button_description, name, getString(status))
-
-        railHeader?.let { header ->
-            header.railDevice.setImageResource(icon)
-            header.railDevice.imageTintList =
-                android.content.res.ColorStateList.valueOf(themeColor(tone.tint))
-            header.railDevice.contentDescription = ui.deviceButton.contentDescription
-        }
     }
 
     private fun renderSetup(step: Step, s: HidService?) {
@@ -582,7 +574,6 @@ class MainActivity : BeamActivity() {
         val pro = app.entitlements.isPro
         ui.proBadge.isVisible = pro
         ui.getPro.isVisible = !pro
-        railHeader?.railPro?.isVisible = !pro
     }
 
     /** One gentle bounce, at most once a day, so the button is noticed without nagging. */
@@ -882,8 +873,5 @@ class MainActivity : BeamActivity() {
 
         /** Material's medium window class starts at 600dp. */
         private const val RAIL_MIN_WIDTH_DP = 600
-
-        /** Below this, a header row costs height the controls need. */
-        private const val COMPACT_HEIGHT_DP = 480
     }
 }

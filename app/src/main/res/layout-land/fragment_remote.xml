@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The TV remote in landscape: the pad and its rockers on the left, the
+     key rows on the right, so nothing has to share the short height. Same
+     views and ids as the portrait layout; RemoteFragment treats both alike.
+     The rows scroll if a large font or button size makes them taller than
+     the screen, instead of being cut off. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/gutter"
+    android:paddingEnd="@dimen/gutter"
+    android:paddingBottom="@dimen/space_sm">
+
+    <LinearLayout
+        android:id="@+id/padArea"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.1"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <LinearLayout
+            android:id="@+id/volRocker"
+            android:layout_width="60dp"
+            android:layout_height="200dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:background="@drawable/bg_rocker">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/volUp"
+                style="@style/RockerKey"
+                android:contentDescription="@string/act_vol_up"
+                app:icon="@drawable/ic_plus" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/vol"
+                android:textAppearance="@style/Text.Label.Small"
+                android:textSize="11sp"
+                android:letterSpacing="0.08" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/volDown"
+                style="@style/RockerKey"
+                android:contentDescription="@string/act_vol_down"
+                app:icon="@drawable/ic_minus" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <com.devbangs.beampad.DpadView
+                android:id="@+id/dpad"
+                android:layout_width="240dp"
+                android:layout_height="240dp"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/chRocker"
+            android:layout_width="60dp"
+            android:layout_height="200dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:background="@drawable/bg_rocker">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chUp"
+                style="@style/RockerKey"
+                android:contentDescription="@string/act_channel_up"
+                app:icon="@drawable/ic_caret_up" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ch"
+                android:textAppearance="@style/Text.Label.Small"
+                android:textSize="11sp"
+                android:letterSpacing="0.08" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chDown"
+                style="@style/RockerKey"
+                android:contentDescription="@string/act_channel_down"
+                app:icon="@drawable/ic_caret_down" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/gutter"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:id="@+id/topRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/power"
+                    style="@style/Key.Small"
+                    android:contentDescription="@string/act_power"
+                    app:icon="@drawable/ic_power"
+                    app:iconTint="?attr/bpDanger" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/sleep"
+                    style="@style/Key.Small"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_sleep"
+                    app:icon="@drawable/ic_moon" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/search"
+                    style="@style/Key.Small"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_search"
+                    app:icon="@drawable/ic_magnifying_glass" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/subtitles"
+                    style="@style/Key.Small"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_subtitles"
+                    app:icon="@drawable/ic_subtitles" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/mute"
+                    style="@style/Key.Small"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_mute"
+                    app:icon="@drawable/ic_speaker_slash" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/back"
+                    style="@style/Key.Stacked"
+                    android:text="@string/act_back"
+                    app:icon="@drawable/ic_arrow_u_up_left" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/home"
+                    style="@style/Key.Stacked"
+                    android:layout_marginStart="@dimen/gap"
+                    android:text="@string/act_home"
+                    app:icon="@drawable/ic_house" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/menu"
+                    style="@style/Key.Stacked"
+                    android:layout_marginStart="@dimen/gap"
+                    android:text="@string/act_menu"
+                    app:icon="@drawable/ic_list" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/mediaRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prev"
+                    style="@style/Key"
+                    android:contentDescription="@string/act_prev_track"
+                    app:icon="@drawable/ic_skip_back" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/rewind"
+                    style="@style/Key"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_seek_back"
+                    app:icon="@drawable/ic_rewind" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/playPause"
+                    style="@style/Key.Accent"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_play_pause"
+                    app:icon="@drawable/ic_play_pause" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/forward"
+                    style="@style/Key"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_seek_forward"
+                    app:icon="@drawable/ic_fast_forward" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/next"
+                    style="@style/Key"
+                    android:layout_marginStart="@dimen/gap"
+                    android:contentDescription="@string/act_next_track"
+                    app:icon="@drawable/ic_skip_forward" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

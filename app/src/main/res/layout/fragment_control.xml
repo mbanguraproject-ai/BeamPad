@@ -6,28 +6,37 @@
 
     <!-- Control surfaces in one segmented track: built-in modes, then the
          user's panels. Only the selected segment shows its name, so six
-         modes fit across a phone; panels scroll on. -->
-    <HorizontalScrollView
-        android:id="@+id/modeScroll"
+         modes fit across a phone; panels scroll on. The track itself stays
+         put at the gutters and the segments scroll inside it (faded at the
+         edges), so a long row of panels never cuts the track off. -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:overScrollMode="never"
-        android:fillViewport="true"
-        android:paddingStart="@dimen/gutter"
-        android:paddingEnd="@dimen/gutter"
-        android:clipToPadding="false"
-        android:paddingBottom="@dimen/space_sm">
+        android:layout_height="52dp"
+        android:layout_marginStart="@dimen/gutter"
+        android:layout_marginEnd="@dimen/gutter"
+        android:layout_marginBottom="@dimen/space_sm"
+        android:background="@drawable/bg_segment_track"
+        android:clipToOutline="true">
 
-        <LinearLayout
-            android:id="@+id/modeChips"
-            android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="4dp"
-            android:background="@drawable/bg_segment_track" />
-    </HorizontalScrollView>
+        <HorizontalScrollView
+            android:id="@+id/modeScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:fillViewport="true"
+            android:requiresFadingEdge="horizontal"
+            android:fadingEdgeLength="20dp">
+
+            <LinearLayout
+                android:id="@+id/modeChips"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="4dp" />
+        </HorizontalScrollView>
+    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/modeContainer"
