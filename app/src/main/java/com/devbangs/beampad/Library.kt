@@ -26,10 +26,33 @@ object Library {
     private fun of(type: ComponentType, span: Int = type.defaultSpan, rows: Int = type.defaultRows, label: String? = null) =
         PanelComponent(type = type, span = span, rows = rows, label = label)
 
+    /**
+     * A button that runs one of the example macros. The macro is saved the
+     * first time a template needs it and reused after that, so it can be
+     * edited like any other.
+     */
+    private fun exampleMacro(context: Context, example: MacroExample, label: Int, span: Int): PanelComponent {
+        val store = MacroStore(context)
+        val name = context.getString(example.title)
+        val macro = store.all().firstOrNull { it.name == name }
+            ?: Macro(name = name, steps = steps(example)).also { store.save(it) }
+        return PanelComponent(
+            type = ComponentType.MACRO,
+            action = Action.RunMacro(macro.id),
+            span = span,
+            label = context.getString(label)
+        )
+    }
+
     fun components(context: Context, template: PanelTemplate): List<PanelComponent> = when (template) {
+        // The blueprint's "My TV": YouTube, Netflix, Trackpad, Home, Back,
+        // volume and keyboard, with the D-pad and media a TV also needs.
         PanelTemplate.TV -> listOfNotNull(
+            exampleMacro(context, MacroExample.YOUTUBE, R.string.ex_youtube_short, span = 2),
+            exampleMacro(context, MacroExample.NETFLIX, R.string.ex_netflix_short, span = 2),
             button("home"), button("back"), button("menu"), button("search"),
             of(ComponentType.DPAD),
+            of(ComponentType.TRACKPAD, rows = 2),
             of(ComponentType.SLIDER),
             of(ComponentType.MEDIA),
             of(ComponentType.KEYBOARD)
@@ -57,16 +80,37 @@ object Library {
 
     enum class MacroExample(val title: Int, val body: Int) {
         YOUTUBE(R.string.ex_youtube, R.string.ex_youtube_body),
+        NETFLIX(R.string.ex_netflix, R.string.ex_netflix_body),
+        MOVIE_NIGHT(R.string.ex_movie_night, R.string.ex_movie_night_body),
         QUIET(R.string.ex_quiet, R.string.ex_quiet_body)
     }
 
+    /** Home, then the TV's search, then [app] typed and opened (Google TV and Android TV). */
+    private fun openApp(app: String): List<Action> = listOf(
+        Action.Consumer(HidReports.CC_HOME), Action.Delay(1500),
+        Action.Consumer(HidReports.CC_SEARCH), Action.Delay(1200),
+        Action.Text(app), Action.Delay(400),
+        Action.Key(HidReports.KEY_ENTER.toInt())
+    )
+
     fun steps(example: MacroExample): List<Action> = when (example) {
-        MacroExample.YOUTUBE -> listOf(
-            Action.Consumer(HidReports.CC_HOME), Action.Delay(1500),
-            Action.Consumer(HidReports.CC_SEARCH), Action.Delay(1200),
-            Action.Text("YouTube"), Action.Delay(400),
-            Action.Key(HidReports.KEY_ENTER.toInt())
-        )
+        MacroExample.YOUTUBE -> openApp("YouTube")
+        MacroExample.NETFLIX -> openApp("Netflix")
+        // The blueprint's Movie Night: Home, open the media app, pick the
+        // profile, play the highlighted title, then set the volume.
+        MacroExample.MOVIE_NIGHT -> buildList {
+            addAll(openApp("Netflix"))
+            add(Action.Delay(6000))
+            add(Action.Key(HidReports.KEY_ENTER.toInt()))
+            add(Action.Delay(3000))
+            add(Action.Key(HidReports.KEY_ENTER.toInt()))
+            add(Action.Delay(2500))
+            add(Action.Consumer(HidReports.CC_PLAY_PAUSE))
+            repeat(3) {
+                add(Action.Delay(150))
+                add(Action.Consumer(HidReports.CC_VOLUME_UP))
+            }
+        }
         MacroExample.QUIET -> buildList {
             repeat(5) {
                 add(Action.Consumer(HidReports.CC_VOLUME_DOWN))

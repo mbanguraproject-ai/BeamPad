@@ -118,6 +118,23 @@
                 app:icon="@drawable/ic_moon" />
 
             <com.google.android.material.button.MaterialButton
+
+                android:id="@+id/laser"
+
+                style="@style/Key.Stacked"
+
+                android:layout_height="64dp"
+
+                android:layout_marginStart="@dimen/gap"
+
+                android:text="@string/present_laser"
+
+                android:contentDescription="@string/present_laser_description"
+
+                app:icon="@drawable/ic_hand_pointing" />
+
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/end"
                 style="@style/Key.Stacked"
                 android:layout_height="64dp"

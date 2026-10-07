@@ -153,8 +153,12 @@ class DeviceActivity : PageActivity() {
             d.preferredMode != null -> getString(d.preferredMode.labelRes)
             else -> getString(R.string.device_opens_default)
         }
+        // Nothing chosen yet: say what suits this kind of device.
+        val suggestion = if (d.preferredMode == null && d.defaultPanelId == null) {
+            getString(R.string.device_suggested_hint, getString(d.type.suggestedMode.labelRes))
+        } else null
         val (opensRow, _) = Ui.valueRow(profile, getString(R.string.device_opens_with), opensWith,
-            icon = R.drawable.ic_lightning) {
+            subtitle = suggestion, icon = R.drawable.ic_lightning) {
             if (requirePro()) pickOpensWith(d)
         }
         opensRow.pro(!pro)
@@ -224,7 +228,10 @@ class DeviceActivity : PageActivity() {
         val choices = mutableListOf<Sheets.Choice<Opens>>(
             Sheets.Choice(Opens.Default, getString(R.string.device_opens_default), getString(R.string.device_opens_default_body))
         )
-        ControlMode.entries.forEach { choices += Sheets.Choice(Opens.Mode(it), getString(it.labelRes), icon = it.iconRes) }
+        ControlMode.entries.forEach {
+            val note = if (it == d.type.suggestedMode) getString(R.string.device_suggested_choice) else null
+            choices += Sheets.Choice(Opens.Mode(it), getString(it.labelRes), note, it.iconRes)
+        }
         PanelStore(this).all().forEach {
             choices += Sheets.Choice(Opens.PanelId(it.id), it.name, getString(R.string.device_opens_panel), R.drawable.ic_layout)
         }

@@ -1,5 +1,7 @@
 package com.devbangs.beampad
 
+import android.content.Context
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.LayoutInflater
@@ -42,6 +44,23 @@ class PresentationFragment : SurfaceFragment() {
         bind(ui.prev, Action.Key(HidReports.KEY_PAGE_UP.toInt()))
         bind(ui.black, Action.Key(HidReports.KEY_B.toInt()))
         bind(ui.end, Action.Key(HidReports.KEY_ESC.toInt()))
+
+        // Laser pointer: PowerPoint toggles it with Ctrl+L, Google Slides
+        // with L. Either way the pointer pad then moves the laser dot.
+        ui.laser.setOnClickListener {
+            Haptics.tick(it)
+            perform(Action.Key(HidReports.KEY_L.toInt(), HidReports.MOD_LEFT_CTRL.toInt()))
+            if (connected) showLaserHintOnce()
+        }
+        ui.laser.setOnLongClickListener {
+            Haptics.tick(it)
+            perform(Action.Key(HidReports.KEY_L.toInt()))
+            true
+        }
+
+        // Landscape first: slides are wide, and two thumbs reach Previous
+        // and Next. Held only while this surface is showing.
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
         // Starting the show starts the clock, if it is not already running.
         ui.start.setOnClickListener {
@@ -111,7 +130,18 @@ class PresentationFragment : SurfaceFragment() {
         outState.putLong(KEY_SINCE, runningSince)
     }
 
+    private fun showLaserHintOnce() {
+        val store = requireContext().getSharedPreferences(Prefs.FILE, Context.MODE_PRIVATE)
+        if (store.getBoolean(KEY_LASER_HINT, false)) return
+        store.edit().putBoolean(KEY_LASER_HINT, true).apply()
+        android.widget.Toast.makeText(requireContext(), R.string.present_laser_hint, android.widget.Toast.LENGTH_LONG).show()
+    }
+
     override fun onDestroyView() {
+        // Leaving Presentation gives the phone its own orientation back; a
+        // rotation (the activity being recreated) keeps landscape.
+        activity?.takeUnless { it.isChangingConfigurations }
+            ?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         super.onDestroyView()
         _ui?.timer?.removeCallbacks(tick)
         _ui = null
@@ -120,5 +150,6 @@ class PresentationFragment : SurfaceFragment() {
     private companion object {
         const val KEY_BANKED = "banked"
         const val KEY_SINCE = "since"
+        const val KEY_LASER_HINT = "laser_hint_shown"
     }
 }

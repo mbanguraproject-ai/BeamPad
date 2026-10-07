@@ -62,6 +62,7 @@ object HidReports {
     const val KEY_C: Byte = 0x06
     const val KEY_D: Byte = 0x07
     const val KEY_F: Byte = 0x09
+    const val KEY_L: Byte = 0x0F
     const val KEY_V: Byte = 0x19
     const val KEY_X: Byte = 0x1B
     const val KEY_Z: Byte = 0x1D

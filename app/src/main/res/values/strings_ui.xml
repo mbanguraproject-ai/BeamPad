@@ -72,6 +72,9 @@
     <string name="present_start">Start</string>
     <string name="present_black">Black screen</string>
     <string name="present_end">End</string>
+    <string name="present_laser">Laser</string>
+    <string name="present_laser_description">Laser pointer. Tap for PowerPoint, hold for Google Slides. Then drag on the pad to move it.</string>
+    <string name="present_laser_hint">Laser on in PowerPoint: drag on the pad to move it. In Google Slides, hold Laser instead.</string>
     <string name="present_pointer">Pointer. Drag to move it on the screen.</string>
     <string name="present_pointer_hint">Drag to point · Tap to click</string>
     <string name="present_volume_hint">Tip: your phone’s volume buttons change slides here.</string>
@@ -103,6 +106,8 @@
     <string name="device_label_hint">e.g. Living room</string>
     <string name="device_profile">Profile</string>
     <string name="device_opens_with">Opens with</string>
+    <string name="device_suggested_hint">Suggested for this device: %1$s</string>
+    <string name="device_suggested_choice">Suggested for this device</string>
     <string name="device_opens_with_body">The controls shown when this device connects</string>
     <string name="device_opens_default">Last used controls</string>
     <string name="device_opens_default_body">Whatever you were using last</string>
@@ -239,7 +244,7 @@
     <string name="panel_empty_title">This panel is empty</string>
     <string name="panel_empty_body">Add buttons, a D-pad, a trackpad or sliders, and arrange them how you like.</string>
     <string name="tpl_tv">My TV</string>
-    <string name="tpl_tv_body">Home, Back, D-pad, volume, media and typing</string>
+    <string name="tpl_tv_body">YouTube, Netflix, Home, Back, D-pad, trackpad, volume and typing</string>
     <string name="tpl_present">Presentation</string>
     <string name="tpl_present_body">Big previous and next, a pointer, start and end</string>
     <string name="tpl_media">Media</string>
@@ -315,6 +320,12 @@
     <string name="macro_delete_body">Buttons that ran it stop doing anything until you choose another action.</string>
     <string name="ex_youtube">Open YouTube</string>
     <string name="ex_youtube_body">Home, search, type YouTube, Enter (Google TV)</string>
+    <string name="ex_youtube_short">YouTube</string>
+    <string name="ex_netflix">Open Netflix</string>
+    <string name="ex_netflix_short">Netflix</string>
+    <string name="ex_netflix_body">Home, search, type Netflix, Enter (Google TV)</string>
+    <string name="ex_movie_night">Movie night</string>
+    <string name="ex_movie_night_body">Home, open Netflix, pick your profile, play, volume up (Google TV)</string>
     <string name="ex_quiet">Turn it down</string>
     <string name="ex_quiet_body">Five steps of volume down</string>
 
