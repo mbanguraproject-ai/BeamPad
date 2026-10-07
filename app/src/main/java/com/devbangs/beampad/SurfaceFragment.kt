@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import kotlin.math.roundToInt
 
 /**
@@ -46,6 +47,31 @@ abstract class SurfaceFragment : Fragment() {
 
     /** Called on start and on every change. [changed] is false for the first report. */
     protected open fun onConnectionChanged(connected: Boolean, changed: Boolean) = Unit
+
+    /**
+     * One line taught the first time this surface opens (the blueprint's
+     * contextual teaching instead of a tour): gestures, holds, the volume
+     * buttons. Shown once per surface, ever.
+     */
+    protected open val firstTip: Int? = null
+
+    override fun onResume() {
+        super.onResume()
+        showFirstTip()
+    }
+
+    private fun showFirstTip() {
+        val tip = firstTip ?: return
+        val view = view ?: return
+        val store = requireContext().getSharedPreferences(TIPS_FILE, android.content.Context.MODE_PRIVATE)
+        val key = javaClass.simpleName
+        if (store.getBoolean(key, false)) return
+        store.edit().putBoolean(key, true).apply()
+        Snackbar.make(view, tip, Snackbar.LENGTH_LONG)
+            .setDuration(TIP_DURATION_MS)
+            .setAction(R.string.got_it) { }
+            .show()
+    }
 
     override fun onStart() {
         super.onStart()
@@ -243,6 +269,9 @@ abstract class SurfaceFragment : Fragment() {
     }
 
     companion object {
+        const val TIPS_FILE = "beampad_tips"
+        const val TIP_DURATION_MS = 7000
+
         const val NUDGE_INTERVAL_MS = 3000L
         const val REPEAT_DELAY_MS = 420L
         const val REPEAT_INTERVAL_MS = 110L

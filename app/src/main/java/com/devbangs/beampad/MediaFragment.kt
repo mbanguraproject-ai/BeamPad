@@ -13,6 +13,8 @@ import com.devbangs.beampad.databinding.FragmentMediaBinding
  */
 class MediaFragment : SurfaceFragment() {
 
+    override val firstTip = R.string.tip_media
+
     private var _ui: FragmentMediaBinding? = null
     private val ui get() = _ui!!
 

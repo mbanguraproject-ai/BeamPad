@@ -15,6 +15,8 @@ import com.devbangs.beampad.databinding.FragmentMouseBinding
  */
 class MouseFragment : SurfaceFragment() {
 
+    override val firstTip = R.string.tip_mouse
+
     private var _ui: FragmentMouseBinding? = null
     private val ui get() = _ui!!
 

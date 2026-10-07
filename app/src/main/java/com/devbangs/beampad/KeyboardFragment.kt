@@ -30,6 +30,8 @@ import kotlin.math.roundToInt
  */
 class KeyboardFragment : SurfaceFragment() {
 
+    override val firstTip = R.string.tip_keyboard
+
     private var _ui: FragmentKeyboardBinding? = null
     private val ui get() = _ui!!
 

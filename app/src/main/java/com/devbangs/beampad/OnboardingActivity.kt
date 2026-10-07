@@ -1,18 +1,30 @@
 package com.devbangs.beampad
 
+import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import com.devbangs.beampad.databinding.ActivityOnboardingBinding
+import com.google.android.material.progressindicator.CircularProgressIndicator
 
 /**
  * Three steps, per the blueprint: what are you controlling, how to pair
@@ -29,6 +41,52 @@ class OnboardingActivity : BeamActivity() {
     private var step = 0
     private var type = DeviceType.TV
     private var mode = ControlMode.REMOTE
+
+    // ---- Live pairing state for step 2 ----------------------------------------
+
+    private var service: HidService? = null
+    private var bound = false
+    private var pairStatus: LinearLayout? = null
+    private var celebrated = false
+
+    private val stateListener: () -> Unit = { runOnUiThread { renderPairStatus() } }
+
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            val s = (binder as? HidService.LocalBinder)?.service ?: return
+            service = s
+            s.addListener(stateListener)
+            renderPairStatus()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            service = null
+            renderPairStatus()
+        }
+    }
+
+    /** Android 12 added the Nearby devices permissions; earlier versions need none at runtime. */
+    private val bluetoothPermissions: Array<String> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
+        } else {
+            emptyArray()
+        }
+
+    private val permissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        startAndBind()
+        renderPairStatus()
+    }
+
+    private val enableBluetooth = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { renderPairStatus() }
+
+    private val discoverable = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { renderPairStatus() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +148,7 @@ class OnboardingActivity : BeamActivity() {
         ui.skip.isVisible = step < STEPS - 1
         ui.next.setText(if (step == STEPS - 1) R.string.ob_start else R.string.next)
         ui.options.removeAllViews()
+        pairStatus = null
 
         when (step) {
             0 -> {
@@ -106,6 +165,12 @@ class OnboardingActivity : BeamActivity() {
             1 -> {
                 ui.title.setText(R.string.ob_q2_title)
                 ui.body.setText(R.string.ob_q2_body)
+                // Live state first: what to do now, and when it worked.
+                pairStatus = Ui.card(ui.options).apply {
+                    (layoutParams as LinearLayout.LayoutParams).apply { marginStart = 0; marginEnd = 0; bottomMargin = Ui.dp(context, 12) }
+                }
+                startAndBind()
+                renderPairStatus()
                 val name = runCatching {
                     getSystemService(android.bluetooth.BluetoothManager::class.java)?.adapter?.name
                 }.getOrNull() ?: getString(R.string.this_phone)
@@ -161,6 +226,130 @@ class OnboardingActivity : BeamActivity() {
         }
     }
 
+    private fun hasPermissions(): Boolean = bluetoothPermissions.all {
+        ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        prefs.askedPermissions = true
+        val wanted = bluetoothPermissions.toMutableList()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) wanted += Manifest.permission.POST_NOTIFICATIONS
+        runCatching { permissionRequest.launch(wanted.toTypedArray()) }
+    }
+
+    /** Starts and binds the connection service, as the main screen does, once permitted. */
+    private fun startAndBind() {
+        if (bound || !hasPermissions()) return
+        val intent = Intent(this, HidService::class.java)
+        runCatching { ContextCompat.startForegroundService(this, intent) }
+        bound = runCatching { bindService(intent, connection, Context.BIND_AUTO_CREATE) }.getOrDefault(false)
+    }
+
+    private fun adapter(): BluetoothAdapter? =
+        runCatching { getSystemService(BluetoothManager::class.java)?.adapter }.getOrNull()
+
+    /**
+     * Step 2's live card: the one thing to do next (allow, turn on, make
+     * visible), progress while connecting, and a clear success once the
+     * device is connected. Already-paired devices connect with one tap.
+     */
+    private fun renderPairStatus() {
+        val box = pairStatus ?: return
+        if (step != 1 || isFinishing) return
+        box.removeAllViews()
+        val s = service
+        val adapter = adapter()
+
+        fun status(icon: Int, title: CharSequence, detail: CharSequence?, tone: Ui.Tone = Ui.Tone.ACCENT,
+                   busy: Boolean = false, action: Int? = null, onAction: () -> Unit = {}) {
+            val row = Ui.row(box, title, detail, icon, tone)
+            row.subtitle.maxLines = 4
+            if (busy) {
+                row.trailing.addView(CircularProgressIndicator(this).apply {
+                    isIndeterminate = true
+                    indicatorSize = Ui.dp(context, 22)
+                    trackThickness = Ui.dp(context, 3)
+                })
+                row.trailing.isVisible = true
+            }
+            if (action != null) {
+                box.addView(
+                    Ui.button(box, Ui.ButtonKind.SMALL_PRIMARY, getString(action), onClick = onAction),
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        marginStart = Ui.dp(this@OnboardingActivity, 12)
+                        bottomMargin = Ui.dp(this@OnboardingActivity, 12)
+                    }
+                )
+            }
+        }
+
+        when {
+            !hasPermissions() -> status(R.drawable.ic_bluetooth, getString(R.string.status_permission),
+                getString(R.string.status_permission_detail), action = R.string.action_allow) { requestPermissions() }
+            adapter == null -> status(R.drawable.ic_bluetooth_slash, getString(R.string.status_no_bluetooth),
+                getString(R.string.status_no_bluetooth_detail), Ui.Tone.DANGER)
+            !runCatching { adapter.isEnabled }.getOrDefault(false) -> status(R.drawable.ic_bluetooth_slash,
+                getString(R.string.status_bt_off), getString(R.string.status_bt_off_detail),
+                action = R.string.action_turn_on) {
+                runCatching { enableBluetooth.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)) }
+            }
+            s == null || s.state == HidService.State.STARTING -> status(R.drawable.ic_bluetooth,
+                getString(R.string.status_starting), getString(R.string.status_starting_detail), busy = true)
+            s.state == HidService.State.UNSUPPORTED -> status(R.drawable.ic_warning_circle,
+                getString(R.string.status_unsupported), getString(
+                    when (s.unsupportedReason) {
+                        HidService.UnsupportedReason.NO_PROFILE -> R.string.unsupported_no_profile
+                        HidService.UnsupportedReason.REFUSED -> R.string.unsupported_refused
+                        else -> R.string.unsupported_no_response
+                    }
+                ), Ui.Tone.DANGER, action = R.string.ob_see_compat) { CompatibilityActivity.open(this) }
+            s.isReady() -> {
+                val name = s.connectedDevice?.let { s.deviceLabel(it) } ?: getString(R.string.device_fallback)
+                status(R.drawable.ic_check_circle_fill, getString(R.string.ob_live_connected, name),
+                    getString(R.string.ob_live_connected_body), Ui.Tone.LIVE)
+                if (!celebrated) {
+                    celebrated = true
+                    Haptics.confirm(this)
+                }
+            }
+            s.state == HidService.State.CONNECTING -> {
+                val name = s.connectingDevice?.let { s.deviceLabel(it) } ?: getString(R.string.device_fallback)
+                status(R.drawable.ic_bluetooth, getString(R.string.status_connecting_short),
+                    getString(R.string.status_connecting_to, name), busy = true)
+            }
+            else -> {
+                status(R.drawable.ic_bluetooth, getString(R.string.ob_live_waiting),
+                    getString(R.string.ob_live_waiting_body, s.localBluetoothName()),
+                    busy = true, action = R.string.ob_make_visible) {
+                    runCatching {
+                        discoverable.launch(
+                            Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+                                .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERABLE_SECONDS)
+                        )
+                    }
+                }
+                val paired = s.pairedHosts().take(MAX_PAIRED_SHOWN)
+                if (paired.isNotEmpty()) {
+                    Ui.space(box, 8)
+                    Ui.section(box, getString(R.string.ob_already_paired))
+                    paired.forEach { device ->
+                        Ui.row(box, s.deviceLabel(device), getString(R.string.action_connect),
+                            s.typeOf(device).iconRes) { s.connect(device) }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        service?.removeListener(stateListener)
+        if (bound) runCatching { unbindService(connection) }
+    }
+
     /** A large selectable card: icon, name, one line of detail, a check when chosen. */
     private fun option(title: String, detail: String, icon: Int, selected: Boolean, onClick: () -> Unit) {
         val view = LayoutInflater.from(this).inflate(R.layout.item_choice_card, ui.options, false)
@@ -206,6 +395,8 @@ class OnboardingActivity : BeamActivity() {
         private const val KEY_TYPE = "type"
         private const val KEY_MODE = "mode"
         private const val STEPS = 3
+        private const val DISCOVERABLE_SECONDS = 180
+        private const val MAX_PAIRED_SHOWN = 3
 
         fun shouldShow(activity: android.app.Activity): Boolean =
             !activity.getSharedPreferences(Prefs.FILE, MODE_PRIVATE).getBoolean(KEY_SEEN, false)

@@ -15,6 +15,8 @@ import com.devbangs.beampad.databinding.FragmentTrackpadBinding
  */
 class TrackpadFragment : SurfaceFragment() {
 
+    override val firstTip = R.string.tip_trackpad
+
     private var _ui: FragmentTrackpadBinding? = null
     private val ui get() = _ui!!
 

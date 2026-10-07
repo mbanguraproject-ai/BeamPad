@@ -368,6 +368,13 @@
     <string name="ob_type_other">Tablets, mini PCs, anything with Bluetooth</string>
     <string name="ob_q2_title">Pair it once</string>
     <string name="ob_q2_body">Your phone appears to it as a Bluetooth keyboard and mouse. Nothing to install on the other side.</string>
+    <string name="ob_live_waiting">Waiting for your device</string>
+    <string name="ob_live_waiting_body">Make this phone visible, then choose “%1$s” in your device’s Bluetooth list.</string>
+    <string name="ob_make_visible">Make this phone visible</string>
+    <string name="ob_live_connected">Connected to %1$s</string>
+    <string name="ob_live_connected_body">You’re set. Tap Next to choose your controls.</string>
+    <string name="ob_already_paired">Already paired</string>
+    <string name="ob_see_compat">See what works</string>
     <string name="ob_q2_note">You’ll make the phone visible from the next screen. After the first time, BeamPad reconnects by itself.</string>
     <string name="ob_q3_title">Start with which controls?</string>
     <string name="ob_q3_body">Switch any time from the bar at the top of Control.</string>
@@ -541,4 +548,12 @@
     <string name="act_insert">Insert</string>
     <string name="act_caps_lock">Caps Lock</string>
     <string name="act_context_menu">Menu key</string>
+    <!-- First-time tips, one per control surface -->
+    <string name="got_it">Got it</string>
+    <string name="tip_keyboard">Type with your phone’s keyboard, then Send. Turn on Live to send every key as you type.</string>
+    <string name="tip_remote">Hold an arrow to keep moving. Your phone’s volume buttons change the TV’s volume here.</string>
+    <string name="tip_media">Hold rewind or fast-forward to keep scanning. Drag the volume bar to change it.</string>
+    <string name="tip_trackpad">Tap to click. Two fingers scroll or right-click. Double-tap and hold to drag.</string>
+    <string name="tip_mouse">Hold a button to keep it pressed. Drag the wheel to scroll; tap it to middle-click.</string>
+    <string name="tip_presentation">Your phone’s volume buttons change slides, so you can present without looking.</string>
 </resources>

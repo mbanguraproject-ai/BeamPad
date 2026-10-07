@@ -17,6 +17,8 @@ import com.devbangs.beampad.databinding.FragmentPresentationBinding
  */
 class PresentationFragment : SurfaceFragment() {
 
+    override val firstTip = R.string.tip_presentation
+
     private var _ui: FragmentPresentationBinding? = null
     private val ui get() = _ui!!
 

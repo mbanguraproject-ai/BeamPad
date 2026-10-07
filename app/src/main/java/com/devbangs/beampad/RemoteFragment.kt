@@ -18,6 +18,8 @@ import kotlin.math.roundToInt
  */
 class RemoteFragment : SurfaceFragment() {
 
+    override val firstTip = R.string.tip_remote
+
     private var _ui: FragmentRemoteBinding? = null
     private val ui get() = _ui!!
 
