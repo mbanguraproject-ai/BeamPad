@@ -107,4 +107,10 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A && git commit -qm "Screens for ${GITHUB_SHA}"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-shots
+          # main and a claude/* branch can carry the same commit, and both
+          # runs publish here at once; the loser of that race tries again.
+          for attempt in 1 2 3; do
+            git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-shots && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1

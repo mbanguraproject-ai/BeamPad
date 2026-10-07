@@ -120,6 +120,8 @@ class LaunchFragment : Fragment() {
             icon.imageTintList = ink
             icon.updateLayoutParams { width = Ui.dp(requireContext(), LOGO_DP); height = width }
             monogram.setTextColor(ink)
+            // Bold, so a brand initial holds its own beside the real logos.
+            monogram.setTypeface(monogram.typeface, android.graphics.Typeface.BOLD)
             view.findViewById<View>(R.id.tile).background = GradientDrawable().apply {
                 cornerRadius = Ui.dp(requireContext(), TILE_RADIUS_DP).toFloat()
                 setColor(tile)
