@@ -63,6 +63,18 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    // Robolectric renders screens on the JVM for the screenshot tests, which
+    // CI publishes so layouts can be reviewed without a device.
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.systemProperty("robolectric.graphicsMode", "NATIVE")
+                it.maxHeapSize = "3g"
+            }
+        }
+    }
 }
 
 dependencies {
@@ -86,4 +98,8 @@ dependencies {
     // In-app review. Play decides whether the dialog appears at all, so the
     // caller must treat "nothing happened" as the normal outcome.
     implementation("com.google.android.play:review:2.0.2")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("androidx.test:core-ktx:1.6.1")
 }
