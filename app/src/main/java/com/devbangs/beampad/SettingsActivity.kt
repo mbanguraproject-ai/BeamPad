@@ -392,7 +392,7 @@ class SettingsActivity : PageActivity() {
                 root.layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { marginStart = -Ui.dp(context, 12) }
+                ).apply { marginStart = -Ui.dp(this@SettingsActivity, 12) }
             }
         }
         sheet.primary(getString(R.string.done)) { true }

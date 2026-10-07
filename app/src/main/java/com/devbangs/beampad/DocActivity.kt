@@ -1,36 +1,26 @@
 package com.devbangs.beampad
 
-import android.os.Bundle
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import com.devbangs.beampad.databinding.ActivityDocBinding
+import android.widget.TextView
 
 /** Displays a bundled plain-text document: privacy, terms or licences. */
-class DocActivity : BeamActivity() {
+class DocActivity : PageActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun title(): CharSequence = getString(intent.getIntExtra(EXTRA_TITLE, R.string.privacy_title))
 
-        val ui = ActivityDocBinding.inflate(layoutInflater)
-        setContentView(ui.root)
-
-
-        ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bars.left, bars.top, bars.right, bars.bottom)
-            insets
-        }
-
+    override fun render() {
         val asset = intent.getStringExtra(EXTRA_ASSET) ?: "privacy.txt"
-        val titleRes = intent.getIntExtra(EXTRA_TITLE, R.string.privacy_title)
-
-        ui.bar.title.setText(titleRes)
-        ui.bar.back.setOnClickListener { finish() }
-
-        ui.body.text = runCatching {
+        val text = runCatching {
             assets.open(asset).bufferedReader().use { it.readText() }
-        }.getOrElse { "Could not load this document." }
+        }.getOrElse { getString(R.string.doc_unavailable) }
+        val card = Ui.card(page.content)
+        card.addView(TextView(this).apply {
+            setTextAppearance(R.style.Text_Body_Dim)
+            this.text = text
+            setLineSpacing(Ui.dp(context, 4).toFloat(), 1f)
+            setTextIsSelectable(true)
+            val pad = Ui.dp(context, 20)
+            setPadding(pad, pad, pad, pad)
+        })
     }
 
     companion object {

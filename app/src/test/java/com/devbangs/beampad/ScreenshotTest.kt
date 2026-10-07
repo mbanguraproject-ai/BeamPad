@@ -190,12 +190,19 @@ class ScreenshotTest {
         shoot(main(ControlMode.TRACKPAD), "light_control_trackpad")
         shoot(main(ControlMode.REMOTE), "light_control_remote")
         shoot(main(ControlMode.MEDIA), "light_control_media")
+        seedSnippets()
+        shoot(main(tab = R.id.tab_snippets), "light_tab_snippets")
+        shoot(screen<SettingsActivity>(), "light_settings")
     }
 
     @Test
     fun screens() {
         appearance(Appearance.DARK)
         shoot(screen<SettingsActivity>(), "settings")
+        val doc = Intent(app, DocActivity::class.java)
+            .putExtra(DocActivity.EXTRA_ASSET, "privacy.txt")
+            .putExtra(DocActivity.EXTRA_TITLE, R.string.privacy_title)
+        shoot(screen<DocActivity>(doc), "doc_privacy")
         shoot(screen<ProActivity>(), "pro")
     }
 

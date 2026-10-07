@@ -11,6 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
+        android:scrollbars="none"
+        android:overScrollMode="never"
         android:paddingBottom="190dp">
 
         <!-- Not clipping, so the hero glow can spread past its frame. -->
@@ -88,7 +90,8 @@
                 android:gravity="center"
                 android:text="@string/pro_title"
                 android:textSize="30sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="-0.02"
                 android:letterSpacing="-0.01"
                 android:textColor="?attr/bpText" />
 
@@ -117,7 +120,7 @@
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="@color/bp_on_pro"
                 android:visibility="gone" />
 
@@ -182,7 +185,7 @@
                             android:paddingBottom="2dp"
                             android:text="@string/pro_badge"
                             android:textSize="12sp"
-                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
                             android:letterSpacing="0.08"
                             android:textColor="@color/bp_on_pro" />
                     </FrameLayout>

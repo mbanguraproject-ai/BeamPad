@@ -165,6 +165,13 @@ class DeviceActivity : PageActivity() {
             if (requirePro()) pickLayout(d)
         }
         layoutRow.pro(!pro)
+        Ui.divider(profile)
+        val macroName = (if (pro) d.connectMacroId else null)?.let { MacroStore(this).get(it)?.name } ?: getString(R.string.none)
+        val (macroRow, _) = Ui.valueRow(profile, getString(R.string.device_connect_macro), macroName,
+            icon = R.drawable.ic_magic_wand) {
+            if (requirePro()) pickConnectMacro(d)
+        }
+        macroRow.pro(!pro)
 
         // Forget.
         Ui.section(content, getString(R.string.device_manage))
@@ -236,6 +243,21 @@ class DeviceActivity : PageActivity() {
                     is Opens.PanelId -> it.copy(preferredMode = null, defaultPanelId = pick.id)
                 }
             }
+        }
+    }
+
+    private fun pickConnectMacro(d: SavedDevice) {
+        val macros = MacroStore(this).all()
+        if (macros.isEmpty()) {
+            Sheets.confirm(this, getString(R.string.panel_no_macros), getString(R.string.device_connect_macro_none),
+                getString(R.string.macro_new)) { MacrosActivity.open(this) }
+            return
+        }
+        val choices = listOf(Sheets.Choice<String?>(null, getString(R.string.none))) +
+            macros.map { Sheets.Choice<String?>(it.id, it.name, resources.getQuantityString(R.plurals.macro_steps, it.steps.size, it.steps.size), R.drawable.ic_magic_wand) }
+        Sheets.choose(this, getString(R.string.device_connect_macro), choices, d.connectMacroId,
+            subtitle = getString(R.string.device_connect_macro_body)) { id ->
+            save { it.copy(connectMacroId = id) }
         }
     }
 

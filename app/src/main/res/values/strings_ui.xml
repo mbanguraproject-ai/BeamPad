@@ -463,4 +463,8 @@
     <string name="set_data_typing">What you type: sent straight to the paired device and never stored.</string>
     <string name="set_data_log">Connection history: kept on this phone; shared only if you choose to.</string>
     <string name="set_data_ads">The free plan shows ads from Google AdMob, which follows your ad privacy choices. Pro removes them.</string>
+    <string name="doc_unavailable">This document couldn’t be loaded.</string>
+    <string name="device_connect_macro">Run when connected</string>
+    <string name="device_connect_macro_body">A macro BeamPad runs each time this device connects, like a work-mode setup.</string>
+    <string name="device_connect_macro_none">A device can run one of your macros when it connects. Create a macro first.</string>
 </resources>

@@ -559,6 +559,10 @@ class MainActivity : BeamActivity() {
                 openControl(panelId = saved.defaultPanelId)
             saved.preferredMode != null -> openControl(mode = saved.preferredMode)
         }
+        // The profile's connect macro, with the usual progress and Stop.
+        saved.connectMacroId?.let { MacroStore(this).get(it) }?.let { macro ->
+            ui.root.postDelayed({ if (resumed) MacroRunSheet.run(this, service, macro) }, CONNECT_MACRO_DELAY_MS)
+        }
     }
 
     private fun renderPlan() {
@@ -838,6 +842,9 @@ class MainActivity : BeamActivity() {
         }
 
         private const val PRO_NUDGE_DELAY_MS = 1600L
+
+        /** Lets the device settle after connecting before the first macro step. */
+        private const val CONNECT_MACRO_DELAY_MS = 800L
         private const val DISCOVERABLE_SECONDS = 180
         private const val DAY_MS = 86_400_000L
         private const val KEY_LAST_NUDGE = "last_pro_nudge_day"

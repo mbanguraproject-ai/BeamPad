@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             android:textColor="?attr/bpText" />
 
         <TextView

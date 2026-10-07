@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             android:textColor="@color/bp_pro_start" />
 
         <ImageView

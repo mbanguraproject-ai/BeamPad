@@ -27,7 +27,9 @@ data class SavedDevice(
     val lastConnected: Long = 0L,
     val preferredMode: ControlMode? = null,
     val defaultPanelId: String? = null,
-    val layout: HidReports.Layout? = null
+    val layout: HidReports.Layout? = null,
+    /** A macro run automatically each time this device connects. */
+    val connectMacroId: String? = null
 ) {
     val displayName: String
         get() = customName?.takeIf { it.isNotBlank() } ?: systemName
@@ -42,6 +44,7 @@ data class SavedDevice(
         .put("preferredMode", preferredMode?.name)
         .put("defaultPanelId", defaultPanelId)
         .put("layout", layout?.name)
+        .put("connectMacro", connectMacroId)
 
     companion object {
         fun fromJson(o: JSONObject): SavedDevice? = runCatching {
@@ -56,7 +59,8 @@ data class SavedDevice(
                 lastConnected = o.optLong("lastConnected", 0L),
                 preferredMode = enumOrNull<ControlMode>(o.optString("preferredMode")),
                 defaultPanelId = o.optString("defaultPanelId").takeIf { it.isNotEmpty() && it != "null" },
-                layout = enumOrNull<HidReports.Layout>(o.optString("layout"))
+                layout = enumOrNull<HidReports.Layout>(o.optString("layout")),
+                connectMacroId = o.optString("connectMacro").takeIf { it.isNotEmpty() && it != "null" }
             )
         }.getOrNull()
     }
