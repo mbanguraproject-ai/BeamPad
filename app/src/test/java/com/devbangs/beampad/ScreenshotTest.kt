@@ -162,6 +162,26 @@ class ScreenshotTest {
         shoot(screen<DiagnosticsActivity>(), "diagnostics")
     }
 
+    /** Large text (130%), where clipping shows first. */
+    @Test
+    @Config(fontScale = 1.3f)
+    fun largeFont() {
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.REMOTE), "font_remote")
+        shoot(main(ControlMode.MEDIA), "font_media")
+        shoot(main(ControlMode.KEYBOARD), "font_keyboard")
+        shoot(screen<SettingsActivity>(), "font_settings")
+    }
+
+    /** A tablet in portrait: the rail, the panel width and the readable page column. */
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp-mdpi")
+    fun tablet() {
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.REMOTE), "tablet_remote")
+        shoot(screen<SettingsActivity>(), "tablet_settings")
+    }
+
     @Test
     fun home() {
         appearance(Appearance.DARK)
