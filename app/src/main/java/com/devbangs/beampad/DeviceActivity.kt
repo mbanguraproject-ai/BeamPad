@@ -154,15 +154,14 @@ class DeviceActivity : PageActivity() {
             else -> getString(R.string.device_opens_default)
         }
         val (opensRow, _) = Ui.valueRow(profile, getString(R.string.device_opens_with), opensWith,
-            getString(R.string.device_opens_with_body), R.drawable.ic_lightning) {
+            icon = R.drawable.ic_lightning) {
             if (requirePro()) pickOpensWith(d)
         }
         opensRow.pro(!pro)
         Ui.divider(profile)
-        val layoutValue = if (pro) d.layout?.label ?: getString(R.string.device_layout_default, prefs.layout.label)
-        else getString(R.string.device_layout_default, prefs.layout.label)
+        val layoutValue = (if (pro) d.layout else null)?.label ?: getString(R.string.device_layout_default_short)
         val (layoutRow, _) = Ui.valueRow(profile, getString(R.string.device_layout), layoutValue,
-            getString(R.string.device_layout_body), R.drawable.ic_keyboard) {
+            icon = R.drawable.ic_keyboard) {
             if (requirePro()) pickLayout(d)
         }
         layoutRow.pro(!pro)
@@ -228,7 +227,8 @@ class DeviceActivity : PageActivity() {
             d.preferredMode != null -> Opens.Mode(d.preferredMode)
             else -> Opens.Default
         }
-        Sheets.choose(this, getString(R.string.device_opens_with), choices, current) { pick ->
+        Sheets.choose(this, getString(R.string.device_opens_with), choices, current,
+            subtitle = getString(R.string.device_opens_with_body)) { pick ->
             save {
                 when (pick) {
                     Opens.Default -> it.copy(preferredMode = null, defaultPanelId = null)
@@ -242,7 +242,8 @@ class DeviceActivity : PageActivity() {
     private fun pickLayout(d: SavedDevice) {
         val choices = listOf(Sheets.Choice<HidReports.Layout?>(null, getString(R.string.device_layout_default, prefs.layout.label))) +
             HidReports.Layout.entries.map { Sheets.Choice<HidReports.Layout?>(it, it.label) }
-        Sheets.choose(this, getString(R.string.device_layout), choices, d.layout) { layout ->
+        Sheets.choose(this, getString(R.string.device_layout), choices, d.layout,
+            subtitle = getString(R.string.device_layout_body)) { layout ->
             save { it.copy(layout = layout) }
         }
     }

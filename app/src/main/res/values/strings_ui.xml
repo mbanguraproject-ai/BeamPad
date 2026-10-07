@@ -113,6 +113,7 @@
     <string name="device_layout">Keyboard layout</string>
     <string name="device_layout_body">Match the layout this device uses, so symbols arrive right</string>
     <string name="device_layout_default">App default (%1$s)</string>
+    <string name="device_layout_default_short">App default</string>
     <string name="device_manage">Manage</string>
     <string name="device_forget">Forget this device</string>
     <string name="device_forget_body">Removes its name, labels and profile from BeamPad</string>
@@ -211,4 +212,110 @@
     <string name="log_retry">Retrying</string>
     <string name="log_failed">Connection failed</string>
     <string name="log_send_failed">A key didn’t reach the device</string>
+
+    <!-- Panels tab -->
+    <string name="add_new">New</string>
+    <string name="see_pro">See Pro</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="panels_subtitle">Your own controls, built your way</string>
+    <string name="panels_tab_panels">Panels</string>
+    <string name="panels_tab_macros">Macros</string>
+    <string name="panels_yours">Your panels</string>
+    <string name="panels_templates">Start from a template</string>
+    <string name="panels_upsell_title">Build your own remote</string>
+    <string name="panels_upsell_body">Place exactly the buttons, pads and sliders you use, for each device. Part of Pro.</string>
+    <plurals name="panel_controls">
+        <item quantity="one">%d control</item>
+        <item quantity="other">%d controls</item>
+    </plurals>
+    <string name="panel_new">New panel</string>
+    <string name="panel_name">Panel name</string>
+    <string name="panel_name_hint">e.g. Living room</string>
+    <string name="panel_open">Use it now</string>
+    <string name="panel_edit">Edit panel</string>
+    <string name="panel_copy_name">%1$s copy</string>
+    <string name="panel_delete_confirm">Delete %1$s?</string>
+    <string name="panel_delete_body">The panel and its layout are removed. Devices that opened with it go back to your last used controls.</string>
+    <string name="panel_empty_title">This panel is empty</string>
+    <string name="panel_empty_body">Add buttons, a D-pad, a trackpad or sliders, and arrange them how you like.</string>
+    <string name="tpl_tv">My TV</string>
+    <string name="tpl_tv_body">Home, Back, D-pad, volume, media and typing</string>
+    <string name="tpl_present">Presentation</string>
+    <string name="tpl_present_body">Big previous and next, a pointer, start and end</string>
+    <string name="tpl_media">Media</string>
+    <string name="tpl_media_body">Transport, seek, volume, subtitles and speed</string>
+    <string name="tpl_desktop">Desktop</string>
+    <string name="tpl_desktop_body">Trackpad, copy and paste, app switching, typing</string>
+    <string name="tpl_pointer">Pointer</string>
+
+    <!-- Panel editor -->
+    <plurals name="panel_editor_hint">
+        <item quantity="one">%d control · tap to change, hold to move</item>
+        <item quantity="other">%d controls · tap to change, hold to move</item>
+    </plurals>
+    <string name="panel_editor_hint_empty">Add your first control</string>
+    <string name="panel_add_control">Add control</string>
+    <string name="panel_add_body">Each sits on a four-column grid; you can resize it after.</string>
+    <string name="panel_edit_component">Edit %1$s</string>
+    <string name="panel_label">Label</string>
+    <string name="panel_label_help">Leave empty to use the action’s name.</string>
+    <string name="panel_does">What it does</string>
+    <string name="panel_pick">Choose…</string>
+    <string name="panel_toggle_on">When switched on</string>
+    <string name="panel_toggle_off">When switched off</string>
+    <string name="panel_slider_up">Sliding right</string>
+    <string name="panel_slider_down">Sliding left</string>
+    <string name="panel_width">Width, in columns</string>
+    <string name="panel_height">Height, in rows</string>
+    <string name="panel_move_earlier">Earlier</string>
+    <string name="panel_move_later">Later</string>
+    <string name="panel_no_macros">No macros yet</string>
+    <string name="panel_no_macros_body">A macro button runs one of your macros. Create one first.</string>
+    <string name="comp_button_body">One tap, one action: Home, Netflix shortcut, Power</string>
+    <string name="comp_dpad_body">Arrows with OK in the middle</string>
+    <string name="comp_trackpad_body">A touch surface for the pointer</string>
+    <string name="comp_slider_body">Drag to step something up or down, like volume</string>
+    <string name="comp_toggle_body">On and off, with an action for each</string>
+    <string name="comp_keyboard_body">Types onto the device as you type</string>
+    <string name="comp_media_body">Previous, play or pause, next</string>
+    <string name="comp_text_input_body">Types its text, then presses Enter</string>
+    <string name="comp_shortcut_body">A key combination, like Alt+Tab</string>
+    <string name="comp_macro_body">Runs one of your macros</string>
+
+    <!-- Macros -->
+    <string name="macros_subtitle">Several actions from one tap</string>
+    <string name="macros_yours">Your macros</string>
+    <string name="macros_examples">Start from an example</string>
+    <string name="macros_upsell_title">One tap, many steps</string>
+    <string name="macros_upsell_body">Open an app, set the volume, start the show: chain actions with waits between. Part of Pro.</string>
+    <plurals name="macro_steps">
+        <item quantity="one">%d step</item>
+        <item quantity="other">%d steps</item>
+    </plurals>
+    <string name="macro_new">New macro</string>
+    <string name="macro_name">Macro name</string>
+    <string name="macro_name_hint">e.g. Movie night</string>
+    <string name="macro_run">Run</string>
+    <string name="macro_test">Test</string>
+    <string name="macro_subtitle_wait">%1$s · %2$.1f s of waiting</string>
+    <string name="macro_steps_title">Steps, in order</string>
+    <string name="macro_step_number">Step %1$d</string>
+    <string name="macro_empty_title">No steps yet</string>
+    <string name="macro_empty_body">Add actions below. Put a short wait between steps when the device needs time to react.</string>
+    <string name="macro_add_action">Action</string>
+    <string name="macro_add_wait">Wait</string>
+    <string name="macro_add_text">Text</string>
+    <string name="macro_wait_seconds">%1$.2g seconds</string>
+    <string name="macro_wait_body">Gives the device time to open a screen before the next step.</string>
+    <string name="macro_text_label">Text to type</string>
+    <string name="macro_text_hint">e.g. YouTube</string>
+    <string name="macro_change_step">Change</string>
+    <string name="macro_delete">Delete macro</string>
+    <string name="macro_delete_confirm">Delete %1$s?</string>
+    <string name="macro_delete_body">Buttons that ran it stop doing anything until you choose another action.</string>
+    <string name="ex_youtube">Open YouTube</string>
+    <string name="ex_youtube_body">Home, search, type YouTube, Enter (Google TV)</string>
+    <string name="ex_quiet">Turn it down</string>
+    <string name="ex_quiet_body">Five steps of volume down</string>
 </resources>

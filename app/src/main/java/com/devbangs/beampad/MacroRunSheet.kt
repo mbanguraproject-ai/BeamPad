@@ -2,8 +2,7 @@ package com.devbangs.beampad
 
 import android.app.Activity
 import android.widget.Toast
-import com.devbangs.beampad.databinding.SheetMacroRunBinding
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.progressindicator.LinearProgressIndicator
 
 /**
  * Runs a macro with visible progress and a Stop button, from anywhere a
@@ -22,24 +21,23 @@ object MacroRunSheet {
             return
         }
 
-        val ui = SheetMacroRunBinding.inflate(activity.layoutInflater)
-        val dialog = BottomSheetDialog(activity)
-        dialog.setContentView(ui.root)
-        dialog.setCancelable(false)
-        ui.title.text = macro.name
-        ui.progress.max = macro.steps.size
-        ui.progress.progress = 0
-        ui.step.text = activity.getString(R.string.macro_starting)
+        val sheet = Sheet(activity)
+            .title(macro.name)
+            .subtitle(activity.getString(R.string.macro_starting))
+        val progress = activity.layoutInflater.inflate(R.layout.ui_progress, sheet.content, false) as LinearProgressIndicator
+        progress.max = macro.steps.size
+        sheet.content.addView(progress)
+        sheet.dialog.setCancelable(false)
 
         val job = service.engine.macros.run(macro, object : InputEngine.MacroListener {
             override fun onStep(index: Int, total: Int) {
-                ui.progress.max = total
-                ui.progress.progress = index
-                ui.step.text = activity.getString(R.string.macro_step, index + 1, total)
+                progress.max = total
+                progress.setProgressCompat(index, true)
+                sheet.subtitle(activity.getString(R.string.macro_step, index + 1, total))
             }
 
             override fun onFinished(result: InputEngine.MacroResult) {
-                if (dialog.isShowing) dialog.dismiss()
+                if (sheet.dialog.isShowing) sheet.dismiss()
                 val message = when (result) {
                     InputEngine.MacroResult.DONE -> {
                         Haptics.confirm(activity)
@@ -51,10 +49,9 @@ object MacroRunSheet {
                 }
                 Toast.makeText(activity, activity.getString(message, macro.name), Toast.LENGTH_SHORT).show()
             }
-        })
+        }) ?: return
 
-        if (job == null) return
-        ui.stop.setOnClickListener { job.cancel() }
-        dialog.show()
+        sheet.secondary(activity.getString(R.string.macro_stop)) { job.cancel() }
+        sheet.show()
     }
 }

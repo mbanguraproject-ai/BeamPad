@@ -163,9 +163,29 @@ class ScreenshotTest {
     }
 
     @Test
+    fun panels() {
+        appearance(Appearance.DARK)
+        shoot(main(tab = R.id.tab_panels), "tab_panels_free")
+        pro(true)
+        val panel = Panel(name = "Living room", components = Library.components(app, Library.PanelTemplate.TV))
+        PanelStore(app).save(panel)
+        PanelStore(app).save(Panel(name = "Presentation", components = Library.components(app, Library.PanelTemplate.PRESENTATION)))
+        val macro = Macro(name = "Open YouTube", steps = Library.steps(Library.MacroExample.YOUTUBE))
+        MacroStore(app).save(macro)
+        shoot(main(tab = R.id.tab_panels), "tab_panels")
+        Prefs(app).lastPanelId = panel.id
+        shoot(main(), "control_panel")
+        Prefs(app).lastPanelId = null
+        val editor = Intent(app, PanelEditorActivity::class.java).putExtra(PanelEditorActivity.EXTRA_PANEL, panel.id)
+        shoot(screen<PanelEditorActivity>(editor), "panel_editor")
+        val macroEditor = Intent(app, MacroEditorActivity::class.java).putExtra(MacroEditorActivity.EXTRA_MACRO, macro.id)
+        shoot(screen<MacroEditorActivity>(macroEditor), "macro_editor")
+        pro(false)
+    }
+
+    @Test
     fun tabs() {
         appearance(Appearance.DARK)
-        shoot(main(tab = R.id.tab_panels), "tab_panels")
         shoot(main(tab = R.id.tab_snippets), "tab_snippets")
     }
 

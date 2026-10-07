@@ -1,15 +1,7 @@
 package com.devbangs.beampad
 
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
-import androidx.core.view.isVisible
-import com.devbangs.beampad.databinding.ItemActionBinding
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 
 /**
  * "What should this do?" — one picker for panel buttons, macro steps and
@@ -20,52 +12,26 @@ object ActionPicker {
 
     /**
      * Shows the catalogue, optionally limited to [groups], and reports the
-     * chosen entry. [includeMacros] adds the user's saved macros at the end.
+     * chosen entry. [includeMacros] adds the user's saved macros at the end;
+     * [excludeMacro] keeps a macro from being offered inside itself.
      */
     fun show(
         context: Context,
         title: CharSequence,
         groups: Set<Actions.Group> = Actions.Group.entries.toSet(),
         includeMacros: Boolean = false,
+        excludeMacro: String? = null,
+        current: Action? = null,
         onPicked: (Choice) -> Unit
     ) {
-        val inflater = LayoutInflater.from(context)
-        val dialog = BottomSheetDialog(context)
-        val column = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            val pad = (16 * resources.displayMetrics.density).toInt()
-            setPadding(pad, pad, pad, pad)
-        }
-
-        column.addView(TextView(context).apply {
-            text = title
-            textSize = 20f
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            setTextColor(context.themeColor(R.attr.bpText))
-            setPadding(0, 0, 0, (8 * resources.displayMetrics.density).toInt())
-        })
+        val sheet = Sheet(context).title(title)
 
         fun header(text: String) {
-            column.addView(TextView(context).apply {
+            sheet.content.addView(TextView(context).apply {
+                setTextAppearance(R.style.Text_Overline)
                 this.text = text
-                textSize = 13f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setTextColor(context.themeColor(R.attr.bpTextDim))
-                val d = resources.displayMetrics.density
-                setPadding((4 * d).toInt(), (16 * d).toInt(), 0, (6 * d).toInt())
+                setPadding(0, Ui.dp(context, 18), 0, Ui.dp(context, 4))
             })
-        }
-
-        fun row(label: String, icon: Int?, choice: Choice) {
-            val item = ItemActionBinding.inflate(inflater, column, false)
-            item.label.text = label
-            item.icon.isVisible = icon != null
-            icon?.let { item.icon.setImageResource(it) }
-            item.root.setOnClickListener {
-                dialog.dismiss()
-                onPicked(choice)
-            }
-            column.addView(item.root)
         }
 
         Actions.Group.entries.filter { it in groups }.forEach { group ->
@@ -73,26 +39,36 @@ object ActionPicker {
             if (entries.isEmpty()) return@forEach
             header(context.getString(group.labelRes))
             entries.forEach { named ->
-                row(Actions.label(context, named), named.iconRes, Choice(named.action, named))
-            }
-        }
-
-        if (includeMacros) {
-            val macros = MacroStore(context).all()
-            if (macros.isNotEmpty()) {
-                header(context.getString(R.string.group_macros))
-                macros.forEach { macro ->
-                    row(macro.name, R.drawable.ic_magic_wand, Choice(Action.RunMacro(macro.id), null, macro))
+                sheet.option(Actions.label(context, named), null, named.iconRes ?: groupIcon(group), named.action == current) {
+                    onPicked(Choice(named.action, named))
                 }
             }
         }
 
-        dialog.setContentView(ScrollView(context).apply {
-            addView(column, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        })
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = true
-        dialog.show()
+        if (includeMacros) {
+            val macros = MacroStore(context).all().filter { it.id != excludeMacro }
+            if (macros.isNotEmpty()) {
+                header(context.getString(R.string.group_macros))
+                macros.forEach { macro ->
+                    val action = Action.RunMacro(macro.id)
+                    sheet.option(macro.name, context.resources.getQuantityString(R.plurals.macro_steps, macro.steps.size, macro.steps.size),
+                        R.drawable.ic_magic_wand, action == current) {
+                        onPicked(Choice(action, null, macro))
+                    }
+                }
+            }
+        }
+        sheet.show()
+    }
+
+    private fun groupIcon(group: Actions.Group): Int = when (group) {
+        Actions.Group.NAVIGATION -> R.drawable.ic_arrows_out_cardinal
+        Actions.Group.MEDIA -> R.drawable.ic_play_pause
+        Actions.Group.TV -> R.drawable.ic_television_simple
+        Actions.Group.KEYBOARD -> R.drawable.ic_keyboard
+        Actions.Group.SHORTCUTS -> R.drawable.ic_command
+        Actions.Group.MOUSE -> R.drawable.ic_mouse_simple
+        Actions.Group.PRESENTATION -> R.drawable.ic_presentation
     }
 
     /** What was picked: the action, plus where it came from for naming it. */
@@ -118,6 +94,21 @@ object ActionPicker {
             is Action.Scroll -> context.getString(
                 if (action.amount > 0) R.string.act_scroll_up else R.string.act_scroll_down
             )
+        }
+    }
+
+    /** An icon for any action: its catalogue icon, else its group's. */
+    fun icon(action: Action?): Int {
+        if (action == null) return R.drawable.ic_plus
+        val named = Actions.find(action)
+        if (named != null) return named.iconRes ?: groupIcon(named.group)
+        return when (action) {
+            is Action.Text -> R.drawable.ic_text_t
+            is Action.Delay -> R.drawable.ic_timer
+            is Action.RunMacro -> R.drawable.ic_magic_wand
+            is Action.Key -> R.drawable.ic_keyboard
+            is Action.Consumer -> R.drawable.ic_play_pause
+            is Action.Click, is Action.Scroll -> R.drawable.ic_mouse_simple
         }
     }
 }

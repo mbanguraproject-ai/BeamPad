@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Over each component while editing a panel: a dashed edge says "this
+     can be moved and changed", and pressing tints it. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/bpAccentSoft" />
+            <stroke android:width="1.5dp" android:color="?attr/bpAccent" />
+            <corners android:radius="@dimen/radius_md" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+            <stroke android:width="1.5dp" android:color="?attr/bpAccent2" android:dashWidth="6dp" android:dashGap="4dp" />
+            <corners android:radius="@dimen/radius_md" />
+        </shape>
+    </item>
+</selector>
