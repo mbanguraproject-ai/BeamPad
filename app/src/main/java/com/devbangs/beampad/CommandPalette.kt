@@ -146,7 +146,7 @@ object CommandPalette {
             .distinctBy { it.id }
         apps.forEach { app ->
             list += Command("app:${app.id}", activity.getString(R.string.launch_opening, app.name),
-                activity.getString(R.string.cmd_kind_app), R.drawable.ic_rocket_launch,
+                activity.getString(R.string.cmd_kind_app), app.logo ?: R.drawable.ic_rocket_launch,
                 "${app.name} open app launch".lowercase()) { Launcher.open(activity, activity.service, app) }
         }
 

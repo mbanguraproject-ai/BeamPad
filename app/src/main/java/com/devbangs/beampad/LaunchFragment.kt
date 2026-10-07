@@ -1,5 +1,8 @@
 package com.devbangs.beampad
 
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 
 /**
@@ -64,10 +68,8 @@ class LaunchFragment : Fragment() {
         Ui.section(column, if (name != null) getString(R.string.launch_for, name) else getString(R.string.launch_title))
 
         val tiles = Launcher.favorites(context, address).map { app ->
-            tile(app.name.take(1).uppercase(), null, app.name) {
-                Launcher.open(requireActivity(), host?.service, app)
-            }
-        } + tile(null, R.drawable.ic_pencil_simple, getString(R.string.launch_edit)) { edit() }
+            tile(app, app.name) { Launcher.open(requireActivity(), host?.service, app) }
+        } + tile(null, getString(R.string.launch_edit)) { edit() }
 
         val gap = resources.getDimensionPixelSize(R.dimen.gap)
         val gutter = resources.getDimensionPixelSize(R.dimen.gutter)
@@ -98,15 +100,32 @@ class LaunchFragment : Fragment() {
         })
     }
 
-    private fun tile(monogram: String?, icon: Int?, label: String, onClick: () -> Unit): View {
+    /**
+     * One tile: a known app's logo on its own colours, an initial for apps
+     * added by name, or the Edit pencil when [app] is null.
+     */
+    private fun tile(app: TvApp?, label: String, onClick: () -> Unit): View {
         val view = layoutInflater.inflate(R.layout.item_app_tile, content, false)
-        view.findViewById<TextView>(R.id.monogram).apply {
-            text = monogram
-            isVisible = monogram != null
-        }
-        view.findViewById<ImageView>(R.id.icon).apply {
-            isVisible = icon != null
-            icon?.let { setImageResource(it) }
+        val monogram = view.findViewById<TextView>(R.id.monogram)
+        val icon = view.findViewById<ImageView>(R.id.icon)
+        val logo = app?.logo
+        icon.isVisible = app == null || logo != null
+        monogram.isVisible = app != null && logo == null
+        if (app == null) icon.setImageResource(R.drawable.ic_pencil_simple)
+        if (logo != null) icon.setImageResource(logo)
+        if (app != null) monogram.text = app.name.take(1).uppercase()
+        val tile = app?.tile
+        if (app != null && tile != null) {
+            val ink = ColorStateList.valueOf(app.ink ?: Color.WHITE)
+            icon.imageTintList = ink
+            icon.updateLayoutParams { width = Ui.dp(requireContext(), LOGO_DP); height = width }
+            monogram.setTextColor(ink)
+            view.findViewById<View>(R.id.tile).background = GradientDrawable().apply {
+                cornerRadius = Ui.dp(requireContext(), TILE_RADIUS_DP).toFloat()
+                setColor(tile)
+                // A hairline keeps black and white tiles distinct on either theme.
+                setStroke(Ui.dp(requireContext(), 1), requireContext().themeColor(R.attr.bpStroke))
+            }
         }
         view.findViewById<TextView>(R.id.name).text = label
         view.contentDescription = label
@@ -154,5 +173,7 @@ class LaunchFragment : Fragment() {
 
     private companion object {
         const val COLUMNS = 3
+        const val LOGO_DP = 26
+        const val TILE_RADIUS_DP = 14
     }
 }

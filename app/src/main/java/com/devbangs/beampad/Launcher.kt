@@ -5,8 +5,19 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** A TV app BeamPad can open, by typing [name] into the TV's search. */
-data class TvApp(val id: String, val name: String)
+/**
+ * A TV app BeamPad can open, by typing [name] into the TV's search. Known
+ * apps carry their [logo] and colours: [tile] behind it and [ink] for the
+ * mark (or for the initial, where no free logo exists). Apps added by name
+ * have none and get a plain initial.
+ */
+data class TvApp(
+    val id: String,
+    val name: String,
+    val logo: Int? = null,
+    val tile: Int? = null,
+    val ink: Int? = null
+)
 
 /**
  * The app launcher (Pro): favourite TV apps per device, each opened in one
@@ -18,26 +29,32 @@ data class TvApp(val id: String, val name: String)
 object Launcher {
 
     /** Apps offered when picking favourites; anything else can be added by name. */
+    // Logos from Simple Icons (CC0); colours follow each app's own icon.
+    // Prime Video, Disney+, Hulu and Peacock have no free logo (their
+    // owners withdrew them), so they show an initial in their colours.
     val catalogue: List<TvApp> = listOf(
-        TvApp("youtube", "YouTube"),
-        TvApp("netflix", "Netflix"),
-        TvApp("prime", "Prime Video"),
-        TvApp("disney", "Disney+"),
-        TvApp("max", "Max"),
-        TvApp("hulu", "Hulu"),
-        TvApp("appletv", "Apple TV"),
-        TvApp("paramount", "Paramount+"),
-        TvApp("peacock", "Peacock"),
-        TvApp("spotify", "Spotify"),
-        TvApp("youtube_music", "YouTube Music"),
-        TvApp("twitch", "Twitch"),
-        TvApp("plex", "Plex"),
-        TvApp("crunchyroll", "Crunchyroll"),
-        TvApp("kodi", "Kodi"),
-        TvApp("vlc", "VLC")
+        TvApp("youtube", "YouTube", R.drawable.ic_app_youtube, WHITE, 0xFFFF0000.toInt()),
+        TvApp("netflix", "Netflix", R.drawable.ic_app_netflix, BLACK, 0xFFE50914.toInt()),
+        TvApp("prime", "Prime Video", null, 0xFF00A8E1.toInt(), WHITE),
+        TvApp("disney", "Disney+", null, 0xFF113CCF.toInt(), WHITE),
+        TvApp("max", "Max", R.drawable.ic_app_max, 0xFF002BE7.toInt(), WHITE),
+        TvApp("hulu", "Hulu", null, 0xFF1CE783.toInt(), BLACK),
+        TvApp("appletv", "Apple TV", R.drawable.ic_app_appletv, BLACK, WHITE),
+        TvApp("paramount", "Paramount+", R.drawable.ic_app_paramount, 0xFF0064FF.toInt(), WHITE),
+        TvApp("peacock", "Peacock", null, BLACK, WHITE),
+        TvApp("spotify", "Spotify", R.drawable.ic_app_spotify, 0xFF1ED760.toInt(), BLACK),
+        TvApp("youtube_music", "YouTube Music", R.drawable.ic_app_youtube_music, 0xFFFF0000.toInt(), WHITE),
+        TvApp("twitch", "Twitch", R.drawable.ic_app_twitch, 0xFF9146FF.toInt(), WHITE),
+        TvApp("plex", "Plex", R.drawable.ic_app_plex, 0xFF1F1F1F.toInt(), 0xFFEBAF00.toInt()),
+        TvApp("crunchyroll", "Crunchyroll", R.drawable.ic_app_crunchyroll, 0xFFFF5E00.toInt(), WHITE),
+        TvApp("kodi", "Kodi", R.drawable.ic_app_kodi, 0xFF17B2E7.toInt(), WHITE),
+        TvApp("vlc", "VLC", R.drawable.ic_app_vlc, 0xFFFF8800.toInt(), WHITE)
     )
 
     private val DEFAULTS = listOf("youtube", "netflix", "prime", "disney", "spotify", "plex")
+
+    private const val WHITE = 0xFFFFFFFF.toInt()
+    private const val BLACK = 0xFF000000.toInt()
 
     private const val FILE = "beampad_launch"
     private const val ANY_DEVICE = "any"
@@ -53,7 +70,9 @@ object Launcher {
             val array = JSONArray(raw)
             (0 until array.length()).map { i ->
                 val o = array.getJSONObject(i)
-                TvApp(o.getString("id"), o.getString("name"))
+                val id = o.getString("id")
+                // Known apps come back with their logo and colours.
+                catalogue.firstOrNull { it.id == id } ?: TvApp(id, o.getString("name"))
             }
         }.getOrDefault(emptyList())
     }

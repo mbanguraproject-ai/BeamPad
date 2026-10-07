@@ -2,6 +2,19 @@ BeamPad uses the following open source software.
 
 
 ================================================================
+Simple Icons
+https://simpleicons.org
+================================================================
+
+App logos in the launcher (YouTube, Netflix, Max, Apple TV, Paramount+,
+Spotify, YouTube Music, Twitch, Plex, Crunchyroll, Kodi, VLC) come from
+Simple Icons, released under CC0 1.0 Universal (public domain).
+
+These names and logos are trademarks of their respective owners. BeamPad
+uses them only to label the buttons that open those apps, and is not
+affiliated with or endorsed by them.
+
+================================================================
 Phosphor Icons
 https://phosphoricons.com
 ================================================================
