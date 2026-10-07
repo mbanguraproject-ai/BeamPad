@@ -183,6 +183,20 @@ class ScreenshotTest {
     }
 
     @Test
+    fun launchAndCommands() {
+        appearance(Appearance.DARK)
+        pro(true)
+        Prefs(app).lastPage = "LAUNCH"
+        val activity = main()
+        shoot(activity, "control_launch")
+        Prefs(app).lastPage = null
+        CommandPalette.open(activity)
+        settle()
+        shootDialog("sheet_commands")
+        pro(false)
+    }
+
+    @Test
     fun home() {
         appearance(Appearance.DARK)
         seedDevices()
