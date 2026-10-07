@@ -1,128 +1,73 @@
 package com.devbangs.beampad
 
 import android.os.Bundle
-import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
 import com.devbangs.beampad.databinding.FragmentTrackpadBinding
 
-class TrackpadFragment : Fragment() {
+/**
+ * The precision trackpad: pointer with acceleration, tap and multi-finger
+ * clicks, tap-and-drag, two-finger scroll, pinch to zoom and three-finger
+ * gestures. Precision mode slows the pointer for small targets. The two
+ * buttons below hold down while pressed, so they can drag too.
+ */
+class TrackpadFragment : SurfaceFragment() {
 
     private var _ui: FragmentTrackpadBinding? = null
     private val ui get() = _ui!!
 
-    private val host get() = activity as? MainActivity
-
-    private var wasConnected = false
-
-    private var connected = false
-
-    private val connectionObserver: (Boolean) -> Unit = { isConnected ->
-        connected = isConnected
-        _ui?.let { view ->
-            // The pad stays live-looking either way; the glow is the cue.
-            view.pad.setBackgroundResource(
-                if (isConnected) R.drawable.bg_trackpad_live else R.drawable.bg_trackpad
-            )
-            if (!isConnected) view.padGlow.animate().alpha(0f).setDuration(160L).start()
-            view.hint.alpha = if (isConnected) 0.6f else 0.85f
-
-            // One pulse on the transition only. Repeating it would turn a
-            // status cue into a distraction sitting under the user's thumb.
-            if (isConnected && !wasConnected) pulse(view.ring)
-            wasConnected = isConnected
-        }
-    }
-
-    private var lastNudge = 0L
-
-    /** A drag that goes nowhere has to say why. One nudge per few seconds. */
-    private fun nudgeIfDisconnected(): Boolean {
-        if (connected) return true
-        val now = android.os.SystemClock.uptimeMillis()
-        if (now - lastNudge > NUDGE_INTERVAL_MS) {
-            lastNudge = now
-            android.widget.Toast
-                .makeText(requireContext(), R.string.not_connected_hint, android.widget.Toast.LENGTH_SHORT)
-                .show()
-        }
-        return false
-    }
-
-    private fun pulse(target: View) {
-        target.animate().cancel()
-        target.scaleX = 1f
-        target.scaleY = 1f
-        target.animate()
-            .scaleX(1.12f).scaleY(1.12f)
-            .setDuration(220)
-            .withEndAction {
-                target.animate().scaleX(1f).scaleY(1f).setDuration(320).start()
-            }
-            .start()
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, state: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _ui = FragmentTrackpadBinding.inflate(inflater, container, false)
         return ui.root
     }
 
     override fun onViewCreated(view: View, state: Bundle?) {
-        // Movement must not nudge: a drag fires dozens of events and would
-        // queue a toast per frame. Only discrete actions report.
-        ui.pad.onMove = { dx, dy -> if (connected) host?.service?.moveMouse(dx, dy) }
-        ui.pad.onScroll = { if (connected) host?.service?.scroll(it) }
-        ui.pad.onClick = { if (nudgeIfDisconnected()) host?.service?.click(it) }
-
-        ui.leftClick.setOnClickListener { button(it, HidReports.BUTTON_LEFT) }
-        ui.rightClick.setOnClickListener { button(it, HidReports.BUTTON_RIGHT) }
-
-        // Glow only while a finger is down, and only when paired: a surface
-        // that lights up with nothing connected is a lie. Fading out is
-        // slower than fading in so the release feels like a decay.
+        wirePad(ui.pad, ui.padGlow)
+        val baseActive = ui.pad.onTouchActive
         ui.pad.onTouchActive = { active ->
-            val target = if (active && connected) 1f else 0f
-            ui.padGlow.animate()
-                .alpha(target)
-                .setDuration(if (active) 90L else 260L)
-                .start()
+            baseActive?.invoke(active)
+            // The hint is for the first touch; it steps back while in use.
+            ui.hint.animate().alpha(if (active) 0f else HINT_ALPHA).setDuration(200).start()
         }
 
-        // The hint is guidance, not a control: it must not eat touches
-        // meant for the pad underneath.
-        ui.hint.isClickable = false
-        ui.hint.isFocusable = false
+        bindMouseButton(ui.leftClick, HidReports.BUTTON_LEFT)
+        bindMouseButton(ui.rightClick, HidReports.BUTTON_RIGHT)
 
-        host?.observeConnection(connectionObserver)
+        val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_frame_corners)?.mutate()
+        icon?.setBounds(0, 0, dp(16), dp(16))
+        icon?.setTintList(ContextCompat.getColorStateList(requireContext(), R.color.chip_text))
+        ui.precision.setCompoundDrawablesRelative(icon, null, null, null)
+        ui.precision.setOnClickListener {
+            val c = requireContext()
+            if (!Features.isPro(c)) {
+                ProActivity.open(c, Features.Pro.TRACKPAD)
+                return@setOnClickListener
+            }
+            Haptics.tick(it)
+            ui.pad.precision = !ui.pad.precision
+            ui.precision.isSelected = ui.pad.precision
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        // Read on every resume: the values can change in Settings, and fall
-        // back to the defaults if Pro has lapsed meanwhile.
-        val context = requireContext()
-        ui.pad.sensitivity = Features.pointerSpeed(context)
-        ui.pad.scrollSpeed = Features.scrollSpeed(context)
-        ui.pad.reverseScroll = Features.reverseScroll(context)
+        applyPadPrefs(ui.pad)
+        ui.hintText.setText(if (ui.pad.tapToClick) R.string.trackpad_hint_short else R.string.trackpad_hint_no_tap)
     }
 
-    private fun button(view: View, which: Byte) {
-        val app = requireActivity().application as BeamPadApp
-        if (app.prefs.haptics) view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        if (nudgeIfDisconnected()) host?.service?.click(which)
+    override fun onConnectionChanged(connected: Boolean, changed: Boolean) {
+        ui.hint.alpha = HINT_ALPHA
+        if (!connected) ui.padGlow.animate().alpha(0f).setDuration(160L).start()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        host?.stopObserving(connectionObserver)
         _ui = null
     }
 
     private companion object {
-        const val NUDGE_INTERVAL_MS = 3000L
+        const val HINT_ALPHA = 1f
     }
 }

@@ -427,6 +427,24 @@
         <item name="iconSize">18dp</item>
     </style>
 
+    <!-- Round keys for transport: the play key is larger and accented. -->
+    <style name="Key.Round">
+        <item name="android:layout_width">64dp</item>
+        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:background">@drawable/bg_key_round</item>
+        <item name="iconSize">24dp</item>
+    </style>
+
+    <style name="Key.Round.Accent">
+        <item name="android:layout_width">88dp</item>
+        <item name="android:layout_height">88dp</item>
+        <item name="android:background">@drawable/bg_key_round_accent</item>
+        <item name="android:textColor">?attr/bpOnAccent</item>
+        <item name="iconTint">?attr/bpOnAccent</item>
+        <item name="iconSize">32dp</item>
+    </style>
+
     <style name="IconKey" parent="Key">
         <item name="android:layout_height">48dp</item>
         <item name="iconSize">21dp</item>

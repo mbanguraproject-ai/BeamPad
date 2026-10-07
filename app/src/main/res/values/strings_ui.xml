@@ -2,7 +2,6 @@
 <resources>
     <!-- Shared -->
     <string name="field_required">This can’t be empty.</string>
-    <string name="done">Done</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="rename">Rename</string>
@@ -30,4 +29,53 @@
     <string name="pair_pc_1">Open Bluetooth settings. Windows: Settings › Bluetooth &amp; devices › Add device. Mac: System Settings › Bluetooth. ChromeOS: Quick Settings › Bluetooth.</string>
     <string name="pair_pc_2">Wait for “%1$s” to appear, then select it.</string>
     <string name="pair_pc_3">If a code appears on both screens, confirm it matches.</string>
+
+    <!-- Remote, media, mouse -->
+    <string name="ch">CH</string>
+    <string name="volume">Volume</string>
+    <string name="volume_slider_description">Volume. Drag right to turn up, left to turn down.</string>
+    <string name="speed_slower">Slower</string>
+    <string name="speed_faster">Faster</string>
+    <string name="media_extras_note">Subtitles, fullscreen and speed work in web and desktop players; TVs vary.</string>
+    <string name="mouse_left">Left</string>
+    <string name="mouse_right">Right</string>
+    <string name="mouse_middle">Middle</string>
+    <string name="mouse_wheel">Scroll wheel. Drag to scroll, tap to middle-click.</string>
+    <string name="mouse_hint">Move the pointer here</string>
+    <string name="mouse_drag_lock">Drag lock</string>
+    <string name="drag_lock_on">Drag lock on: the left button is held</string>
+
+    <!-- Keyboard -->
+    <string name="tool_search">Search</string>
+    <string name="keyboard_hint_search">Search on your device…</string>
+    <string name="keyboard_empty_hint">Type above with your phone’s keyboard. Autocorrect, swipe and voice all work.</string>
+    <string name="keyboard_recent">Sent this session</string>
+    <string name="keyboard_send_again">Send again</string>
+    <string name="mod_ctrl">Ctrl</string>
+    <string name="mod_alt">Alt</string>
+    <string name="mod_shift">Shift</string>
+    <string name="mod_meta">Windows or Command key</string>
+    <string name="keys_group_editing">Editing</string>
+    <string name="keys_group_shortcuts">Shortcuts</string>
+    <string name="keys_group_system">System</string>
+    <string name="clipboard_confirm_title">Send your clipboard?</string>
+    <string name="clipboard_confirm_send">Send</string>
+
+    <!-- Trackpad -->
+    <string name="trackpad_hint_short">Drag to move · Tap to click\nTwo fingers to scroll</string>
+    <string name="trackpad_hint_no_tap">Drag to move · Use the buttons to click\nTwo fingers to scroll</string>
+    <string name="precision">Precision</string>
+
+    <!-- Presentation -->
+    <string name="present_timer">Time</string>
+    <string name="present_timer_zero">0:00</string>
+    <string name="present_timer_start">Start timer</string>
+    <string name="present_timer_pause">Pause timer</string>
+    <string name="present_timer_reset">Reset timer</string>
+    <string name="present_start">Start</string>
+    <string name="present_black">Black screen</string>
+    <string name="present_end">End</string>
+    <string name="present_pointer">Pointer. Drag to move it on the screen.</string>
+    <string name="present_pointer_hint">Drag to point · Tap to click</string>
+    <string name="present_volume_hint">Tip: your phone’s volume buttons change slides here.</string>
 </resources>

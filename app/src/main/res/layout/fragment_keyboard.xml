@@ -1,171 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The D-pad row's height is set in code from the space actually left
-     (KeyboardFragment.fitDpad), so the whole remote fits on short or
-     zoomed screens instead of the media row falling below the fold. The
-     ScrollView stays as a last resort for extreme font sizes. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Keyboard: the phone's own keyboard does the typing (autocorrect, swipe,
+     voice, every language); this screen adds what a phone keyboard lacks:
+     navigation keys, modifiers, function keys and TV search. Keys sit at
+     the bottom where thumbs are; the middle shows what was sent. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/scroll"
+    android:id="@+id/column"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:overScrollMode="never">
+    android:orientation="vertical"
+    android:paddingStart="@dimen/gutter"
+    android:paddingEnd="@dimen/gutter"
+    android:paddingBottom="@dimen/space_sm">
 
-    <!-- match_parent, not wrap_content: fillViewport only grows a child that
-         asks to fill, and without that the weighted spacers have nothing to
-         distribute and the slack collects at the bottom. -->
     <LinearLayout
-        android:id="@+id/column"
+        android:id="@+id/inputRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="12dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-        <!-- Send lives inside the input row, as in WhatsApp: the action
-             belongs to the field, and a full-width button below it wasted a
-             row the navigation keys needed. -->
         <LinearLayout
-            android:id="@+id/inputRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:id="@+id/inputField"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_input"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="6dp">
 
-            <LinearLayout
-                android:id="@+id/inputField"
+            <EditText
+                android:id="@+id/input"
                 android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_height="56dp"
-                android:background="@drawable/bg_input"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="6dp">
+                android:background="@null"
+                android:hint="@string/keyboard_hint"
+                android:imeOptions="actionSend"
+                android:inputType="text"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="@style/Text.Body"
+                android:textSize="16sp"
+                android:textColorHint="?attr/bpTextFaint"
+                android:importantForAutofill="no" />
 
-                <EditText
-                    android:id="@+id/input"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:hint="@string/keyboard_hint"
-                    android:imeOptions="actionSend"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="?attr/bpText"
-                    android:textColorHint="?attr/bpTextFaint"
-                    android:textSize="16sp"
-                    android:importantForAutofill="no" />
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp">
+
+                <ImageButton
+                    android:id="@+id/mic"
+                    style="@style/Widget.BeamPad.IconButton.Plain"
+                    android:src="@drawable/ic_microphone"
+                    android:contentDescription="@string/voice_typing" />
 
                 <FrameLayout
-                    android:layout_width="44dp"
-                    android:layout_height="44dp">
+                    android:id="@+id/micLock"
+                    style="@style/ToolChipLock"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp">
 
-                    <ImageButton
-                        android:id="@+id/mic"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:padding="11dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_microphone"
-                        android:tint="?attr/bpTextDim"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/voice_typing" />
-
-                    <FrameLayout
-                        android:id="@+id/micLock"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginEnd="4dp"
-                        android:background="@drawable/bg_lock_badge">
-
-                        <ImageView
-                            android:layout_width="9dp"
-                            android:layout_height="9dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_lock_simple_fill"
-                            android:tint="@color/bp_on_pro"
-                            android:contentDescription="@null" />
-                    </FrameLayout>
+                    <ImageView style="@style/ToolChipLockIcon" />
                 </FrameLayout>
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/send"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/bg_send_round"
-                app:backgroundTint="@null"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:contentDescription="@string/keyboard_send"
-                app:icon="@drawable/ic_paper_plane_right"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="22dp"
-                app:iconTint="?attr/bpText" />
+            </FrameLayout>
         </LinearLayout>
 
-        <!-- Tools share the row evenly, so all three are always visible
-             whatever the width; the Pro lock sits on the corner as a badge
-             rather than taking label space. -->
-        <LinearLayout
-            android:id="@+id/toolsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/send"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="@dimen/gap"
+            android:background="@drawable/bg_send_round"
+            app:backgroundTint="@null"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:contentDescription="@string/keyboard_send"
+            app:icon="@drawable/ic_paper_plane_right"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="22dp"
+            app:iconTint="?attr/bpOnAccent" />
+    </LinearLayout>
+
+    <!-- Tools share the row evenly; the Pro lock is a corner badge. -->
+    <LinearLayout
+        android:id="@+id/toolsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
 
         <FrameLayout
             android:id="@+id/chipLive"
             style="@style/ToolChip">
 
             <LinearLayout style="@style/ToolChipBody">
-
-                <ImageView
-                    style="@style/ToolChipIcon"
-                    android:src="@drawable/ic_lightning" />
-
-                <TextView
-                    style="@style/ToolChipText"
-                    android:text="@string/tool_live" />
+                <ImageView style="@style/ToolChipIcon" android:src="@drawable/ic_lightning" />
+                <TextView style="@style/ToolChipText" android:text="@string/tool_live" />
             </LinearLayout>
 
-            <FrameLayout
-                android:id="@+id/lockLive"
-                style="@style/ToolChipLock">
-
+            <FrameLayout android:id="@+id/lockLive" style="@style/ToolChipLock">
                 <ImageView style="@style/ToolChipLockIcon" />
             </FrameLayout>
         </FrameLayout>
 
         <FrameLayout
-            android:id="@+id/chipPaste"
+            android:id="@+id/chipSearch"
             style="@style/ToolChip"
-            android:layout_marginStart="8dp">
+            android:layout_marginStart="@dimen/space_xs">
 
             <LinearLayout style="@style/ToolChipBody">
+                <ImageView style="@style/ToolChipIcon" android:src="@drawable/ic_magnifying_glass" />
+                <TextView style="@style/ToolChipText" android:text="@string/tool_search" />
+            </LinearLayout>
+        </FrameLayout>
 
-                <ImageView
-                    style="@style/ToolChipIcon"
-                    android:src="@drawable/ic_clipboard_text" />
+        <FrameLayout
+            android:id="@+id/chipPaste"
+            style="@style/ToolChip"
+            android:layout_marginStart="@dimen/space_xs">
 
-                <TextView
-                    style="@style/ToolChipText"
-                    android:text="@string/tool_paste" />
+            <LinearLayout style="@style/ToolChipBody">
+                <ImageView style="@style/ToolChipIcon" android:src="@drawable/ic_clipboard_text" />
+                <TextView style="@style/ToolChipText" android:text="@string/tool_paste" />
             </LinearLayout>
 
-            <FrameLayout
-                android:id="@+id/lockPaste"
-                style="@style/ToolChipLock">
-
+            <FrameLayout android:id="@+id/lockPaste" style="@style/ToolChipLock">
                 <ImageView style="@style/ToolChipLockIcon" />
             </FrameLayout>
         </FrameLayout>
@@ -173,191 +136,222 @@
         <FrameLayout
             android:id="@+id/chipKeys"
             style="@style/ToolChip"
-            android:layout_marginStart="8dp">
+            android:layout_marginStart="@dimen/space_xs">
 
             <LinearLayout style="@style/ToolChipBody">
-
-                <ImageView
-                    style="@style/ToolChipIcon"
-                    android:src="@drawable/ic_squares_four" />
-
-                <TextView
-                    style="@style/ToolChipText"
-                    android:text="@string/tool_keys" />
+                <ImageView style="@style/ToolChipIcon" android:src="@drawable/ic_squares_four" />
+                <TextView style="@style/ToolChipText" android:text="@string/tool_keys" />
             </LinearLayout>
 
-            <FrameLayout
-                android:id="@+id/lockKeys"
-                style="@style/ToolChipLock">
-
+            <FrameLayout android:id="@+id/lockKeys" style="@style/ToolChipLock">
                 <ImageView style="@style/ToolChipLockIcon" />
             </FrameLayout>
         </FrameLayout>
-        </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <LinearLayout
-            android:id="@+id/navRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/home"
-                style="@style/IconKey"
-                android:contentDescription="@string/key_home"
-                app:icon="@drawable/ic_house" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/back"
-                style="@style/IconKey"
-                android:layout_marginStart="10dp"
-                android:contentDescription="@string/key_back"
-                app:icon="@drawable/ic_arrow_u_up_left" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/menu"
-                style="@style/IconKey"
-                android:layout_marginStart="10dp"
-                android:contentDescription="@string/key_menu"
-                app:icon="@drawable/ic_list" />
-        </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <LinearLayout
-            android:id="@+id/dpadRow"
-            android:layout_width="match_parent"
-            android:layout_height="186dp"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <LinearLayout
-                android:layout_width="58dp"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_rocker"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.8"
-                    android:padding="15dp"
-                    android:src="@drawable/ic_speaker_high"
-                    android:tint="?attr/bpTextDim"
-                    android:contentDescription="@null" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/volUp"
-                    style="@style/RockerKey"
-                    android:contentDescription="@string/key_vol_up"
-                    app:icon="@drawable/ic_plus" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/vol"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/bpTextDim" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/volDown"
-                    style="@style/RockerKey"
-                    android:contentDescription="@string/key_vol_down"
-                    app:icon="@drawable/ic_minus" />
-            </LinearLayout>
-
-            <!-- The pad draws itself square, so it is centred in its slot
-                 rather than left to shift the right rocker inward. -->
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp">
-
-                <com.devbangs.beampad.DpadView
-                    android:id="@+id/dpad"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center" />
-            </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="58dp"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_rocker"
-                android:orientation="vertical">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/backspace"
-                    style="@style/RockerKey"
-                    android:contentDescription="@string/key_backspace"
-                    app:icon="@drawable/ic_backspace" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/del"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/bpTextDim" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mute"
-                    style="@style/RockerKey"
-                    android:contentDescription="@string/key_mute"
-                    app:icon="@drawable/ic_speaker_slash" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <LinearLayout
-            android:id="@+id/mediaRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/rewind"
-                style="@style/WideKey"
-                android:contentDescription="@string/key_rewind"
-                app:icon="@drawable/ic_rewind" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/playPause"
-                style="@style/WideKey"
-                android:layout_marginStart="10dp"
-                android:contentDescription="@string/key_play_pause"
-                app:icon="@drawable/ic_play_pause" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/forward"
-                style="@style/WideKey"
-                android:layout_marginStart="10dp"
-                android:contentDescription="@string/key_forward"
-                app:icon="@drawable/ic_fast_forward" />
-        </LinearLayout>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.5" />
-
     </LinearLayout>
-</ScrollView>
+
+    <!-- What was sent this session, newest first, tap to send again. Held in
+         memory only: typed text is never written to storage. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/space_sm"
+        android:layout_marginBottom="@dimen/space_sm">
+
+        <LinearLayout
+            android:id="@+id/emptyHint"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingStart="@dimen/space_xl"
+            android:paddingEnd="@dimen/space_xl">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_keyboard"
+                android:tint="?attr/bpTextFaint"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_sm"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/keyboard_empty_hint"
+                android:textAppearance="@style/Text.Small.Faint" />
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/recentScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="@dimen/space_xs"
+                    android:text="@string/keyboard_recent"
+                    android:textAppearance="@style/Text.Overline" />
+
+                <LinearLayout
+                    android:id="@+id/recentList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/modsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/modCtrl"
+            style="@style/Key.Small"
+            android:text="@string/mod_ctrl" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/modAlt"
+            style="@style/Key.Small"
+            android:layout_marginStart="@dimen/gap"
+            android:text="@string/mod_alt" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/modShift"
+            style="@style/Key.Small"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/mod_shift"
+            app:icon="@drawable/ic_arrow_fat_up" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/modMeta"
+            style="@style/Key.Small"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/mod_meta"
+            app:icon="@drawable/ic_command" />
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/fkeysScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/gap"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:id="@+id/fkeys"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- Navigation: the inverted T with Esc and Backspace in its corners,
+         Tab and Enter down the side, Space and Home along the bottom. -->
+    <LinearLayout
+        android:id="@+id/navRow1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/esc"
+            style="@style/Key"
+            android:textAppearance="@style/Text.Key.Small"
+            android:text="@string/act_esc" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/up"
+            style="@style/Key"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/act_up"
+            app:icon="@drawable/ic_caret_up" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/backspace"
+            style="@style/Key"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/act_backspace"
+            app:icon="@drawable/ic_backspace" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/tab"
+            style="@style/Key"
+            android:layout_marginStart="@dimen/gap"
+            android:textAppearance="@style/Text.Key.Small"
+            android:text="@string/act_tab" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/navRow2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/left"
+            style="@style/Key"
+            android:contentDescription="@string/act_left"
+            app:icon="@drawable/ic_caret_left" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/down"
+            style="@style/Key"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/act_down"
+            app:icon="@drawable/ic_caret_down" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/right"
+            style="@style/Key"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/act_right"
+            app:icon="@drawable/ic_caret_right" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/enter"
+            style="@style/Key.Accent"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/act_enter"
+            app:icon="@drawable/ic_arrow_elbow_down_left" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/navRow3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/space"
+            style="@style/Key"
+            android:layout_weight="3.24"
+            android:textAppearance="@style/Text.Key.Small"
+            android:textColor="?attr/bpTextDim"
+            android:text="@string/act_space" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home"
+            style="@style/Key"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/key_home"
+            app:icon="@drawable/ic_house" />
+    </LinearLayout>
+</LinearLayout>

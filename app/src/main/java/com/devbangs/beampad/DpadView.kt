@@ -220,17 +220,48 @@ class DpadView @JvmOverloads constructor(
         fill.color = Color.WHITE
     }
 
+    /**
+     * Arrows fire on touch-down and repeat while held, like a hardware
+     * remote: scrolling a long list is one long press, not twenty taps. OK
+     * fires once, on release, so a resting thumb never selects by accident.
+     */
+    private val repeater = object : Runnable {
+        override fun run() {
+            val key = pressed ?: return
+            if (key == Key.OK) return
+            onKey?.invoke(key)
+            postDelayed(this, REPEAT_INTERVAL_MS)
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 pressed = keyAt(event.x, event.y)
+                val key = pressed ?: return false
+                parent?.requestDisallowInterceptTouchEvent(true)
                 invalidate()
-                return pressed != null
+                if (key != Key.OK) {
+                    performClick()
+                    onKey?.invoke(key)
+                    postDelayed(repeater, REPEAT_DELAY_MS)
+                }
+                return true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                // Sliding off a wedge stops its repeat; it does not jump to the
+                // neighbour, which would send a direction the user never pressed.
+                if (pressed != null && keyAt(event.x, event.y) != pressed) {
+                    removeCallbacks(repeater)
+                    pressed = null
+                    invalidate()
+                }
             }
             MotionEvent.ACTION_UP -> {
+                removeCallbacks(repeater)
                 val hit = keyAt(event.x, event.y)
-                if (hit != null && hit == pressed) {
+                if (hit == Key.OK && pressed == Key.OK) {
                     performClick()
                     onKey?.invoke(hit)
                 }
@@ -238,11 +269,17 @@ class DpadView @JvmOverloads constructor(
                 invalidate()
             }
             MotionEvent.ACTION_CANCEL -> {
+                removeCallbacks(repeater)
                 pressed = null
                 invalidate()
             }
         }
         return true
+    }
+
+    override fun onDetachedFromWindow() {
+        removeCallbacks(repeater)
+        super.onDetachedFromWindow()
     }
 
     override fun performClick(): Boolean {
@@ -274,5 +311,10 @@ class DpadView @JvmOverloads constructor(
             deg >= 45f && deg < 135f -> Key.DOWN
             else -> Key.LEFT
         }
+    }
+
+    private companion object {
+        const val REPEAT_DELAY_MS = 420L
+        const val REPEAT_INTERVAL_MS = 110L
     }
 }

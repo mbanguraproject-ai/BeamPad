@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mouse mode, shaped like the device it replaces: two buttons and a
+     wheel across the top, the body below as the pointer surface. Buttons
+     press on touch-down and release on lift, so holding one while moving
+     the other thumb drags, exactly as with a real mouse. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/gutter"
+    android:paddingEnd="@dimen/gutter"
+    android:paddingBottom="@dimen/space_sm">
+
+    <LinearLayout
+        android:id="@+id/buttons"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.36"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/leftButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_mouse_left"
+            android:stateListAnimator="@animator/press_scale_subtle"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/act_left_click">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="@dimen/space_md"
+                android:text="@string/mouse_left"
+                android:textAppearance="@style/Text.Label.Small"
+                android:duplicateParentState="true" />
+        </FrameLayout>
+
+        <com.devbangs.beampad.ScrollStripView
+            android:id="@+id/wheel"
+            android:layout_width="56dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="@string/mouse_wheel" />
+
+        <FrameLayout
+            android:id="@+id/rightButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_mouse_right"
+            android:stateListAnimator="@animator/press_scale_subtle"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/act_right_click">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/space_md"
+                android:text="@string/mouse_right"
+                android:textAppearance="@style/Text.Label.Small"
+                android:duplicateParentState="true" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.64"
+        android:layout_marginTop="6dp">
+
+        <com.devbangs.beampad.TrackpadView
+            android:id="@+id/body"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_mouse_body" />
+
+        <View
+            android:id="@+id/bodyGlow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_mouse_body_active"
+            android:alpha="0"
+            android:clickable="false"
+            android:focusable="false" />
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/mouse_hint"
+            android:textAppearance="@style/Text.Small.Faint"
+            android:clickable="false"
+            android:focusable="false" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/doubleClick"
+            style="@style/Key.Small"
+            android:text="@string/act_double_click"
+            app:icon="@drawable/ic_cursor_click"
+            app:iconPadding="6dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/middleClick"
+            style="@style/Key.Small"
+            android:layout_marginStart="@dimen/gap"
+            android:text="@string/mouse_middle"
+            app:icon="@drawable/ic_mouse_middle_click"
+            app:iconPadding="6dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dragLock"
+            style="@style/Key.Small"
+            android:layout_marginStart="@dimen/gap"
+            android:text="@string/mouse_drag_lock"
+            app:icon="@drawable/ic_hand_pointing"
+            app:iconPadding="6dp" />
+    </LinearLayout>
+</LinearLayout>

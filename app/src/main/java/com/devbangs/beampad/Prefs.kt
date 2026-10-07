@@ -143,6 +143,11 @@ class Prefs(context: Context) {
         get() = bool(KEY_HAPTICS, true)
         set(value) = putBool(KEY_HAPTICS, value)
 
+    /** The phone's volume buttons drive the device: volume on Remote and Media, slides in Presentation. */
+    var volumeButtons: Boolean
+        get() = bool(KEY_VOLUME_BUTTONS, true)
+        set(value) = putBool(KEY_VOLUME_BUTTONS, value)
+
     var hapticStrength: HapticStrength
         get() = enumOf(KEY_HAPTIC_STRENGTH, HapticStrength.LIGHT)
         set(value) = putString(KEY_HAPTIC_STRENGTH, value.name)
@@ -248,6 +253,7 @@ class Prefs(context: Context) {
         private const val KEY_BUTTON_SIZE = "button_size"
         private const val KEY_HAPTICS = "haptics"
         private const val KEY_HAPTIC_STRENGTH = "haptic_strength"
+        private const val KEY_VOLUME_BUTTONS = "volume_buttons"
         private const val KEY_AUTO_LOCK = "snippet_auto_lock"
         private const val KEY_CONFIRM_CLIPBOARD = "confirm_clipboard"
         private const val KEY_APPEARANCE = "appearance"

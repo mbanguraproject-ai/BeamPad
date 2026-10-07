@@ -94,6 +94,10 @@ class ControlFragment : Fragment() {
         buildChips()
     }
 
+    /** The surface showing now, for routing hardware keys to it. */
+    fun currentSurface(): SurfaceFragment? =
+        if (_ui == null) null else childFragmentManager.findFragmentById(R.id.modeContainer) as? SurfaceFragment
+
     private fun swapChild(animate: Boolean) {
         if (_ui == null) return
         val fragment = panelId?.let { PanelFragment.newInstance(it) }

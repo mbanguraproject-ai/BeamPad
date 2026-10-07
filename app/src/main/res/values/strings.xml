@@ -64,7 +64,7 @@
     <string name="keyboard_hint">Type to send to your TV</string>
     <string name="keyboard_hint_live">Live: every key goes straight to the TV</string>
     <string name="keyboard_send">Send</string>
-    <string name="not_connected_hint">Connect your TV first. Tap Connect at the top.</string>
+    <string name="not_connected_hint">Not connected yet. Tap your device at the top to connect.</string>
     <string name="chars_skipped">%1$d characters could not be sent</string>
     <string name="tool_live">Live</string>
     <string name="tool_paste">Paste</string>

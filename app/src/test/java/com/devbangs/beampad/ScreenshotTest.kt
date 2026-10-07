@@ -103,12 +103,40 @@ class ScreenshotTest {
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
+    private fun pro(on: Boolean) {
+        app.getSharedPreferences("beampad_ent", Context.MODE_PRIVATE).edit()
+            .putBoolean("pro_lifetime", on)
+            .commit()
+    }
+
     @Test
     fun controlModes() {
         appearance(Appearance.DARK)
         ControlMode.entries.forEach { mode ->
+            pro(mode.pro != null)
             shoot(main(mode), "control_${mode.name.lowercase()}")
         }
+        pro(false)
+    }
+
+    @Test
+    fun remoteLayouts() {
+        appearance(Appearance.DARK)
+        Prefs(app).remoteLayout = Prefs.RemoteLayout.FULL
+        shoot(main(ControlMode.REMOTE), "remote_full")
+        Prefs(app).remoteLayout = Prefs.RemoteLayout.MINIMAL
+        shoot(main(ControlMode.REMOTE), "remote_minimal")
+        Prefs(app).remoteLayout = Prefs.RemoteLayout.STANDARD
+    }
+
+    @Test
+    @Config(qualifiers = "w852dp-h393dp-land-xhdpi")
+    fun landscape() {
+        appearance(Appearance.DARK)
+        pro(true)
+        shoot(main(ControlMode.PRESENTATION), "land_presentation")
+        shoot(main(ControlMode.REMOTE), "land_remote")
+        pro(false)
     }
 
     @Test
@@ -124,6 +152,8 @@ class ScreenshotTest {
         appearance(Appearance.LIGHT)
         shoot(main(ControlMode.KEYBOARD), "light_control_keyboard")
         shoot(main(ControlMode.TRACKPAD), "light_control_trackpad")
+        shoot(main(ControlMode.REMOTE), "light_control_remote")
+        shoot(main(ControlMode.MEDIA), "light_control_media")
     }
 
     @Test

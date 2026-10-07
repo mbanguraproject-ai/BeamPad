@@ -6,39 +6,43 @@ import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.GridLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
+import androidx.core.view.updateLayoutParams
 import com.devbangs.beampad.databinding.FragmentKeyboardBinding
-import com.devbangs.beampad.databinding.SheetKeysBinding
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import kotlin.math.roundToInt
 
-class KeyboardFragment : Fragment() {
+/**
+ * The keyboard surface. The phone's own keyboard types (so autocorrect,
+ * swipe, voice and every language work); this screen adds navigation
+ * keys, sticky modifiers, optional F1-F12, TV search, and the Pro tools:
+ * live typing, voice, clipboard and the extra keys sheet.
+ */
+class KeyboardFragment : SurfaceFragment() {
 
     private var _ui: FragmentKeyboardBinding? = null
     private val ui get() = _ui!!
 
-    private val host get() = activity as? MainActivity
-    private val app get() = requireActivity().application as BeamPadApp
+    private var keysSheet: Sheet? = null
 
-    private var keysSheet: BottomSheetDialog? = null
+    /** Modifier bits armed for the next key, cleared after it is sent. */
+    private var modifiers = 0
 
-    private val connectionObserver: (Boolean) -> Unit = { connected ->
-        _ui?.let { view ->
-            // Controls stay live-looking in both states: a greyed screen on
-            // first launch reads as broken rather than as not-yet-paired.
-            // The press is where the difference shows, as a nudge to connect.
-            view.dpad.connected = connected
-            if (!connected) liveBaseline = view.input.text?.toString().orEmpty()
-        }
-    }
+    /** While true, the next send presses Enter, then search mode ends. */
+    private var searchMode = false
+
+    /** Sent this session, newest first. Memory only; never stored. */
+    private val recent = ArrayDeque<String>()
 
     private val entitlementObserver: (Entitlements.Change) -> Unit = { renderTools() }
 
@@ -54,10 +58,10 @@ class KeyboardFragment : Fragment() {
     }
 
     /**
-     * Live typing mirrors the field onto the TV: what was there last time
-     * versus what is there now, as backspaces then new characters. Diffing
-     * the whole field rather than listening for keys also covers autocorrect
-     * and voice input, which replace text instead of typing it.
+     * Live typing mirrors the field onto the device: what was there last
+     * time versus what is there now, as backspaces then new characters.
+     * Diffing the whole field rather than listening for keys also covers
+     * autocorrect and voice input, which replace text instead of typing it.
      */
     private var liveBaseline = ""
     private var suppressWatcher = false
@@ -69,9 +73,9 @@ class KeyboardFragment : Fragment() {
         override fun afterTextChanged(s: Editable?) {
             if (suppressWatcher || !liveTyping()) return
             val now = s?.toString().orEmpty()
-            val service = requireConnection()
+            val service = service()
             if (service == null) {
-                // Nothing reached the TV, so nothing is owed to it later.
+                // Nothing reached the device, so nothing is owed to it later.
                 liveBaseline = now
                 return
             }
@@ -85,72 +89,167 @@ class KeyboardFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, state: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         _ui = FragmentKeyboardBinding.inflate(inflater, container, false)
         return ui.root
     }
 
     override fun onViewCreated(view: View, state: Bundle?) {
-        ui.send.setOnClickListener { submit() }
+        ui.send.setOnClickListener {
+            Haptics.tick(it)
+            submit()
+        }
 
-        // Pressing send on the phone's own keyboard also presses Enter on the
-        // TV, so a search box or password field submits. The Send button
-        // types the text without Enter, for fields that should not submit.
+        // The phone keyboard's action key also presses Enter on the device
+        // (per the Enter setting), so a search box or password field submits.
+        // The Send button types without Enter, for fields that should not.
         ui.input.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-                if (liveTyping()) pressEnterLive() else sendInput(withEnter = true)
+                val enter = searchMode || app.prefs.enterBehavior == Prefs.EnterBehavior.SEND_AND_ENTER
+                if (liveTyping()) pressEnterLive() else sendInput(withEnter = enter)
                 true
             } else false
         }
         ui.input.addTextChangedListener(liveWatcher)
 
-        ui.dpad.onKey = { k ->
-            buzz(ui.dpad)
-            when (k) {
-                DpadView.Key.UP -> key(HidReports.KEY_UP)
-                DpadView.Key.DOWN -> key(HidReports.KEY_DOWN)
-                DpadView.Key.LEFT -> key(HidReports.KEY_LEFT)
-                DpadView.Key.RIGHT -> key(HidReports.KEY_RIGHT)
-                DpadView.Key.OK -> key(HidReports.KEY_ENTER)
-            }
-        }
-
-        // Escape rather than the consumer Back usage: Android TV honours it
-        // more consistently.
-        tap(ui.back) { key(HidReports.KEY_ESC) }
-        tap(ui.backspace) { key(HidReports.KEY_BACKSPACE) }
-
-        tap(ui.home) { consumer(HidReports.CC_HOME) }
-        tap(ui.menu) { consumer(HidReports.CC_MENU) }
-        tap(ui.rewind) { consumer(HidReports.CC_SCAN_PREV) }
-        tap(ui.playPause) { consumer(HidReports.CC_PLAY_PAUSE) }
-        tap(ui.forward) { consumer(HidReports.CC_SCAN_NEXT) }
-
-        tap(ui.volUp) { consumer(HidReports.CC_VOLUME_UP) }
-        tap(ui.volDown) { consumer(HidReports.CC_VOLUME_DOWN) }
-        tap(ui.mute) { consumer(HidReports.CC_MUTE) }
-
         ui.mic.setOnClickListener { startVoice() }
         ui.chipLive.setOnClickListener { toggleLive() }
+        ui.chipSearch.setOnClickListener { startTvSearch() }
         ui.chipPaste.setOnClickListener { pasteClipboard() }
         ui.chipKeys.setOnClickListener { showKeys() }
 
-        ui.scroll.addOnLayoutChangeListener { v, _, top, _, bottom, _, oldTop, _, oldBottom ->
-            if (bottom - top != oldBottom - oldTop) v.post { fitDpad() }
+        bindNav(ui.esc, HidReports.KEY_ESC)
+        bindNav(ui.tab, HidReports.KEY_TAB)
+        bindNav(ui.enter, HidReports.KEY_ENTER)
+        bindNav(ui.space, HidReports.KEY_SPACE)
+        bindNavRepeating(ui.up, HidReports.KEY_UP)
+        bindNavRepeating(ui.down, HidReports.KEY_DOWN)
+        bindNavRepeating(ui.left, HidReports.KEY_LEFT)
+        bindNavRepeating(ui.right, HidReports.KEY_RIGHT)
+        bindNavRepeating(ui.backspace, HidReports.KEY_BACKSPACE)
+        bind(ui.home, Action.Consumer(HidReports.CC_HOME))
+
+        listOf(
+            ui.modCtrl to HidReports.MOD_LEFT_CTRL,
+            ui.modAlt to HidReports.MOD_LEFT_ALT,
+            ui.modShift to HidReports.MOD_LEFT_SHIFT,
+            ui.modMeta to HidReports.MOD_LEFT_META
+        ).forEach { (button, bit) ->
+            button.setOnClickListener {
+                if (!requireProKeys()) return@setOnClickListener
+                Haptics.tick(it)
+                modifiers = modifiers xor bit.toInt()
+                renderModifiers()
+            }
         }
 
+        buildFunctionKeys()
         app.observeEntitlement(entitlementObserver)
         renderTools()
-        host?.observeConnection(connectionObserver)
+        renderRecent()
     }
 
     override fun onResume() {
         super.onResume()
-        // Pro may have started or lapsed while another screen was open.
+        // Pro may have started or lapsed, and settings may have changed.
         renderTools()
+        val prefs = app.prefs
+        ui.modsRow.isVisible = prefs.showModifiers
+        ui.fkeysScroll.isVisible = prefs.showFunctionKeys
+        val scale = ControlSizing.scale(requireContext())
+        listOf(ui.esc, ui.up, ui.backspace, ui.tab, ui.left, ui.down, ui.right, ui.enter, ui.space, ui.home)
+            .forEach { it.updateLayoutParams { height = (dp(56) * scale).roundToInt() } }
     }
+
+    override fun onConnectionChanged(connected: Boolean, changed: Boolean) {
+        if (!connected) liveBaseline = ui.input.text?.toString().orEmpty()
+    }
+
+    // ---- Keys -----------------------------------------------------------------
+
+    private fun bindNav(view: View, code: Byte) {
+        view.setOnClickListener {
+            Haptics.tick(it)
+            sendKey(code)
+        }
+    }
+
+    /** Arrows and Backspace repeat while held; armed modifiers apply to the first press only. */
+    private fun bindNavRepeating(view: View, code: Byte) {
+        val repeat = object : Runnable {
+            override fun run() {
+                if (!view.isPressed) return
+                service(nudge = false)?.typeKey(HidReports.MOD_NONE, code)
+                view.postDelayed(this, REPEAT_INTERVAL_MS)
+            }
+        }
+        @Suppress("ClickableViewAccessibility")
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    v.isPressed = true
+                    Haptics.tick(v)
+                    sendKey(code)
+                    v.postDelayed(repeat, REPEAT_DELAY_MS)
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    v.isPressed = false
+                    v.removeCallbacks(repeat)
+                }
+            }
+            true
+        }
+        view.setOnClickListener { sendKey(code) }
+    }
+
+    private fun sendKey(code: Byte) {
+        val service = service() ?: return
+        service.typeKey(modifiers.toByte(), code)
+        clearModifiers()
+    }
+
+    private fun clearModifiers() {
+        if (modifiers == 0) return
+        modifiers = 0
+        renderModifiers()
+    }
+
+    private fun renderModifiers() {
+        ui.modCtrl.isSelected = modifiers and HidReports.MOD_LEFT_CTRL.toInt() != 0
+        ui.modAlt.isSelected = modifiers and HidReports.MOD_LEFT_ALT.toInt() != 0
+        ui.modShift.isSelected = modifiers and HidReports.MOD_LEFT_SHIFT.toInt() != 0
+        ui.modMeta.isSelected = modifiers and HidReports.MOD_LEFT_META.toInt() != 0
+    }
+
+    private fun buildFunctionKeys() {
+        val inflater = layoutInflater
+        for (n in 1..12) {
+            val key = inflater.inflate(R.layout.ui_key_small, ui.fkeys, false) as MaterialButton
+            key.text = getString(R.string.act_f_template, n)
+            key.updateLayoutParams<LinearLayout.LayoutParams> {
+                width = dp(56)
+                weight = 0f
+                if (n > 1) marginStart = dp(8)
+            }
+            val code = HidReports.functionKey(n)
+            key.setOnClickListener {
+                if (!requireProKeys()) return@setOnClickListener
+                Haptics.tick(it)
+                sendKey(code)
+            }
+            ui.fkeys.addView(key)
+        }
+    }
+
+    /** Modifiers and function keys are part of Pro keys; navigation keys are free. */
+    private fun requireProKeys(): Boolean {
+        val context = requireContext()
+        if (Features.isPro(context)) return true
+        ProActivity.open(context, Features.Pro.PRO_KEYS)
+        return false
+    }
+
+    // ---- Tools ------------------------------------------------------------------
 
     private fun liveTyping(): Boolean = context?.let { Features.liveTyping(it) } == true
 
@@ -164,140 +263,31 @@ class KeyboardFragment : Fragment() {
 
         val live = liveTyping()
         ui.chipLive.isSelected = live
-        ui.input.setHint(if (live) R.string.keyboard_hint_live else R.string.keyboard_hint)
+        ui.chipSearch.isSelected = searchMode
+        ui.input.setHint(
+            when {
+                searchMode -> R.string.keyboard_hint_search
+                live -> R.string.keyboard_hint_live
+                else -> R.string.keyboard_hint
+            }
+        )
         ui.send.setIconResource(
             if (live) R.drawable.ic_arrow_elbow_down_left else R.drawable.ic_paper_plane_right
         )
         ui.send.contentDescription = getString(if (live) R.string.key_enter else R.string.keyboard_send)
     }
 
-    /** Compact keys and gaps, for screens where the normal remote cannot fit. */
-    private var compact = false
-
-    /** Height of everything but the D-pad in the normal layout. */
-    private var normalFixed = 0
-
-    /**
-     * Sizes the D-pad row to the room that is left: tall phones get a big
-     * pad, short or zoomed ones a smaller pad instead of a cut-off remote.
-     * When even the smallest pad will not fit, keys and gaps tighten too.
-     * Re-run whenever the tab changes height, as when a banner loads.
-     *
-     * The compact decision uses the normal layout's measurement, so
-     * tightening cannot make room that flips it straight back.
-     */
-    private fun fitDpad() {
-        val ui = _ui ?: return
-        val viewport = ui.scroll.height
-        if (viewport == 0) return
-
-        val fixed = fixedHeight(ui)
-        if (!compact) normalFixed = fixed
-
-        val needCompact = viewport - normalFixed - dp(MIN_SLACK_DP) < dp(DPAD_MIN_DP)
-        if (needCompact != compact) {
-            compact = needCompact
-            applyCompact(ui, needCompact)
-            ui.scroll.post { fitDpad() }
-            return
-        }
-
-        val slack = dp(if (compact) COMPACT_SLACK_DP else MIN_SLACK_DP)
-        val min = dp(if (compact) DPAD_MIN_COMPACT_DP else DPAD_MIN_DP)
-        val target = (viewport - fixed - slack).coerceIn(min, dp(DPAD_MAX_DP))
-        val rowParams = ui.dpadRow.layoutParams
-        if (rowParams.height != target) {
-            rowParams.height = target
-            ui.dpadRow.layoutParams = rowParams
-        }
-    }
-
-    private fun fixedHeight(ui: FragmentKeyboardBinding): Int {
-        var fixed = ui.column.paddingTop + ui.column.paddingBottom
-        for (child in listOf(ui.inputRow, ui.toolsRow, ui.navRow, ui.mediaRow)) {
-            val lp = child.layoutParams as ViewGroup.MarginLayoutParams
-            fixed += child.height + lp.topMargin + lp.bottomMargin
-        }
-        val rowParams = ui.dpadRow.layoutParams as ViewGroup.MarginLayoutParams
-        return fixed + rowParams.topMargin + rowParams.bottomMargin
-    }
-
-    private fun applyCompact(ui: FragmentKeyboardBinding, on: Boolean) {
-        fun size(view: View, heightDp: Int, widthDp: Int? = null) {
-            val lp = view.layoutParams
-            lp.height = dp(heightDp)
-            if (widthDp != null) lp.width = dp(widthDp)
-            view.layoutParams = lp
-        }
-        fun top(view: View, marginDp: Int) {
-            val lp = view.layoutParams as ViewGroup.MarginLayoutParams
-            lp.topMargin = dp(marginDp)
-            view.layoutParams = lp
-        }
-
-        size(ui.inputField, if (on) 48 else 56)
-        size(ui.send, if (on) 48 else 56, if (on) 48 else 56)
-        listOf(ui.chipLive, ui.chipPaste, ui.chipKeys).forEach { size(it, if (on) 34 else 38) }
-        listOf(ui.home, ui.back, ui.menu).forEach { size(it, if (on) 42 else 48) }
-        listOf(ui.rewind, ui.playPause, ui.forward).forEach { size(it, if (on) 42 else 52) }
-        top(ui.toolsRow, if (on) 6 else 10)
-        listOf(ui.navRow, ui.dpadRow, ui.mediaRow).forEach { top(it, if (on) 8 else 12) }
-        ui.column.setPadding(
-            ui.column.paddingLeft, dp(if (on) 2 else 4),
-            ui.column.paddingRight, dp(if (on) 8 else 12)
-        )
-    }
-
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
-
-    /** Short tick on every key, when the user has haptics on. */
-    private fun buzz(view: View) {
-        if (app.prefs.haptics) view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-    }
-
-    private fun tap(view: View, action: () -> Unit) {
-        view.setOnClickListener {
-            buzz(it)
-            action()
-        }
-    }
-
-    private var lastNudge = 0L
-
-    /**
-     * Controls look live whether or not anything is paired, so a press with
-     * no connection has to say so. Rate-limited: one nudge per few seconds,
-     * not one per key.
-     */
-    private fun requireConnection(): HidService? {
-        val service = host?.service
-        if (service != null && service.isReady()) return service
-
-        val now = android.os.SystemClock.uptimeMillis()
-        if (now - lastNudge > NUDGE_INTERVAL_MS) {
-            lastNudge = now
-            context?.let { Toast.makeText(it, R.string.not_connected_hint, Toast.LENGTH_SHORT).show() }
-        }
-        return null
-    }
-
-    private fun consumer(usage: Int) {
-        requireConnection()?.consumerKey(usage)
-    }
-
-    private fun key(code: Byte, modifier: Byte = HidReports.MOD_NONE) {
-        requireConnection()?.typeKey(modifier, code)
-    }
-
     private fun submit() {
-        if (liveTyping()) pressEnterLive() else sendInput(withEnter = false)
+        if (liveTyping()) pressEnterLive() else sendInput(withEnter = searchMode)
     }
 
-    /** In live mode the text is already on the TV; only Enter is left. */
+    /** In live mode the text is already on the device; only Enter is left. */
     private fun pressEnterLive() {
-        val service = requireConnection() ?: return
+        val service = service() ?: return
         service.typeKey(HidReports.MOD_NONE, HidReports.KEY_ENTER)
+        remember(ui.input.text?.toString().orEmpty())
         clearField()
+        endSearch()
     }
 
     private fun clearField() {
@@ -309,22 +299,78 @@ class KeyboardFragment : Fragment() {
 
     private fun sendInput(withEnter: Boolean) {
         val text = ui.input.text?.toString().orEmpty()
-        if (text.isEmpty()) return
+        if (text.isEmpty()) {
+            // An empty send with Enter wanted is just Enter.
+            if (withEnter) sendKey(HidReports.KEY_ENTER)
+            return
+        }
+        val service = service() ?: return
 
-        val service = requireConnection() ?: return
+        // With a modifier armed, a single character is a shortcut: Ctrl+C.
+        if (modifiers != 0 && text.length == 1) {
+            val encoded = HidReports.encode(text[0], app.prefs.layout)
+            if (encoded != null) {
+                val (mod, code) = encoded
+                service.typeKey((mod.toInt() or modifiers).toByte(), code)
+                clearModifiers()
+                clearField()
+                return
+            }
+        }
 
+        remember(text)
         service.typeText(if (withEnter) text + "\n" else text) { _, skipped ->
             activity?.runOnUiThread {
                 if (_ui == null) return@runOnUiThread
                 clearField()
+                endSearch()
                 if (skipped > 0) {
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.chars_skipped, skipped),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), getString(R.string.chars_skipped, skipped), Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    /** Opens the device's search, then the next send types into it and presses Enter. */
+    private fun startTvSearch() {
+        Haptics.tick(ui.chipSearch)
+        service()?.consumerKey(HidReports.CC_SEARCH) ?: return
+        searchMode = true
+        renderTools()
+        ui.input.requestFocus()
+        requireContext().getSystemService(InputMethodManager::class.java)
+            ?.showSoftInput(ui.input, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun endSearch() {
+        if (!searchMode) return
+        searchMode = false
+        renderTools()
+    }
+
+    private fun remember(text: String) {
+        if (text.isBlank()) return
+        recent.remove(text)
+        recent.addFirst(text)
+        while (recent.size > MAX_RECENT) recent.removeLast()
+        renderRecent()
+    }
+
+    private fun renderRecent() {
+        val ui = _ui ?: return
+        ui.recentList.removeAllViews()
+        ui.emptyHint.isVisible = recent.isEmpty()
+        ui.recentScroll.isVisible = recent.isNotEmpty()
+        recent.forEach { text ->
+            val row = layoutInflater.inflate(R.layout.item_recent, ui.recentList, false)
+            row.findViewById<TextView>(R.id.text).text = text
+            row.setOnClickListener {
+                Haptics.tick(it)
+                val service = service() ?: return@setOnClickListener
+                service.typeText(text) { _, _ -> }
+                remember(text)
+            }
+            ui.recentList.addView(row)
         }
     }
 
@@ -334,16 +380,13 @@ class KeyboardFragment : Fragment() {
             ProActivity.open(context, Features.Pro.LIVE_TYPING)
             return
         }
+        Haptics.tick(ui.chipLive)
         val turningOn = !app.prefs.liveTyping
         app.prefs.liveTyping = turningOn
         // Whatever is already in the field is not retyped when live starts.
         liveBaseline = ui.input.text?.toString().orEmpty()
         renderTools()
-        Toast.makeText(
-            context,
-            if (turningOn) R.string.live_on else R.string.live_off,
-            Toast.LENGTH_SHORT
-        ).show()
+        Toast.makeText(context, if (turningOn) R.string.live_on else R.string.live_off, Toast.LENGTH_SHORT).show()
     }
 
     private fun startVoice() {
@@ -357,17 +400,14 @@ class KeyboardFragment : Fragment() {
             .putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_prompt))
         // Phones without Google's speech service have nothing to answer this.
         val launched = runCatching { speech.launch(intent) }.isSuccess
-        if (!launched) {
-            Toast.makeText(context, R.string.voice_unavailable, Toast.LENGTH_LONG).show()
-        }
+        if (!launched) Toast.makeText(context, R.string.voice_unavailable, Toast.LENGTH_LONG).show()
     }
 
     /** Adds dictated text to the field. In live mode the watcher sends it. */
     private fun insert(text: String) {
         val ui = _ui ?: return
         val current = ui.input.text?.toString().orEmpty()
-        val joined = if (current.isEmpty() || current.endsWith(" ")) current + text
-        else "$current $text"
+        val joined = if (current.isEmpty() || current.endsWith(" ")) current + text else "$current $text"
         ui.input.setText(joined)
         ui.input.setSelection(joined.length)
         ui.input.requestFocus()
@@ -379,54 +419,83 @@ class KeyboardFragment : Fragment() {
             ProActivity.open(context, Features.Pro.CLIPBOARD)
             return
         }
-        val service = requireConnection() ?: return
+        val service = service() ?: return
         val clip = context.getSystemService(ClipboardManager::class.java)?.primaryClip
-        val text = clip?.takeIf { it.itemCount > 0 }
-            ?.getItemAt(0)
-            ?.coerceToText(context)
-            ?.toString()
-            .orEmpty()
+        val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
         if (text.isBlank()) {
             Toast.makeText(context, R.string.clipboard_empty, Toast.LENGTH_SHORT).show()
             return
         }
-        service.typeText(text) { sent, _ ->
-            activity?.runOnUiThread {
-                if (_ui == null) return@runOnUiThread
-                Toast.makeText(
-                    requireContext(),
-                    resources.getQuantityString(R.plurals.clipboard_sent, sent, sent),
-                    Toast.LENGTH_SHORT
-                ).show()
+        val send = {
+            service.typeText(text) { sent, _ ->
+                activity?.runOnUiThread {
+                    if (_ui == null) return@runOnUiThread
+                    Toast.makeText(
+                        requireContext(),
+                        resources.getQuantityString(R.plurals.clipboard_sent, sent, sent),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
+        }
+        // The clipboard can hold anything; with confirmation on, the user
+        // sees what is about to be typed before it leaves the phone.
+        if (app.prefs.confirmClipboard) {
+            Sheets.confirm(
+                context,
+                getString(R.string.clipboard_confirm_title),
+                text.take(CLIPBOARD_PREVIEW),
+                getString(R.string.clipboard_confirm_send)
+            ) { send() }
+        } else {
+            send()
         }
     }
 
+    /** Pro keys: navigation and shortcuts a phone keyboard has no way to send. */
     private fun showKeys() {
         val context = requireContext()
         if (!Features.isPro(context)) {
             ProActivity.open(context, Features.Pro.PRO_KEYS)
             return
         }
-        val sheetUi = SheetKeysBinding.inflate(layoutInflater)
-        val keys = listOf(
-            sheetUi.kTab to HidReports.KEY_TAB,
-            sheetUi.kEsc to HidReports.KEY_ESC,
-            sheetUi.kEnter to HidReports.KEY_ENTER,
-            sheetUi.kHome to HidReports.KEY_HOME,
-            sheetUi.kEnd to HidReports.KEY_END,
-            sheetUi.kDelete to HidReports.KEY_DELETE,
-            sheetUi.kPageUp to HidReports.KEY_PAGE_UP,
-            sheetUi.kPageDown to HidReports.KEY_PAGE_DOWN
-        )
-        keys.forEach { (button, code) -> tap(button) { key(code) } }
-        tap(sheetUi.kSelectAll) { key(HidReports.KEY_A, HidReports.MOD_LEFT_CTRL) }
-
         keysSheet?.dismiss()
-        keysSheet = BottomSheetDialog(context).apply {
-            setContentView(sheetUi.root)
-            show()
+        val sheet = Sheet(context)
+            .title(getString(R.string.keys_title))
+            .subtitle(getString(R.string.keys_body))
+        val groups = listOf(
+            R.string.keys_group_editing to listOf("line_start", "line_end", "page_up", "page_down", "delete", "select_all"),
+            R.string.keys_group_shortcuts to listOf("copy", "cut", "paste", "undo", "zoom_in", "zoom_out"),
+            R.string.keys_group_system to listOf("app_switch", "close_window", "show_desktop", "start_menu", "browser_back", "browser_forward")
+        )
+        groups.forEach { (title, ids) ->
+            sheet.content.addView(TextView(context).apply {
+                setTextAppearance(R.style.Text_Overline)
+                text = getString(title)
+                setPadding(dp(4), dp(16), 0, dp(8))
+            })
+            val grid = GridLayout(context).apply { columnCount = 3 }
+            ids.mapNotNull { Actions.byId(it) }.forEachIndexed { i, named ->
+                val key = layoutInflater.inflate(R.layout.ui_key_small, grid, false) as MaterialButton
+                key.text = Actions.label(context, named)
+                key.layoutParams = GridLayout.LayoutParams(
+                    GridLayout.spec(i / 3), GridLayout.spec(i % 3, 1f)
+                ).apply {
+                    width = 0
+                    height = dp(48)
+                    if (i % 3 > 0) marginStart = dp(8)
+                    if (i >= 3) topMargin = dp(8)
+                }
+                key.setOnClickListener {
+                    Haptics.tick(it)
+                    perform(named.action)
+                }
+                grid.addView(key)
+            }
+            sheet.content.addView(grid)
         }
+        sheet.primary(getString(R.string.done)) { true }
+        keysSheet = sheet.show()
     }
 
     override fun onDestroyView() {
@@ -434,16 +503,11 @@ class KeyboardFragment : Fragment() {
         keysSheet?.dismiss()
         keysSheet = null
         app.stopObservingEntitlement(entitlementObserver)
-        host?.stopObserving(connectionObserver)
         _ui = null
     }
 
     private companion object {
-        const val NUDGE_INTERVAL_MS = 3000L
-        const val DPAD_MIN_DP = 128
-        const val DPAD_MIN_COMPACT_DP = 108
-        const val DPAD_MAX_DP = 230
-        const val MIN_SLACK_DP = 24
-        const val COMPACT_SLACK_DP = 8
+        const val MAX_RECENT = 12
+        const val CLIPBOARD_PREVIEW = 400
     }
 }

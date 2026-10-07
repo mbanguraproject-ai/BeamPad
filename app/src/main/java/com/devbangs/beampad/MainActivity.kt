@@ -765,6 +765,38 @@ class MainActivity : BeamActivity() {
             currentTab != R.id.tab_snippets &&
             service?.state != HidService.State.CONNECTING
 
+    /**
+     * The phone's volume buttons go to the surface on screen when it wants
+     * them (TV volume on Remote and Media, slides in Presentation), so the
+     * phone can be used without looking at it. Off in Settings restores
+     * the phone's own volume.
+     */
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        val volume = keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP ||
+            keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN
+        if (volume && prefs.volumeButtons) {
+            val surface = controlFragment()?.currentSurface()
+            if (surface != null && surface.onVolumeKey(keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP)) {
+                volumeKeyConsumed = true
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    /** Swallows the matching key-up too, or the phone plays its volume click. */
+    override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        val volume = keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP ||
+            keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN
+        if (volume && volumeKeyConsumed) {
+            volumeKeyConsumed = false
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
+    }
+
+    private var volumeKeyConsumed = false
+
     override fun onPause() {
         super.onPause()
         resumed = false
