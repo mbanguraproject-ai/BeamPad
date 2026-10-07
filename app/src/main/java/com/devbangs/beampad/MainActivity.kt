@@ -31,14 +31,21 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import com.devbangs.beampad.databinding.ActivityMainBinding
 import com.devbangs.beampad.databinding.ItemDeviceBinding
+import com.devbangs.beampad.databinding.RailHeaderBinding
 import com.devbangs.beampad.databinding.SheetDevicesBinding
 import com.devbangs.beampad.databinding.SheetPairBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : BeamActivity() {
 
     private lateinit var ui: ActivityMainBinding
+
+    /** The bottom bar on narrow windows, the side rail on wide ones. */
+    private lateinit var nav: NavigationBarView
+    private var railHeader: RailHeaderBinding? = null
+    private var currentTab = R.id.tab_control
 
     var service: HidService? = null
         private set
@@ -162,16 +169,19 @@ class MainActivity : BeamActivity() {
 
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
+        setUpNavigation()
 
-        // Top inset on the content column, bottom inset on the nav itself:
-        // padding the whole column would leave dead space under the nav and
-        // stop its background short of the screen edge. Cutouts are included
-        // for phones with a notch on the side in landscape.
+        // Top inset on the content column, bottom inset on the bottom bar
+        // itself: padding the whole column would leave dead space under the
+        // bar and stop its background short of the screen edge. With the rail
+        // there is no bottom bar, so the column takes the bottom inset too.
+        // Cutouts are included for phones with a notch on the side in landscape.
+        val railShown = nav === ui.navRail
         ViewCompat.setOnApplyWindowInsetsListener(ui.contentColumn) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            v.updatePadding(bars.left, bars.top, bars.right, 0)
+            v.updatePadding(bars.left, bars.top, bars.right, if (railShown) bars.bottom else 0)
             insets
         }
 
@@ -181,23 +191,27 @@ class MainActivity : BeamActivity() {
             insets
         }
 
-        ui.bottomNav.setOnItemSelectedListener { item ->
-            showTab(item.itemId)
-            true
-        }
+        // The column already keeps the rail clear of the bars; without this
+        // the rail would pad itself a second time.
+        ViewCompat.setOnApplyWindowInsetsListener(ui.navRail) { _, insets -> insets }
 
-        ui.settings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-
+        ui.settings.setOnClickListener { openSettings() }
         ui.getPro.setOnClickListener { ProActivity.open(this, null) }
         ui.statusAction.setOnClickListener { onStatusAction() }
         ui.connectedRow.setOnClickListener { showDevicePicker() }
         ui.disconnect.setOnClickListener { disconnect() }
 
-        if (savedInstanceState == null) {
-            ui.bottomNav.selectedItemId = R.id.tab_control
+        // Select before listening when restoring: the restored tab fragment
+        // is already in place and must not be replaced by a fresh one.
+        if (savedInstanceState != null) {
+            currentTab = savedInstanceState.getInt(KEY_TAB, R.id.tab_control)
+            nav.selectedItemId = currentTab
         }
+        nav.setOnItemSelectedListener { item ->
+            showTab(item.itemId)
+            true
+        }
+        if (savedInstanceState == null) nav.selectedItemId = R.id.tab_control
 
         app.observeEntitlement(entitlementObserver)
         if (!app.entitlements.adsRemoved) {
@@ -217,13 +231,46 @@ class MainActivity : BeamActivity() {
         }
     }
 
+    /**
+     * Wide windows (tablets, unfolded foldables, phones in landscape) get a
+     * side rail instead of the bottom bar. Short ones (phones in landscape)
+     * also drop the header row and move Get Pro and Settings into the rail,
+     * so the control surface keeps enough height. Decided per configuration:
+     * folding, unfolding and rotating recreate the activity.
+     */
+    private fun setUpNavigation() {
+        val config = resources.configuration
+        val wide = config.screenWidthDp >= RAIL_MIN_WIDTH_DP
+        nav = if (wide) ui.navRail else ui.bottomNav
+        ui.navRail.isVisible = wide
+        ui.bottomNav.isVisible = !wide
+        if (wide && config.screenHeightDp < COMPACT_HEIGHT_DP) {
+            ui.headerRow.isVisible = false
+            val header = RailHeaderBinding.inflate(layoutInflater, ui.navRail, false)
+            header.railPro.setOnClickListener { ProActivity.open(this, null) }
+            header.railSettings.setOnClickListener { openSettings() }
+            ui.navRail.addHeaderView(header.root)
+            railHeader = header
+        }
+    }
+
+    private fun openSettings() {
+        startActivity(Intent(this, SettingsActivity::class.java))
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_TAB, currentTab)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // Arriving from the notification while already open: just show Control.
-        if (::ui.isInitialized) ui.bottomNav.selectedItemId = R.id.tab_control
+        if (::ui.isInitialized) nav.selectedItemId = R.id.tab_control
     }
 
     private fun showTab(itemId: Int) {
+        currentTab = itemId
         val tag = "tab_$itemId"
         if (supportFragmentManager.findFragmentByTag(tag)?.isVisible == true) return
         val fragment: Fragment = when (itemId) {
@@ -249,7 +296,7 @@ class MainActivity : BeamActivity() {
         if (current != null) {
             panelId?.let { current.showPanel(it) } ?: mode?.let { current.showMode(it) }
         } else {
-            ui.bottomNav.selectedItemId = R.id.tab_control
+            nav.selectedItemId = R.id.tab_control
         }
     }
 
@@ -478,6 +525,7 @@ class MainActivity : BeamActivity() {
         val pro = app.entitlements.isPro
         ui.proBadge.isVisible = pro
         ui.getPro.isVisible = !pro
+        railHeader?.railPro?.isVisible = !pro
         ui.planLabel.setText(if (pro) R.string.plan_pro_label else R.string.plan_free_label)
     }
 
@@ -638,5 +686,12 @@ class MainActivity : BeamActivity() {
         const val DISCOVERABLE_SECONDS = 180
         const val DAY_MS = 86_400_000L
         const val KEY_LAST_NUDGE = "last_pro_nudge_day"
+        const val KEY_TAB = "tab"
+
+        /** Material's medium window class starts at 600dp. */
+        const val RAIL_MIN_WIDTH_DP = 600
+
+        /** Below this, a header row costs height the controls need. */
+        const val COMPACT_HEIGHT_DP = 480
     }
 }
