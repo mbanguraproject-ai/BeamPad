@@ -58,7 +58,9 @@ class KeyboardFragment : SurfaceFragment() {
             ?.firstOrNull()
             ?.takeIf { it.isNotBlank() }
             ?: return@registerForActivityResult
-        insert(heard)
+        // Spoken into the TV's search: one step, so it goes straight out
+        // with Enter. Anywhere else it lands in the field to check first.
+        if (searchMode) submitSpokenSearch(heard) else insert(heard)
     }
 
     /**
@@ -122,6 +124,11 @@ class KeyboardFragment : SurfaceFragment() {
         ui.mic.setOnClickListener { startVoice() }
         ui.chipLive.setOnClickListener { toggleLive() }
         ui.chipSearch.setOnClickListener { startTvSearch() }
+        // Hold Search to speak the search instead (Pro voice).
+        ui.chipSearch.setOnLongClickListener {
+            startVoiceSearch()
+            true
+        }
         ui.chipPaste.setOnClickListener { pasteClipboard() }
         ui.chipKeys.setOnClickListener { setFull(true) }
         ui.fullType.setOnClickListener {
@@ -531,6 +538,38 @@ class KeyboardFragment : SurfaceFragment() {
         ui.input.requestFocus()
         requireContext().getSystemService(InputMethodManager::class.java)
             ?.showSoftInput(ui.input, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    /**
+     * Voice search in one step (Pro): opens the TV's search, listens, then
+     * types what was heard and presses Enter, with no field to tap through.
+     */
+    private fun startVoiceSearch() {
+        val context = requireContext()
+        if (!Features.isPro(context)) {
+            ProActivity.open(context, Features.Pro.VOICE)
+            return
+        }
+        Haptics.tick(ui.chipSearch)
+        service()?.consumerKey(HidReports.CC_SEARCH) ?: return
+        searchMode = true
+        renderTools()
+        startVoice()
+    }
+
+    private fun submitSpokenSearch(text: String) {
+        val service = service() ?: return
+        typeOut(service, text + "\n") { result ->
+            if (_ui == null) return@typeOut
+            if (result.complete) {
+                remember(text)
+                endSearch()
+            } else if (result.interrupted) {
+                // Nothing lost: what was heard waits in the field.
+                setField(text.drop(result.consumed))
+                toast(getString(R.string.send_interrupted))
+            }
+        }
     }
 
     private fun endSearch() {

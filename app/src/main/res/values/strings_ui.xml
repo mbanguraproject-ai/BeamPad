@@ -47,7 +47,7 @@
 
     <!-- Keyboard -->
     <string name="tool_search">Search</string>
-    <string name="keyboard_hint_search">Search on your device…</string>
+    <string name="keyboard_hint_search">Search on your device… or tap the mic to say it</string>
     <string name="keyboard_empty_hint">Type above with your phone’s keyboard. Autocorrect, swipe and voice all work.</string>
     <string name="keyboard_recent">Sent this session</string>
     <string name="keyboard_send_again">Send again</string>
@@ -552,7 +552,7 @@
     <string name="act_context_menu">Menu key</string>
     <!-- First-time tips, one per control surface -->
     <string name="got_it">Got it</string>
-    <string name="tip_keyboard">Type with your phone’s keyboard, then Send. Turn on Live to send every key as you type.</string>
+    <string name="tip_keyboard">Type with your phone’s keyboard, then Send. Hold Search to say your search instead.</string>
     <string name="tip_remote">Hold an arrow to keep moving. Your phone’s volume buttons change the TV’s volume here.</string>
     <string name="tip_media">Hold rewind or fast-forward to keep scanning. Drag the volume bar to change it.</string>
     <string name="tip_trackpad">Tap to click. Two fingers scroll or right-click. Double-tap and hold to drag.</string>
