@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 11 and below. Credentials must never leave the device: the
-     Keystore key is not exportable, so restored ciphertext is undecryptable
-     anyway, and uploading it serves no purpose. -->
+<!-- Android 11 and below. Snippets never leave the device: the Keystore key
+     is not exportable, so restored ciphertext is undecryptable anyway.
+     Devices, panels, macros and the connection log are described in
+     Settings as stored on this phone only, so they stay out of backups too. -->
 <full-backup-content>
     <exclude domain="sharedpref" path="beampad_snippets.xml" />
+    <exclude domain="sharedpref" path="beampad_devices.xml" />
+    <exclude domain="sharedpref" path="beampad_panels.xml" />
+    <exclude domain="sharedpref" path="beampad_macros.xml" />
+    <exclude domain="sharedpref" path="beampad_log.xml" />
+    <exclude domain="sharedpref" path="beampad_ads.xml" />
 </full-backup-content>

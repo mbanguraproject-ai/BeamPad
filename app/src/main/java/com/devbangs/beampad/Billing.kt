@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -199,6 +200,22 @@ class Billing(
         )
     }
 
+    private var lastRefresh = 0L
+
+    /**
+     * Re-checks purchases and, if they never arrived, the plans. Called as
+     * screens return to the foreground, so a lapsed subscription ends Pro
+     * without a restart and plans appear once Play is reachable again
+     * after an offline launch. At most once a minute.
+     */
+    fun refresh() {
+        val now = SystemClock.elapsedRealtime()
+        if (lastRefresh != 0L && now - lastRefresh < REFRESH_INTERVAL_MS) return
+        lastRefresh = now
+        restore()
+        if (plans.isEmpty()) queryProducts()
+    }
+
     /**
      * Re-checks Play for existing purchases. Safe to call on every launch.
      * [onDone] receives whether Play answered both queries.
@@ -289,4 +306,8 @@ class Billing(
     }
 
     fun stop() = client.endConnection()
+
+    private companion object {
+        const val REFRESH_INTERVAL_MS = 60_000L
+    }
 }

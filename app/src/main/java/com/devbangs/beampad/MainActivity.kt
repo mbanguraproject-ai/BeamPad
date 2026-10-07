@@ -815,6 +815,25 @@ class MainActivity : BeamActivity() {
         renderPlan()
         refreshStatus()
         Updates.resume(this)
+        // A subscription that lapsed while the app was open ends Pro here,
+        // not at the next restart.
+        app.billing.refresh()
+        askForReviewOnReturn()
+    }
+
+    /**
+     * The commonest good session is connect, type, leave: it is counted in
+     * onStop, but the user is gone by then. So the natural pause to ask is
+     * the next return, before any control is in use: not while connected,
+     * and not behind a launch ad or a sheet.
+     */
+    private fun askForReviewOnReturn() {
+        if (!Reviews.shouldAsk(this) || service?.isReady() == true) return
+        ui.root.postDelayed({
+            if (resumed && hasWindowFocus() && sheet == null && service?.isReady() != true) {
+                Reviews.ask(this)
+            }
+        }, REVIEW_ON_RETURN_DELAY_MS)
     }
 
     override fun onStop() {
@@ -850,6 +869,7 @@ class MainActivity : BeamActivity() {
         }
 
         private const val PRO_NUDGE_DELAY_MS = 1600L
+        private const val REVIEW_ON_RETURN_DELAY_MS = 1500L
 
         /** Lets the device settle after connecting before the first macro step. */
         private const val CONNECT_MACRO_DELAY_MS = 800L

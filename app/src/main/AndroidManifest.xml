@@ -16,6 +16,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- The medium pulse on connecting and when a macro finishes goes through
+         Vibrator, which needs this; key ticks use view haptics and do not. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true" />

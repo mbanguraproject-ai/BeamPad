@@ -121,6 +121,12 @@ class ProActivity : BeamActivity() {
         render()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Plans that failed to load offline appear once Play answers.
+        billing.refresh()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         app.stopObservingEntitlement(entitlementObserver)

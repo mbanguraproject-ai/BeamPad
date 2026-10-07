@@ -1,6 +1,6 @@
 BeamPad Privacy Policy
 
-Last updated: September 2026
+Last updated: October 2026
 
 BeamPad does not collect your personal data. It does show ads, and this policy explains exactly what that involves.
 
@@ -10,15 +10,15 @@ Nothing. BeamPad has no accounts, no sign-in, no analytics and no crash reportin
 
 ADVERTISING
 
-BeamPad shows a banner ad, provided by Google AdMob. To serve it, the Google Mobile Ads SDK receives your device's advertising ID, approximate location derived from your IP address, and general device information. That data goes to Google, not to Dev_Bangs, and is handled under Google's own privacy policy at policies.google.com/privacy.
+On the free plan, BeamPad shows ads provided by Google AdMob: a banner in Settings, and a full-screen ad that can appear while the app is opening. To serve them, the Google Mobile Ads SDK receives your device's advertising ID, approximate location derived from your IP address, and general device information. That data goes to Google, not to Dev_Bangs, and is handled under Google's own privacy policy at policies.google.com/privacy.
 
 Where the law requires it, BeamPad asks for your consent before requesting any ad, and you can change that choice at any time under Settings, Ad privacy options.
 
-If you purchase the ad removal, the ad SDK stops requesting ads and the banner is removed.
+With BeamPad Pro, or the earlier ad removal purchase, the ad SDK stops requesting ads and no ads are shown.
 
 PURCHASES
 
-Ad removal is a one-time purchase handled entirely by Google Play. Dev_Bangs never sees your payment details. BeamPad stores only a local flag recording that the purchase was made.
+BeamPad Pro is sold through Google Play as a subscription (and, where offered, a one-time lifetime purchase); earlier versions also sold a one-time ad removal, which keeps working. Payment, free trials, renewal and cancellation are handled entirely by Google Play, and you can cancel a subscription at any time in the Play Store. Dev_Bangs never sees your payment details. BeamPad stores only a local record of what you have bought, which it refreshes from Google Play.
 
 WHAT STAYS ON YOUR DEVICE
 
@@ -26,7 +26,9 @@ Snippets. Text you save, including wifi passwords and logins, is stored only on 
 
 Snippets are never sent over the network. They are not shared with the advertising SDK, with Google Play, or with anyone else. They leave your phone only as keystrokes to the device you paired with.
 
-Settings. Your keyboard layout choice is stored locally.
+Devices, panels, macros and connection history. The names, kinds, labels and profiles you give your devices, the panels and macros you build, and a short history of recent connection events (used by Diagnostics) are stored only on your phone. They are excluded from Android cloud backup and from device-to-device transfer, and are never sent over the network. The connection history leaves your phone only if you choose to share a diagnostics report, and that report never includes anything you typed.
+
+Settings. Your preferences, such as keyboard layout and appearance, are stored locally and may be included in your Android backup.
 
 PERMISSIONS AND WHY THEY ARE NEEDED
 
