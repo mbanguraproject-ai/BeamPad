@@ -67,6 +67,8 @@ class MainActivity : BeamActivity() {
             // The banner lives in Settings, which detaches it there; the app
             // open ad checks the entitlement before every show.
             renderPlan()
+            // Off a Pro surface the moment Pro ends, not at the next tap.
+            controlFragment()?.leaveLockedSurface()
             val message = when (change) {
                 Entitlements.Change.ADS_REMOVED -> R.string.ads_removed
                 Entitlements.Change.PRO_STARTED -> R.string.pro_welcome

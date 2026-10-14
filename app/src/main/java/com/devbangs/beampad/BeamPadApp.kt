@@ -43,6 +43,6 @@ class BeamPadApp : Application() {
         billing = Billing(this, entitlements) { change -> notifyEntitlement(change) }
         billing.start()
         registerActivityLifecycleCallbacks(AppOpenAds)
-        ProPass.scheduleEnd(this)
+        ProPass.watch(this)
     }
 }

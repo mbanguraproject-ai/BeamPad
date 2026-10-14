@@ -56,7 +56,7 @@ class SnippetsFragment : Fragment() {
         val content = ui.content
         content.removeAllViews()
         val all = store.all()
-        val pro = Features.isPro(context)
+        val pro = Features.unlimitedSnippets(context)
 
         if (all.isEmpty()) {
             Ui.empty(content, R.drawable.ic_vault, getString(R.string.snippets_empty_title),

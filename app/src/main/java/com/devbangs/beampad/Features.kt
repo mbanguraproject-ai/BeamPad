@@ -72,8 +72,14 @@ object Features {
     fun gesture(context: Context, direction: Prefs.SwipeDirection): String? =
         if (isPro(context)) app(context).prefs.gesture(direction) else null
 
+    /**
+     * Unlimited snippets come with paid Pro only. Snippets over the cap are
+     * kept when Pro ends, so ones added during a day's pass would outlast it.
+     */
+    fun unlimitedSnippets(context: Context): Boolean = app(context).entitlements.isPro
+
     fun canAddSnippet(context: Context, current: Int): Boolean =
-        isPro(context) || current < FREE_SNIPPET_LIMIT
+        unlimitedSnippets(context) || current < FREE_SNIPPET_LIMIT
 
     /** Per-device preferred mode, default panel and layout. */
     fun profiles(context: Context): Boolean = isPro(context)

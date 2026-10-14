@@ -91,11 +91,13 @@ object RewardedAds {
 
     /**
      * Plays the ready ad over [activity] and returns true, or returns false
-     * when none is ready. [onDone] runs once, when the ad closes or fails to
+     * when none is ready or ads may no longer be shown. [onDone] runs once, when the ad closes or fails to
      * show, with what came of it. No next ad is loaded: the pass it earns
      * lasts longer than an ad stays valid.
      */
     fun show(activity: Activity, onDone: (Outcome) -> Unit): Boolean {
+        // Checked again here: a purchase can turn up while the ad loads.
+        if (!canOffer(activity)) return false
         val current = ad?.takeIf { isReady() } ?: return false
         ad = null
         val context = activity.applicationContext

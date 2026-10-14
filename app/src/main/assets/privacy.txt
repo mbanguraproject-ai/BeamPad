@@ -14,7 +14,7 @@ On the free plan, BeamPad shows ads provided by Google AdMob: a banner in Settin
 
 Where the law requires it, BeamPad asks for your consent before requesting any ad, and you can change that choice at any time under Settings, Ad privacy options.
 
-With BeamPad Pro, or the earlier ad removal purchase, the ad SDK stops requesting ads and no ads are shown.
+With BeamPad Pro, or the earlier ad removal purchase, the ad SDK stops requesting ads and no ads are shown. A day of Pro features earned by watching an ad does not remove ads.
 
 PURCHASES
 

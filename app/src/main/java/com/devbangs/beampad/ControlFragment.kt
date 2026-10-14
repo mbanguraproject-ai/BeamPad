@@ -42,10 +42,16 @@ class ControlFragment : Fragment() {
         val savedPage = enumOrNull<Page>(state?.getString(KEY_PAGE))
         val lastPage = enumOrNull<Page>(prefs.lastPage)
             ?.takeUnless { it == Page.LAUNCH && !Features.isPro(requireContext()) }
+        // A Pro surface saved while Pro was on (a pass, a subscription) is
+        // not brought back after it ended; its restored child is replaced.
+        val lockedSaved = !Features.isPro(requireContext()) && (
+            savedPanel != null || savedPage == Page.LAUNCH ||
+                savedMode?.let { !Features.allowed(requireContext(), it) } == true
+            )
         when {
-            savedPage != null -> page = savedPage
+            savedPage != null && !lockedSaved -> page = savedPage
             state == null && lastPage != null -> page = lastPage
-            savedPanel != null -> panelId = savedPanel
+            savedPanel != null && !lockedSaved -> panelId = savedPanel
             savedMode != null -> mode = savedMode
             prefs.lastPanelId != null && PanelStore(requireContext()).get(prefs.lastPanelId) != null &&
                 Features.isPro(requireContext()) -> panelId = prefs.lastPanelId
@@ -55,14 +61,32 @@ class ControlFragment : Fragment() {
 
         // The child is restored by the fragment manager after recreation;
         // only a first creation needs one added.
-        if (childFragmentManager.findFragmentById(R.id.modeContainer) == null) swapChild(animate = false)
+        if (lockedSaved || childFragmentManager.findFragmentById(R.id.modeContainer) == null) {
+            swapChild(animate = false)
+        }
         buildChips()
     }
 
     override fun onResume() {
         super.onResume()
         // Panels may have been added, renamed or deleted, and Pro may have changed.
-        buildChips()
+        leaveLockedSurface()
+    }
+
+    /**
+     * Pro ended (a pass ran out, a subscription lapsed) while a Pro surface
+     * was showing: back to the keyboard rather than leaving it working.
+     */
+    fun leaveLockedSurface() {
+        // In the background (a pass can end there) a fragment swap would
+        // throw; onResume runs this again when the tab is back.
+        if (_ui == null || !isResumed) return
+        val context = context ?: return
+        val locked = !Features.isPro(context) && (
+            panelId != null || page == Page.LAUNCH ||
+                mode?.let { !Features.allowed(context, it) } == true
+            )
+        if (locked) showMode(ControlMode.KEYBOARD) else buildChips()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

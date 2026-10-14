@@ -53,6 +53,9 @@ abstract class BeamActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        // A pass that ran out while the phone slept is announced now; posted
+        // so the screen counts as resumed when it hears.
+        window.decorView.post { ProPass.check(this) }
         val changed = appliedTheme != Appearance.themeFor(this) ||
             appliedContrast != Prefs(this).highContrast ||
             appliedReducedMotion != Motion.reduced(this)
