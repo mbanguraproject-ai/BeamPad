@@ -31,14 +31,18 @@ class BeamPadApp : Application() {
         entitlementListeners -= listener
     }
 
+    /** Tells every open screen; from billing, and from [ProPass] starting or ending. */
+    fun notifyEntitlement(change: Entitlements.Change) {
+        entitlementListeners.toList().forEach { it(change) }
+    }
+
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this)
         entitlements = Entitlements(this)
-        billing = Billing(this, entitlements) { change ->
-            entitlementListeners.toList().forEach { it(change) }
-        }
+        billing = Billing(this, entitlements) { change -> notifyEntitlement(change) }
         billing.start()
         registerActivityLifecycleCallbacks(AppOpenAds)
+        ProPass.scheduleEnd(this)
     }
 }

@@ -40,7 +40,13 @@ object Features {
 
     private fun app(context: Context) = context.applicationContext as BeamPadApp
 
-    fun isPro(context: Context): Boolean = app(context).entitlements.isPro
+    /**
+     * The gate for every Pro feature: paid Pro, or a day's [ProPass] from a
+     * rewarded ad. What was paid for (ad removal, the Pro page's state) reads
+     * [Entitlements] instead.
+     */
+    fun isPro(context: Context): Boolean =
+        app(context).entitlements.isPro || ProPass.active(context)
 
     fun liveTyping(context: Context): Boolean =
         isPro(context) && app(context).prefs.liveTyping

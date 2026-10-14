@@ -71,6 +71,10 @@ class MainActivity : BeamActivity() {
                 Entitlements.Change.ADS_REMOVED -> R.string.ads_removed
                 Entitlements.Change.PRO_STARTED -> R.string.pro_welcome
                 Entitlements.Change.PRO_ENDED -> null
+                // The Pro page confirms a pass as it closes.
+                Entitlements.Change.PASS_STARTED -> null
+                // Features lock under the user's hands: say why.
+                Entitlements.Change.PASS_ENDED -> R.string.pass_ended
             }
             if (message != null && resumed) {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -633,12 +637,13 @@ class MainActivity : BeamActivity() {
     }
 
     private fun renderPlan() {
-        val pro = app.entitlements.isPro
-        ui.proBadge.isVisible = pro
-        ui.getPro.isVisible = !pro
+        // A day's pass unlocks the features, not the plan: Get Pro stays.
+        val paid = app.entitlements.isPro
+        ui.proBadge.isVisible = paid
+        ui.getPro.isVisible = !paid
         // The palette is Pro; on free the top bar keeps its room for the
         // device's name and state, and the paywall lists the palette.
-        ui.commands.isVisible = pro
+        ui.commands.isVisible = Features.isPro(this)
     }
 
     /** One gentle bounce, at most once a day, so the button is noticed without nagging. */

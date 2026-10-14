@@ -144,6 +144,21 @@
     <string name="pro_subtitle_active">Everything below is unlocked. Thanks for supporting BeamPad.</string>
     <string name="pro_highlight">%1$s is part of Pro</string>
     <string name="pro_welcome">Welcome to BeamPad Pro. Everything is unlocked.</string>
+
+    <!-- Pro pass: a day of Pro features for watching a rewarded ad -->
+    <string name="pass_title">Or try Pro for a day</string>
+    <string name="pass_body">Watch a short ad and every Pro feature is yours for the next 24 hours. Nothing to pay or cancel. Ads still show.</string>
+    <string name="pass_watch">Watch a short ad</string>
+    <string name="pass_loading">Loading the ad…</string>
+    <string name="pass_no_ad">No ad is available right now. Try again in a little while.</string>
+    <string name="pass_not_earned">Watch the ad to the end to unlock Pro for a day.</string>
+    <string name="pass_started">Pro is unlocked for the next 24 hours.</string>
+    <string name="pass_active_title">Your Pro pass is on</string>
+    <plurals name="pass_hours_left">
+        <item quantity="one">Every Pro feature is unlocked for %1$d more hour. Ads still show.</item>
+        <item quantity="other">Every Pro feature is unlocked for %1$d more hours. Ads still show.</item>
+    </plurals>
+    <string name="pass_ended">Your Pro pass has ended. Get Pro to keep every feature.</string>
     <string name="feat_no_ads">No ads</string>
     <string name="feat_no_ads_body">A clean remote, nothing between you and the TV</string>
     <string name="feat_live">Live typing</string>
@@ -236,6 +251,7 @@
     <string name="settings_pro_body">Custom panels, macros, device profiles, presentation mode and no ads.</string>
     <string name="settings_pro_active">BeamPad Pro is active</string>
     <string name="settings_pro_active_body">Thanks for your support. Tap to see or manage your plan.</string>
+    <string name="settings_pass_active">Pro pass active</string>
     <string name="settings_connection">CONNECTION</string>
     <string name="settings_reconnect">Reconnect automatically</string>
     <string name="settings_reconnect_hint">Connect to your last TV when BeamPad opens</string>

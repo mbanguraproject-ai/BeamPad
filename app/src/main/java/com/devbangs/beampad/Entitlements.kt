@@ -41,7 +41,8 @@ class Entitlements(context: Context) {
     val adsRemoved: Boolean
         get() = removeAdsPurchased || isPro
 
-    enum class Change { ADS_REMOVED, PRO_STARTED, PRO_ENDED }
+    /** What open screens are told. The PASS_ ones are a [ProPass] starting or running out. */
+    enum class Change { ADS_REMOVED, PRO_STARTED, PRO_ENDED, PASS_STARTED, PASS_ENDED }
 
     companion object {
         const val PRODUCT_REMOVE_ADS = "remove_ads"

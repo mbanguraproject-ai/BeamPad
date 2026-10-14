@@ -161,6 +161,46 @@
                 android:paddingBottom="6dp"
                 android:visibility="gone" />
 
+            <!-- A day of Pro for watching a short ad, offered only while ads
+                 can be requested. Below the plans so it never outranks them.
+                 Filled in from ProPass and RewardedAds. -->
+            <LinearLayout
+                android:id="@+id/passCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/passTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pass_title"
+                    android:textAppearance="@style/Text.Subtitle"
+                    android:textColor="?attr/bpText" />
+
+                <TextView
+                    android:id="@+id/passBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/pass_body"
+                    android:textAppearance="@style/Text.Small" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/passWatch"
+                    style="@style/Widget.BeamPad.SecondaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/pass_watch"
+                    app:icon="@drawable/ic_play_fill" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/featuresHeader"
                 style="@style/SectionHeader"
