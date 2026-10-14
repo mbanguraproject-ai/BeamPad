@@ -146,19 +146,19 @@
     <string name="pro_welcome">Welcome to BeamPad Pro. Everything is unlocked.</string>
 
     <!-- Pro pass: a day of Pro features for watching a rewarded ad -->
-    <string name="pass_title">Or try Pro for a day</string>
-    <string name="pass_body">Watch a short ad and every Pro feature is yours for the next 24 hours. Nothing to pay or cancel. Ads still show.</string>
+    <string name="pass_title">Or try Pro features for a day</string>
+    <string name="pass_body">Watch a short ad to use Pro features for 24 hours: the full keyboard, panels, macros, Launch and more. Ads keep showing, and unlimited snippets stay with paid Pro. Nothing to pay or cancel.</string>
     <string name="pass_watch">Watch a short ad</string>
     <string name="pass_loading">Loading the ad…</string>
     <string name="pass_no_ad">No ad is available right now. Try again in a little while.</string>
     <string name="pass_not_earned">Watch the ad to the end to unlock Pro for a day.</string>
-    <string name="pass_started">Pro is unlocked for the next 24 hours.</string>
+    <string name="pass_started">Pro features are unlocked for 24 hours. Ads keep showing.</string>
     <string name="pass_active_title">Your Pro pass is on</string>
     <plurals name="pass_hours_left">
-        <item quantity="one">Every Pro feature is unlocked for %1$d more hour. Ads still show.</item>
-        <item quantity="other">Every Pro feature is unlocked for %1$d more hours. Ads still show.</item>
+        <item quantity="one">Pro features are unlocked for %1$d more hour. Ads keep showing.</item>
+        <item quantity="other">Pro features are unlocked for %1$d more hours. Ads keep showing.</item>
     </plurals>
-    <string name="pass_ended">Your Pro pass has ended. Get Pro to keep every feature.</string>
+    <string name="pass_ended">Your Pro pass has ended. Get Pro to keep these features.</string>
     <string name="feat_no_ads">No ads</string>
     <string name="feat_no_ads_body">A clean remote, nothing between you and the TV</string>
     <string name="feat_live">Live typing</string>

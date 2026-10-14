@@ -142,6 +142,8 @@ class ProActivity : BeamActivity() {
     override fun onResume() {
         super.onResume()
         resumed = true
+        // In front again (another Pro page may have closed): hear ad loads.
+        RewardedAds.onLoaded = adLoadListener
         // Plans that failed to load offline appear once Play answers.
         billing.refresh()
         // The hours left on a pass move on while the page is away.
@@ -474,6 +476,8 @@ class ProActivity : BeamActivity() {
         val paid = app.entitlements.isPro
         val left = if (paid) 0L else ProPass.remainingMs(this)
         val offer = left == 0L && RewardedAds.canOffer(this)
+        // A purchase, a restore or withdrawn consent ends a wait in progress.
+        if (!offer) stopWaitingForAd()
         ui.passCard.isVisible = left > 0 || offer
         if (left > 0) {
             ui.passTitle.setText(R.string.pass_active_title)

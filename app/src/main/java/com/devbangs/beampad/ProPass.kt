@@ -22,12 +22,21 @@ object ProPass {
     const val DURATION_MS = 24 * 60 * 60 * 1000L
     private const val HOUR_MS = 60 * 60 * 1000L
 
+    /**
+     * How often a running pass is re-checked. The main-thread timer stops
+     * while the phone sleeps, so one long delay would end the pass hours late.
+     */
+    private const val CHECK_MS = 60_000L
+
     private const val FILE = "beampad_pass"
     private const val KEY_STARTED = "started"
     private const val KEY_UNTIL = "until"
 
     private val main = Handler(Looper.getMainLooper())
-    private var end: Runnable? = null
+    private var tick: Runnable? = null
+
+    /** Open screens were told a pass is running and have not yet been told it ended. */
+    private var running = false
 
     fun active(context: Context): Boolean = remainingMs(context) > 0
 
@@ -54,31 +63,47 @@ object ProPass {
             .putLong(KEY_UNTIL, now + DURATION_MS)
             .apply()
         app(context).notifyEntitlement(Entitlements.Change.PASS_STARTED)
-        scheduleEnd(context)
+        watch(context)
     }
 
     /**
-     * Tells open screens when the pass runs out, so features lock while the
-     * app is in use rather than at the next screen change. Called as the
-     * process starts and on each grant. The gates themselves read the clock
-     * every time, so a late timer (the phone asleep) never extends a pass.
+     * Follows a running pass so open screens lock its features when it runs
+     * out, not at the next screen change. Called as the process starts and
+     * on each grant. The gates read the clock on every call, so a late
+     * check never extends a pass; it only delays the announcement.
      */
-    fun scheduleEnd(context: Context) {
-        end?.let { main.removeCallbacks(it) }
-        end = null
+    fun watch(context: Context) {
+        tick?.let { main.removeCallbacks(it) }
+        tick = null
         val left = remainingMs(context)
         if (left <= 0) return
+        running = true
         val app = app(context)
         val task = Runnable {
-            end = null
-            when {
-                active(app) -> scheduleEnd(app)
-                // Bought Pro meanwhile: nothing ends.
-                !app.entitlements.isPro -> app.notifyEntitlement(Entitlements.Change.PASS_ENDED)
-            }
+            tick = null
+            check(app)
         }
-        end = task
-        main.postDelayed(task, left)
+        tick = task
+        main.postDelayed(task, minOf(left, CHECK_MS))
+    }
+
+    /**
+     * Tells open screens, once, that the pass has ended. Run by the timer
+     * and as each screen resumes, so a phone that slept through the end, or
+     * a clock that was changed, is caught at once.
+     */
+    fun check(context: Context) {
+        if (!running) return
+        if (active(context)) {
+            if (tick == null) watch(context)
+            return
+        }
+        running = false
+        tick?.let { main.removeCallbacks(it) }
+        tick = null
+        val app = app(context)
+        // Bought Pro meanwhile: nothing ends.
+        if (!app.entitlements.isPro) app.notifyEntitlement(Entitlements.Change.PASS_ENDED)
     }
 
     private fun app(context: Context) = context.applicationContext as BeamPadApp

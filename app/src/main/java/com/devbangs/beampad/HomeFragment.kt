@@ -157,7 +157,9 @@ class HomeFragment : Fragment() {
             }
             MacroStore(context).all().take(MAX_MACROS).forEach { macro ->
                 Ui.row(card, macro.name, getString(R.string.home_run_macro), R.drawable.ic_magic_wand, Ui.Tone.ACCENT) {
-                    MacroRunSheet.run(requireActivity(), host?.service, macro)
+                    // Drawn while Pro was on; it may have ended since.
+                    if (Features.isPro(context)) MacroRunSheet.run(requireActivity(), host?.service, macro)
+                    else ProActivity.open(context, Features.Pro.MACROS)
                 }
                 Ui.divider(card)
             }
