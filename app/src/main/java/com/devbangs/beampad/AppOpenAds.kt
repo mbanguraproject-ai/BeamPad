@@ -33,9 +33,10 @@ import com.google.android.ump.UserMessagingPlatform
  *
  * Skipped for Pro and remove-ads users, until consent allows ads, during
  * the first [MIN_LAUNCHES] launches (onboarding and first pairing must not
- * meet an ad), when the screen is restored rather than launched, and within
- * [MIN_INTERVAL_MS] of the last one. [Ads.start] has already set up the SDK
- * (and, in debug builds only, the test devices) by the time [onLaunch] runs.
+ * meet an ad), and when the screen is restored rather than launched. Every
+ * other launch gets one, however recent the last. [Ads.start] has already
+ * set up the SDK (and, in debug builds only, the test devices) by the time
+ * [onLaunch] runs.
  */
 object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
@@ -54,15 +55,11 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** Covers an ad that is told to show but never reports back. */
     private const val SHOW_TIMEOUT_MS = 2_000L
 
-    /** A remote is opened many times a day; an ad on every one would drive users off. */
-    private const val MIN_INTERVAL_MS = 30 * 60 * 1000L
-
     /** New users get a few clean launches first, as AdMob recommends. */
     private const val MIN_LAUNCHES = 3
 
     private const val FILE = "beampad_ads"
     private const val KEY_LAUNCHES = "launches"
-    private const val KEY_LAST_SHOWN = "app_open_last_shown"
 
     private var ad: AppOpenAd? = null
     private var loadedAt = 0L
@@ -88,13 +85,11 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         val store = activity.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         val launches = store.getInt(KEY_LAUNCHES, 0) + 1
         store.edit().putInt(KEY_LAUNCHES, launches).apply()
-        val sinceLast = System.currentTimeMillis() - store.getLong(KEY_LAST_SHOWN, 0L)
 
         val reason = when {
             adsRemoved(activity) -> "ads removed"
             launches <= MIN_LAUNCHES -> "launch $launches of the first $MIN_LAUNCHES"
             !consentAllows(activity) -> "no consent yet"
-            sinceLast in 0 until MIN_INTERVAL_MS -> "shown ${sinceLast / 60_000} min ago"
             else -> null
         }
         if (reason != null) {
@@ -181,12 +176,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         main.postDelayed(showTimeout, SHOW_TIMEOUT_MS)
 
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdShowedFullScreenContent() {
-                activity.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit()
-                    .putLong(KEY_LAST_SHOWN, System.currentTimeMillis())
-                    .apply()
-                release()
-            }
+            override fun onAdShowedFullScreenContent() = release()
 
             override fun onAdDismissedFullScreenContent() = release()
 
