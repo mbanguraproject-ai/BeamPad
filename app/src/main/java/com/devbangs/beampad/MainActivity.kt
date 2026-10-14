@@ -263,11 +263,12 @@ class MainActivity : BeamActivity() {
     private var splashUntil = 0L
 
     /**
-     * On a launch the splash plays its animation through, then holds a few
-     * seconds more so the brand registers instead of flashing past, then
+     * On a launch the splash plays its animation through, then holds a
+     * second more so the brand registers instead of flashing past, then
      * fades out. A launch ad loads meanwhile and appears as the splash
-     * ends ([AppOpenAds]). A screen restored after rotation or from recents
-     * is the user carrying on: no hold.
+     * ends, before the app; one still loading keeps the splash up a little
+     * longer ([AppOpenAds]). A screen restored after rotation or from
+     * recents is the user carrying on: no hold.
      */
     private fun holdSplash(splash: SplashScreen, launched: Boolean) {
         if (launched) {
@@ -932,7 +933,7 @@ class MainActivity : BeamActivity() {
         private const val SPLASH_ANIMATION_MS = 700L
 
         /** How long the finished splash stays before the app (or launch ad) appears. */
-        private const val SPLASH_HOLD_MS = 3_000L
+        private const val SPLASH_HOLD_MS = 1_000L
         private const val SPLASH_FADE_MS = 280L
         private const val REVIEW_ON_RETURN_DELAY_MS = 1500L
 

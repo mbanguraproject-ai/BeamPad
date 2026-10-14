@@ -45,8 +45,11 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** AdMob expires app open ads after four hours. */
     private const val MAX_AD_AGE_MS = 4 * 60 * 60 * 1000L
 
-    /** Longest the splash is held past its own time for an ad still loading. */
-    private const val MAX_LATE_WAIT_MS = 2_000L
+    /**
+     * Longest the splash is held past its own time for an ad still loading.
+     * The splash itself is short, so a cold start's first ad usually needs it.
+     */
+    private const val MAX_LATE_WAIT_MS = 3_000L
 
     /** Covers an ad that is told to show but never reports back. */
     private const val SHOW_TIMEOUT_MS = 2_000L
