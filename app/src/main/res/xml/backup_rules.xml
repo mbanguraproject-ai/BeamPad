@@ -10,4 +10,5 @@
     <exclude domain="sharedpref" path="beampad_macros.xml" />
     <exclude domain="sharedpref" path="beampad_log.xml" />
     <exclude domain="sharedpref" path="beampad_ads.xml" />
+    <exclude domain="sharedpref" path="beampad_pass.xml" />
 </full-backup-content>

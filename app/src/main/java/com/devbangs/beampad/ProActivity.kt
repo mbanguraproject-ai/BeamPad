@@ -33,6 +33,9 @@ import kotlin.math.roundToInt
  * renews, and how to cancel stated next to the button, before the user taps
  * it. The fine print under the button carries all four for the selected
  * plan, and changes with it.
+ *
+ * Below the plans, free users can also watch a short rewarded ad for a day
+ * of Pro features ([ProPass]); a running pass shows what is left of it.
  */
 class ProActivity : BeamActivity() {
 
@@ -43,6 +46,13 @@ class ProActivity : BeamActivity() {
     private var selected: Billing.Plan? = null
 
     private val entitlementObserver: (Entitlements.Change) -> Unit = { render() }
+
+    private var resumed = false
+
+    /** The pass button was tapped before an ad was ready; one is loading. */
+    private var waitingForAd = false
+    private val adWaitOver = Runnable { onAdWaitOver() }
+    private val adLoadListener: (Boolean) -> Unit = { ok -> onAdLoaded(ok) }
 
     private data class Feature(
         val which: Features.Pro,
@@ -109,6 +119,7 @@ class ProActivity : BeamActivity() {
         ui.terms.setOnClickListener { openDoc("terms.txt", R.string.terms_title) }
         ui.privacy.setOnClickListener { openDoc("privacy.txt", R.string.privacy_title) }
         ui.cta.setOnClickListener { onCta() }
+        ui.passWatch.setOnClickListener { watchForPass() }
 
         val highlight = Features.Pro.of(intent.getStringExtra(EXTRA_FEATURE))
         features.firstOrNull { it.which == highlight }?.let {
@@ -121,14 +132,30 @@ class ProActivity : BeamActivity() {
         billing.onPlansChanged = { render() }
         billing.onPurchaseOutcome = { outcome -> onOutcome(outcome) }
         app.observeEntitlement(entitlementObserver)
+        RewardedAds.onLoaded = adLoadListener
 
         render()
+        // Ready before the tap, so the ad plays at once.
+        if (!ProPass.active(this)) RewardedAds.load(this)
     }
 
     override fun onResume() {
         super.onResume()
+        resumed = true
         // Plans that failed to load offline appear once Play answers.
         billing.refresh()
+        // The hours left on a pass move on while the page is away.
+        renderPass()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        resumed = false
+        // Left while an ad was loading: never start one behind the user's back.
+        if (waitingForAd) {
+            stopWaitingForAd()
+            renderPass()
+        }
     }
 
     override fun onDestroy() {
@@ -136,10 +163,13 @@ class ProActivity : BeamActivity() {
         app.stopObservingEntitlement(entitlementObserver)
         billing.onPlansChanged = null
         billing.onPurchaseOutcome = null
+        if (RewardedAds.onLoaded === adLoadListener) RewardedAds.onLoaded = null
+        stopWaitingForAd()
     }
 
     private fun render() {
         val pro = app.entitlements.isPro
+        renderPass()
         buildFeatures(pro)
 
         val trialDays = billing.plans.firstNotNullOfOrNull { p -> p.freeTrial?.let { trialDays(it) } }
@@ -435,6 +465,91 @@ class ProActivity : BeamActivity() {
         }
     }
 
+    /**
+     * The pass card: the offer of a day of Pro for a short ad, what is left
+     * of a running pass, or nothing (paid Pro, ads removed, or consent that
+     * does not allow ads).
+     */
+    private fun renderPass() {
+        val paid = app.entitlements.isPro
+        val left = if (paid) 0L else ProPass.remainingMs(this)
+        val offer = left == 0L && RewardedAds.canOffer(this)
+        ui.passCard.isVisible = left > 0 || offer
+        if (left > 0) {
+            ui.passTitle.setText(R.string.pass_active_title)
+            ui.passBody.text = ProPass.hoursLeftText(this, left)
+            ui.passWatch.isVisible = false
+        } else if (offer) {
+            ui.passTitle.setText(R.string.pass_title)
+            ui.passBody.setText(R.string.pass_body)
+            ui.passWatch.isVisible = true
+            ui.passWatch.isEnabled = !waitingForAd
+            ui.passWatch.setText(if (waitingForAd) R.string.pass_loading else R.string.pass_watch)
+        }
+    }
+
+    private fun watchForPass() {
+        if (waitingForAd || ProPass.active(this)) return
+        Haptics.tick(ui.passWatch)
+        if (RewardedAds.show(this, ::onPassAd)) return
+        // None ready yet: wait a few seconds for one, then say so.
+        waitingForAd = true
+        renderPass()
+        ui.root.postDelayed(adWaitOver, AD_WAIT_MS)
+        RewardedAds.load(this)
+    }
+
+    private fun onAdLoaded(ok: Boolean) {
+        if (!waitingForAd) return
+        stopWaitingForAd()
+        if (ok && resumed && RewardedAds.show(this, ::onPassAd)) return
+        renderPass()
+        toast(R.string.pass_no_ad)
+    }
+
+    private fun onAdWaitOver() {
+        if (!waitingForAd) return
+        stopWaitingForAd()
+        renderPass()
+        toast(R.string.pass_no_ad)
+    }
+
+    private fun stopWaitingForAd() {
+        waitingForAd = false
+        ui.root.removeCallbacks(adWaitOver)
+    }
+
+    /** The ad has closed. The pass itself was granted as soon as it was earned. */
+    private fun onPassAd(outcome: RewardedAds.Outcome) {
+        val gone = isFinishing || isDestroyed
+        when (outcome) {
+            RewardedAds.Outcome.EARNED -> {
+                toast(R.string.pass_started)
+                if (!gone) {
+                    Haptics.confirm(this)
+                    // Back to whatever sent the user here, now unlocked.
+                    finish()
+                }
+            }
+            RewardedAds.Outcome.NOT_EARNED, RewardedAds.Outcome.UNAVAILABLE -> {
+                toast(
+                    if (outcome == RewardedAds.Outcome.NOT_EARNED) R.string.pass_not_earned
+                    else R.string.pass_no_ad
+                )
+                if (!gone) {
+                    renderPass()
+                    // Another ad, for another try.
+                    RewardedAds.load(this)
+                }
+            }
+        }
+    }
+
+    /** Through the application, so a message still shows if this page has closed. */
+    private fun toast(message: Int) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
+    }
+
     private fun onOutcome(outcome: Billing.Outcome) {
         when (outcome) {
             Billing.Outcome.PURCHASED -> {
@@ -533,6 +648,9 @@ class ProActivity : BeamActivity() {
 
         /** Sentinel for a tick in the comparison table. Not a resource ID. */
         private const val CHECK = -1
+
+        /** How long a tap on the pass button waits for an ad that was not ready. */
+        private const val AD_WAIT_MS = 8_000L
 
         fun open(context: Context, feature: Features.Pro?) {
             context.startActivity(

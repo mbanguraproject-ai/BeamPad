@@ -66,15 +66,23 @@ object Ads {
     private fun isDebuggable(activity: Activity): Boolean =
         (activity.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
+    /**
+     * Runs [block] once consent allows ads and the SDK is started; never for
+     * removed-ads users. Consent was settled as the app opened, so this is
+     * usually immediate, with no second round trip.
+     */
+    fun whenReady(activity: Activity, entitlements: Entitlements, block: () -> Unit) {
+        if (sdkStarted && Consent.canRequestAds) block()
+        else start(activity, entitlements, block)
+    }
+
     /** Shows the banner in [slot] once consent allows. Removed-ads users get nothing. */
     fun attach(activity: Activity, slot: FrameLayout, entitlements: Entitlements) {
         if (entitlements.adsRemoved) {
             detach(slot)
             return
         }
-        // Consent was settled as the app opened; no second round trip.
-        if (sdkStarted && Consent.canRequestAds) show(activity, slot)
-        else start(activity, entitlements) { show(activity, slot) }
+        whenReady(activity, entitlements) { show(activity, slot) }
     }
 
     private fun show(activity: Activity, slot: FrameLayout) {

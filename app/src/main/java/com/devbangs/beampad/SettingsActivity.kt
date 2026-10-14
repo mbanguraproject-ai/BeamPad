@@ -71,7 +71,7 @@ class SettingsActivity : PageActivity() {
         val c = page.content
         val pro = Features.isPro(this)
 
-        plan(c, pro)
+        plan(c)
         connection(c)
         keyboard(c, pro)
         trackpad(c, pro)
@@ -86,15 +86,27 @@ class SettingsActivity : PageActivity() {
 
     // ---- Groups -------------------------------------------------------------------
 
-    private fun plan(c: ViewGroup, pro: Boolean) {
+    private fun plan(c: ViewGroup) {
         Ui.space(c, 4)
         val card = Ui.card(c)
-        val row = Ui.row(card,
-            getString(if (pro) R.string.settings_pro_active else R.string.settings_pro_title),
-            getString(if (pro) R.string.settings_pro_active_body else R.string.settings_pro_body),
+        // Paid Pro, a day's pass from a rewarded ad (which still sells Pro),
+        // or the free plan.
+        val paid = app.entitlements.isPro
+        val passLeft = if (paid) 0L else ProPass.remainingMs(this)
+        val title = when {
+            paid -> getString(R.string.settings_pro_active)
+            passLeft > 0 -> getString(R.string.settings_pass_active)
+            else -> getString(R.string.settings_pro_title)
+        }
+        val body = when {
+            paid -> getString(R.string.settings_pro_active_body)
+            passLeft > 0 -> ProPass.hoursLeftText(this, passLeft)
+            else -> getString(R.string.settings_pro_body)
+        }
+        val row = Ui.row(card, title, body,
             R.drawable.ic_crown_simple_fill, Ui.Tone.ACCENT) { ProActivity.open(this, null) }
         row.subtitle.maxLines = 3
-        if (!pro) {
+        if (!paid) {
             row.trailing.addView(Ui.button(row.trailing, Ui.ButtonKind.SMALL_PRIMARY, getString(R.string.see_pro)) {
                 ProActivity.open(this, null)
             })
