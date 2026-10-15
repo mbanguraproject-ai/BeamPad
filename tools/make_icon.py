@@ -30,6 +30,11 @@ DOT_Y = 50
 DOTS = (42.1, 50.6, 59.1)
 
 BG_TOP, BG_BOTTOM = "#7C6BFF", "#4338CA"
+# The Play listing icon's own background. The launcher gradient, cropped to
+# the visible 72dp, ends dark enough that the band under the stand read as a
+# separate strip in the store; this one stays lighter, with a soft light from
+# the top left, and is dithered so the gradient shows no steps.
+PLAY_BG_TOP, PLAY_BG_BOTTOM = "#7C6BFF", "#5A4AEB"
 SCREEN_TOP, SCREEN_BOTTOM = "#1A1560", "#0D0A38"
 WHITE = "#FFFFFF"
 CURSOR_COLOR = "#46F0C2"
@@ -126,6 +131,20 @@ def gradient_fill(size, top, bottom):
     return Image.composite(Image.new("RGB", size, rgb(bottom)), Image.new("RGB", size, rgb(top)), ramp)
 
 
+def play_background(size):
+    """PLAY_BG_TOP to PLAY_BG_BOTTOM, lit from the top left, with half a level
+    of noise so 8-bit output has no visible bands."""
+    import numpy as np
+    t = np.linspace(0, 1, size)[:, None, None]
+    top, bottom = (np.array(rgb(c), float) for c in (PLAY_BG_TOP, PLAY_BG_BOTTOM))
+    img = np.repeat(top * (1 - t) + bottom * t, size, axis=1)
+    yy, xx = np.mgrid[0:size, 0:size] / size
+    light = np.clip(1 - np.hypot(xx - .22, yy - .12) / .95, 0, 1) ** 2 * 26
+    img += light[..., None] * np.array([1.0, .95, 1.0])
+    img += np.random.default_rng(7).uniform(-.5, .5, img.shape)
+    return Image.fromarray(np.clip(np.round(img), 0, 255).astype("uint8"), "RGB")
+
+
 def play_icon(px=512, ss=4):
     """Render the launcher's visible 72dp crop as the opaque listing icon, so
     the mark is the same size in the store as on the home screen."""
@@ -136,9 +155,7 @@ def play_icon(px=512, ss=4):
     def box(x, y, w, h):
         return [(x - off) * scale, (y - off) * scale, (x + w - off) * scale, (y + h - off) * scale]
 
-    # Background gradient spans the whole 108dp canvas; take the visible band.
-    bg = gradient_fill((full, int(108 * scale)), BG_TOP, BG_BOTTOM)
-    im = bg.crop((0, int(off * scale), full, int(off * scale) + full))
+    im = play_background(full)
     draw = ImageDraw.Draw(im)
 
     x, y, w, h, r = TV
