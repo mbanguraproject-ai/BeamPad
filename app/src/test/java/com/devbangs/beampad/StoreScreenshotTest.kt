@@ -156,7 +156,7 @@ class StoreScreenshotTest {
     @Test
     fun presentation() {
         pro(true)
-        surface(ControlMode.PRESENTATION, "store_7_presentation", "Meeting room projector", DeviceType.PROJECTOR)
+        surface(ControlMode.PRESENTATION, "store_7_presentation", "Meeting room", DeviceType.PROJECTOR)
     }
 
     /** The keystore is not available under Robolectric, so rows are written as stored. */
