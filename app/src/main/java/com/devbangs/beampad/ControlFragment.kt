@@ -134,6 +134,18 @@ class ControlFragment : Fragment() {
         buildChips()
     }
 
+    /**
+     * Runs a switch the user asked for (the mode bar, Home's tiles). One
+     * that lands on another surface is a page transition, where an
+     * interstitial may be due; a device profile switching on connect, or a
+     * tap on the surface already showing, is not.
+     */
+    fun navigate(block: () -> Unit) {
+        val before = Triple(page, mode, panelId)
+        block()
+        if (Triple(page, mode, panelId) != before) activity?.let { InterstitialAds.onTransition(it) }
+    }
+
     /** The surface showing now, for routing hardware keys to it. */
     fun currentSurface(): SurfaceFragment? =
         if (_ui == null) null else childFragmentManager.findFragmentById(R.id.modeContainer) as? SurfaceFragment
@@ -288,7 +300,7 @@ class ControlFragment : Fragment() {
         androidx.appcompat.widget.TooltipCompat.setTooltipText(chip.root, seg.label)
         chip.root.setOnClickListener {
             Haptics.tick(it)
-            seg.onTap()
+            navigate(seg.onTap)
         }
     }
 

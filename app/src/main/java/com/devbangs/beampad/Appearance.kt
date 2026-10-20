@@ -100,6 +100,17 @@ object Haptics {
         runCatching { vibrator.vibrate(effect) }
     }
 
+    /**
+     * The presentation timer's alerts: two short buzzes for a minute left,
+     * three long ones for time's up. Asked for explicitly and meant to be
+     * felt in a pocket, so not tied to the key haptics setting.
+     */
+    fun alert(context: Context, timeUp: Boolean) {
+        val vibrator = vibrator(context) ?: return
+        val pattern = if (timeUp) longArrayOf(0, 420, 160, 420, 160, 420) else longArrayOf(0, 160, 120, 160)
+        runCatching { vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1)) }
+    }
+
     private fun vibrator(context: Context): Vibrator? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             context.getSystemService(VibratorManager::class.java)?.defaultVibrator

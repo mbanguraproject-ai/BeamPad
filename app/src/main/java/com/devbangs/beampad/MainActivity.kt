@@ -171,8 +171,11 @@ class MainActivity : BeamActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Before super.onCreate: it swaps the splash theme for the app theme.
         val splash = installSplashScreen()
+        // A fresh start, or the app back after Android ended its process;
+        // not a rotation or a re-theme.
+        val launched = AppOpenAds.isLaunch(savedInstanceState)
         super.onCreate(savedInstanceState)
-        holdSplash(splash, launched = savedInstanceState == null)
+        holdSplash(splash, launched)
 
         if (OnboardingActivity.shouldShow(this)) {
             // After the splash has played, as on any launch.
@@ -236,18 +239,23 @@ class MainActivity : BeamActivity() {
             nav.selectedItemId = currentTab
         }
         nav.setOnItemSelectedListener { item ->
-            showTab(item.itemId)
+            // A tab the user moves to is a page transition (an interstitial
+            // may be due); the first selection below is not.
+            if (showTab(item.itemId) && navReady && !quietNav) InterstitialAds.onTransition(this)
             true
         }
         if (savedInstanceState == null) nav.selectedItemId = R.id.tab_control
+        navReady = true
 
         app.observeEntitlement(entitlementObserver)
         // Consent and the ad SDK start here, so the app open ad and the
         // privacy options entry point are ready; no banner on this screen.
         Ads.start(this, app.entitlements)
-        // A real launch only; a screen restored after rotation or from
-        // recents is the user carrying on, not opening the app.
-        if (savedInstanceState == null) AppOpenAds.onLaunch(this)
+        // A launch only (including the app coming back after Android ended
+        // its process); a rotation or a re-theme is the user carrying on.
+        if (launched) AppOpenAds.onLaunch(this)
+        // One interstitial loaded ahead for the page transitions.
+        InterstitialAds.preload(this)
         renderPlan()
 
         if (hasBluetoothPermissions()) {
@@ -261,6 +269,43 @@ class MainActivity : BeamActivity() {
             ui.getPro.postDelayed({ nudgeProButton() }, PRO_NUDGE_DELAY_MS)
         }
         if (savedInstanceState == null) Updates.check(this, updateFlow)
+        if (savedInstanceState == null) openShortcut(intent)
+        if (launched) LauncherShortcuts.publish(this)
+    }
+
+    /** True once the first tab is in place; later selections are the user's. */
+    private var navReady = false
+
+    /** Set while the app itself switches tabs (on connect, from a notification): not a transition. */
+    private var quietNav = false
+
+    private fun selectQuietly(tabId: Int) {
+        quietNav = true
+        try {
+            nav.selectedItemId = tabId
+        } finally {
+            quietNav = false
+        }
+    }
+
+    /**
+     * A launcher shortcut (long-press the app icon) names the control
+     * surface to open. Locked ones open the Pro page, as from the mode bar.
+     */
+    private fun openShortcut(intent: Intent?) {
+        val name = intent?.getStringExtra(EXTRA_MODE) ?: return
+        val mode = ControlMode.entries.firstOrNull { it.name == name } ?: return
+        // Read once: a rotation must not reopen it.
+        intent.removeExtra(EXTRA_MODE)
+        if (!Features.allowed(this, mode)) {
+            mode.pro?.let { ProActivity.open(this, it) }
+            return
+        }
+        // Remembered first, so the Control tab opens on it even before it exists.
+        prefs.lastMode = mode
+        prefs.lastPanelId = null
+        prefs.lastPage = null
+        nav.post { if (!isFinishing) openControl(mode = mode, fromUser = false) }
     }
 
     private val splashHandler = Handler(Looper.getMainLooper())
@@ -273,8 +318,9 @@ class MainActivity : BeamActivity() {
      * second more so the brand registers instead of flashing past, then
      * fades out. A launch ad loads meanwhile and appears as the splash
      * ends, before the app; one still loading keeps the splash up a little
-     * longer ([AppOpenAds]). A screen restored after rotation or from
-     * recents is the user carrying on: no hold.
+     * longer, and the splash stays under the ad until it closes, so the app
+     * only appears once the ad is gone ([AppOpenAds]). A screen restored
+     * after rotation is the user carrying on: no hold.
      */
     private fun holdSplash(splash: SplashScreen, launched: Boolean) {
         if (launched) {
@@ -343,13 +389,16 @@ class MainActivity : BeamActivity() {
         super.onNewIntent(intent)
         // Arriving from the notification while already open shows Control;
         // other screens can ask for a tab (Settings opens Devices).
-        if (::ui.isInitialized) nav.selectedItemId = intent.getIntExtra(EXTRA_TAB, R.id.tab_control)
+        if (!::ui.isInitialized) return
+        if (intent.hasExtra(EXTRA_MODE)) openShortcut(intent)
+        else selectQuietly(intent.getIntExtra(EXTRA_TAB, R.id.tab_control))
     }
 
-    private fun showTab(itemId: Int) {
+    /** Shows the tab; false when it was already showing. */
+    private fun showTab(itemId: Int): Boolean {
         currentTab = itemId
         val tag = "tab_$itemId"
-        if (supportFragmentManager.findFragmentByTag(tag)?.isVisible == true) return
+        if (supportFragmentManager.findFragmentByTag(tag)?.isVisible == true) return false
         val fragment: Fragment = when (itemId) {
             R.id.tab_devices -> DevicesFragment()
             R.id.tab_panels -> PanelsFragment()
@@ -359,22 +408,30 @@ class MainActivity : BeamActivity() {
         val tx = supportFragmentManager.beginTransaction()
         if (!Motion.reduced(this)) tx.setCustomAnimations(R.animator.mode_in, R.animator.mode_out)
         tx.replace(R.id.tabContent, fragment, tag).commit()
+        return true
     }
 
     /** The Control tab's fragment, when it is the one showing. */
     fun controlFragment(): ControlFragment? =
         supportFragmentManager.findFragmentById(R.id.tabContent) as? ControlFragment
 
-    /** Switches to the Control tab and the given surface. Used by device profiles and Devices. */
-    fun openControl(mode: ControlMode? = null, panelId: String? = null) {
+    /**
+     * Switches to the Control tab and the given surface. Used by device
+     * profiles and Devices. [fromUser] is false when the app switches on its
+     * own (a profile on connect), which is not a page transition.
+     */
+    fun openControl(mode: ControlMode? = null, panelId: String? = null, fromUser: Boolean = true) {
         if (mode != null) prefs.lastMode = mode
         if (panelId != null) prefs.lastPanelId = panelId else if (mode != null) prefs.lastPanelId = null
         if (mode != null || panelId != null) prefs.lastPage = null
         val current = controlFragment()
         if (current != null) {
-            panelId?.let { current.showPanel(it) } ?: mode?.let { current.showMode(it) }
-        } else {
+            val show = { panelId?.let { current.showPanel(it) } ?: mode?.let { current.showMode(it) } }
+            if (fromUser) current.navigate { show() } else show()
+        } else if (fromUser) {
             nav.selectedItemId = R.id.tab_control
+        } else {
+            selectQuietly(R.id.tab_control)
         }
     }
 
@@ -629,8 +686,8 @@ class MainActivity : BeamActivity() {
         val saved = DeviceStore(this).get(device.address) ?: return
         when {
             saved.defaultPanelId != null && PanelStore(this).get(saved.defaultPanelId) != null ->
-                openControl(panelId = saved.defaultPanelId)
-            saved.preferredMode != null -> openControl(mode = saved.preferredMode)
+                openControl(panelId = saved.defaultPanelId, fromUser = false)
+            saved.preferredMode != null -> openControl(mode = saved.preferredMode, fromUser = false)
         }
         // The profile's connect macro, with the usual progress and Stop.
         saved.connectMacroId?.let { MacroStore(this).get(it) }?.let { macro ->
@@ -924,6 +981,9 @@ class MainActivity : BeamActivity() {
 
     companion object {
         private const val EXTRA_TAB = "tab"
+
+        /** Set by the launcher shortcuts ([LauncherShortcuts]): a [ControlMode] name. */
+        const val EXTRA_MODE = "mode"
 
         /** Brings the main screen forward on [tabId], from a pushed screen. */
         fun openTab(context: Context, tabId: Int) {

@@ -62,6 +62,9 @@ abstract class PageActivity : BeamActivity() {
         }
         Ui.header(page.header.root, title(), subtitle()) { finish() }
         app.observeEntitlement(entitlementObserver)
+        // Opening a page (Settings, a device, an editor) is a page
+        // transition; a page restored after rotation is not.
+        if (savedInstanceState == null) InterstitialAds.onTransition(this)
         if (wantsService) {
             bound = runCatching {
                 bindService(Intent(this, HidService::class.java), connection, 0)

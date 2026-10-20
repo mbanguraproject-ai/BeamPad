@@ -132,6 +132,34 @@ class Prefs(context: Context) {
         get() = bool(KEY_PINCH_ZOOM, true)
         set(value) = putBool(KEY_PINCH_ZOOM, value)
 
+    /** Two-finger flicks keep scrolling and ease off, as on a laptop trackpad. */
+    var momentumScroll: Boolean
+        get() = bool(KEY_MOMENTUM_SCROLL, true)
+        set(value) = putBool(KEY_MOMENTUM_SCROLL, value)
+
+    /**
+     * How often pointer and wheel reports go to the device. Read for every
+     * report, off the main thread, so it avoids allocating.
+     */
+    var linkMode: LinkMode
+        get() {
+            val name = string(KEY_LINK_MODE) ?: return LinkMode.SMOOTH
+            return LinkMode.entries.firstOrNull { it.name == name } ?: LinkMode.SMOOTH
+        }
+        set(value) = putString(KEY_LINK_MODE, value.name)
+
+    // ---- Presentation -----------------------------------------------------
+
+    /** Presentation opens in portrait; this turns it sideways for two-thumb use. */
+    var presentLandscape: Boolean
+        get() = bool(KEY_PRESENT_LANDSCAPE, false)
+        set(value) = putBool(KEY_PRESENT_LANDSCAPE, value)
+
+    /** The talk's length for the timer's alerts, in minutes; 0 for none. */
+    var presentAlertMinutes: Int
+        get() = prefs.getInt(KEY_PRESENT_ALERT, 0)
+        set(value) = prefs.edit().putInt(KEY_PRESENT_ALERT, value).apply()
+
     /** Action ids from [Actions] for three-finger swipes, or null for none. */
     fun gesture(direction: SwipeDirection): String? =
         prefs.getString(KEY_GESTURE_PREFIX + direction.name, direction.defaultAction)
@@ -233,6 +261,17 @@ class Prefs(context: Context) {
 
     enum class RemoteLayout { STANDARD, MINIMAL, FULL }
 
+    /**
+     * Pointer report rate. Smooth suits nearly everything; Fast is for PCs
+     * and recent TVs; Stable is for older TVs, projectors and TV boxes
+     * whose Bluetooth falls behind at higher rates.
+     */
+    enum class LinkMode(val hz: Int) {
+        FAST(125), SMOOTH(90), STABLE(60);
+
+        val intervalNs: Long = 1_000_000_000L / hz
+    }
+
     enum class ButtonSize(val scale: Float) { COMPACT(0.85f), REGULAR(1f), LARGE(1.2f) }
 
     enum class HapticStrength { LIGHT, MEDIUM, STRONG }
@@ -268,6 +307,10 @@ class Prefs(context: Context) {
         private const val KEY_TAP_TO_CLICK = "tap_to_click"
         private const val KEY_TOUCH_RESPONSE = "touch_response"
         private const val KEY_PINCH_ZOOM = "pinch_zoom"
+        private const val KEY_MOMENTUM_SCROLL = "momentum_scroll"
+        private const val KEY_LINK_MODE = "link_mode"
+        private const val KEY_PRESENT_LANDSCAPE = "present_landscape"
+        private const val KEY_PRESENT_ALERT = "present_alert_minutes"
         private const val KEY_GESTURE_PREFIX = "gesture_"
         private const val KEY_REMOTE_LAYOUT = "remote_layout"
         private const val KEY_BUTTON_SIZE = "button_size"

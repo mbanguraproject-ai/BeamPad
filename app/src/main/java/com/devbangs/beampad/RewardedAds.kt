@@ -27,6 +27,7 @@ object RewardedAds {
 
     private const val AD_UNIT = "ca-app-pub-9121922395304175/7281845718"
     private const val TAG = "BeamPadAds"
+    private const val FORMAT = "Rewarded"
 
     /** AdMob expires rewarded ads after an hour. */
     private const val MAX_AD_AGE_MS = 60 * 60 * 1000L
@@ -106,6 +107,8 @@ object RewardedAds {
         fun finish(outcome: Outcome) {
             if (done) return
             done = true
+            AdGate.end(FORMAT)
+            AdGate.log(FORMAT, "ended: ${outcome.name.lowercase()}")
             onDone(outcome)
         }
 
@@ -118,11 +121,19 @@ object RewardedAds {
                 finish(if (earned) Outcome.EARNED else Outcome.UNAVAILABLE)
             }
         }
-        current.show(activity) {
-            if (!earned) {
-                earned = true
-                ProPass.grant(context)
+        // Marked as up before it shows, so no other format can stack on it.
+        AdGate.begin(FORMAT)
+        val started = runCatching {
+            current.show(activity) {
+                if (!earned) {
+                    earned = true
+                    ProPass.grant(context)
+                }
             }
+        }.isSuccess
+        if (!started) {
+            AdGate.end(FORMAT)
+            return false
         }
         return true
     }

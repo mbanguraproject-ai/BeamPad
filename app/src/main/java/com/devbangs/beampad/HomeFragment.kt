@@ -80,7 +80,7 @@ class HomeFragment : Fragment() {
                     if (i > 0) (tile.layoutParams as LinearLayout.LayoutParams).marginStart = gap
                     tile.setOnClickListener {
                         Haptics.tick(it)
-                        control?.showMode(mode)
+                        control?.let { c -> c.navigate { c.showMode(mode) } }
                     }
                     row.addView(tile)
                 }
@@ -151,7 +151,7 @@ class HomeFragment : Fragment() {
             val panel = Prefs(context).lastPanelId?.let { panels.get(it) } ?: panels.all().firstOrNull()
             if (panel != null) {
                 Ui.row(card, panel.name, getString(R.string.home_open_panel), R.drawable.ic_layout, Ui.Tone.ACCENT) {
-                    control?.showPanel(panel.id)
+                    control?.let { c -> c.navigate { c.showPanel(panel.id) } }
                 }
                 Ui.divider(card)
             }

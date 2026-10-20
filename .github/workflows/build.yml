@@ -51,12 +51,17 @@ jobs:
           gh release upload debug-latest BeamPad-debug.apk --clobber
           gh release edit debug-latest --notes "$notes"
 
-  # The Play build: R8 shrinking and lint's release checks only run here,
-  # so a problem that would only show up when publishing fails the push
-  # instead. Unsigned in CI (no keystore); Play signing is unaffected.
+  # The Play build, APK and AAB in one go: R8 shrinking and lint's release
+  # checks only run here, so a problem that would only show up when
+  # publishing fails the push instead. Signed with the upload key when the
+  # repository has it as secrets (KEYSTORE_BASE64, KEYSTORE_PASSWORD,
+  # KEY_ALIAS, KEY_PASSWORD); unsigned otherwise. On main both files are
+  # attached to the GitHub release for the version in app/build.gradle.kts.
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -67,8 +72,65 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Release APK
-        run: ./gradlew --no-daemon assembleRelease
+      - name: Upload key
+        id: key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "No upload key in the repository secrets: building unsigned."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > beampad-release.jks
+          {
+            echo "storeFile=beampad-release.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > keystore.properties
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Release APK and AAB
+        run: ./gradlew --no-daemon assembleRelease bundleRelease
+
+      - name: Collect
+        id: out
+        run: |
+          version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts | head -1)
+          suffix=$([ "${{ steps.key.outputs.signed }}" = "true" ] && echo "" || echo "-unsigned")
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk "dist/BeamPad-$version$suffix.apk"
+          cp app/build/outputs/bundle/release/*.aab "dist/BeamPad-$version$suffix.aab"
+          ls -l dist
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: beampad-release-${{ steps.out.outputs.version }}
+          path: dist/*
+
+      - name: Publish to the release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.out.outputs.version }}
+          SIGNED: ${{ steps.key.outputs.signed }}
+        run: |
+          tag="v$VERSION"
+          if [ "$SIGNED" = "true" ]; then
+            notes="BeamPad $VERSION, signed with the upload key. Built from ${GITHUB_SHA::7}."
+          else
+            notes="BeamPad $VERSION, unsigned (no upload key in the repository secrets): sign before installing or uploading to Play. Built from ${GITHUB_SHA::7}."
+          fi
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --title "BeamPad $VERSION" --notes "$notes"
+          fi
+          gh release upload "$tag" dist/* --clobber
+          gh release edit "$tag" --notes "$notes"
 
   screenshots:
     runs-on: ubuntu-latest
