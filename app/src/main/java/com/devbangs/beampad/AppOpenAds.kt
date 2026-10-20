@@ -29,10 +29,11 @@ import com.google.android.gms.ads.appopen.AppOpenAd
  *   time is over. A ready ad shows then, one still loading gets
  *   [MAX_LATE_WAIT_MS] more, and the splash stays under the ad until it
  *   closes, so closing it reveals the app as the splash fades.
- * - Return (from Home, another app, the lock screen): a cover in the
- *   splash's colours goes over the screen the user comes back to before it
- *   draws, the ad shows over that (waiting up to [MAX_RETURN_WAIT_MS] for
- *   one still loading), and the cover fades when the ad closes.
+ * - Return (from Home, another app, the lock screen), when an ad is ready:
+ *   a cover in the splash's colours goes over the screen the user comes
+ *   back to before it draws, the ad shows over that, and the cover goes
+ *   when the ad closes. With no ad ready the cover never goes up, so a
+ *   return without an ad shows no brand flash; one is loaded for the next.
  *
  * A new ad is loaded as soon as one closes and whenever the app goes to the
  * background, so the next launch or return usually has one ready at once.
@@ -60,9 +61,6 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
      * A cold start's first request often needs more than the splash itself.
      */
     private const val MAX_LATE_WAIT_MS = 4_000L
-
-    /** Longest the return cover waits for an ad still loading. */
-    private const val MAX_RETURN_WAIT_MS = 3_000L
 
     /** Covers an ad that is told to show but never reports back. */
     private const val SHOW_TIMEOUT_MS = 2_500L
@@ -236,16 +234,19 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             AdGate.log(FORMAT, "return skipped: $reason")
             return
         }
+        if (!hasFreshAd()) {
+            // A cover put up now and taken down with no ad behind it is just
+            // the icon flashing over the app. Nothing this time; the next
+            // return gets the ad loading now (one is also loaded every time
+            // the app goes to the background, so this is the exception).
+            AdGate.log(FORMAT, "return skipped: no ad ready yet" + if (loading) " (loading)" else ", loading one")
+            preload(activity.applicationContext)
+            return
+        }
         mode = Mode.RETURN
         target = activity
         addCover(activity)
-        when {
-            hasFreshAd() -> showWhenResumed(activity)
-            else -> {
-                if (!loading) fetch(activity)
-                if (loading) waitForLoad(MAX_RETURN_WAIT_MS) else finish("no ad")
-            }
-        }
+        showWhenResumed(activity)
     }
 
     /**

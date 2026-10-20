@@ -143,10 +143,16 @@ class DiagnosticsActivity : PageActivity() {
         Ui.section(content, getString(R.string.diag_ads))
         val card = Ui.card(content)
         val blocked = AdGate.blocked(this)
+        // Page-change ads start sooner than the app open ad.
+        val pagesBlocked = AdGate.blocked(this, InterstitialAds.GRACE_LAUNCHES)
         check(card,
             if (blocked == null) Result.OK else Result.INFO,
             getString(R.string.diag_ads_status),
-            if (blocked == null) getString(R.string.diag_ads_on) else getString(R.string.diag_ads_off, blocked))
+            when {
+                blocked == null -> getString(R.string.diag_ads_on)
+                pagesBlocked == null -> getString(R.string.diag_ads_pages_only, AdGate.MIN_LAUNCHES, AdGate.launches(this))
+                else -> getString(R.string.diag_ads_off, blocked)
+            })
         val events = AdGate.recent().take(AD_ROWS)
         if (events.isEmpty()) {
             Ui.divider(card)

@@ -26,7 +26,10 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
  * but cannot show (too soon, nothing loaded yet) keeps its place, so the
  * next transition shows it. Never on the Pro page, never on connect (a
  * device profile switching the surface is not the user's transition), and
- * never for Pro or remove-ads users; [AdGate] has the other rules.
+ * never for Pro or remove-ads users. Only the very first launch (setup
+ * and first pairing) is ad-free, not the app open ad's first
+ * [AdGate.MIN_LAUNCHES]: these follow the user's own taps. Every page
+ * change is logged with its count, so Diagnostics shows it working.
  *
  * One ad is kept loaded ahead; a failed load waits a little longer each
  * time before the next try, so a lack of fill does not hammer AdMob.
@@ -39,7 +42,10 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
     const val TRANSITIONS_PER_AD = 3
 
     /** Since any full-screen ad closed. */
-    private const val MIN_GAP_MS = 60_000L
+    private const val MIN_GAP_MS = 30_000L
+
+    /** First launches without interstitials: the one with setup and first pairing. */
+    const val GRACE_LAUNCHES = 1
 
     /** AdMob expires interstitials after an hour. */
     private const val MAX_AD_AGE_MS = 60 * 60 * 1000L
@@ -62,6 +68,9 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
 
     /** A due ad waiting for this screen to be in front. */
     private var pending: Activity? = null
+
+    /** The last reason logged for not counting, so the log is not flooded with it. */
+    private var lastBlocked: String? = null
     private var resumedActivity: Activity? = null
 
     private val main = Handler(Looper.getMainLooper())
@@ -76,7 +85,7 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
 
     /** Loads one ahead, when one may show at all. Ads removed is checked first. */
     fun preload(context: Context) {
-        if (loading || isReady() || !AdGate.eligible(context)) return
+        if (loading || isReady() || !AdGate.eligible(context, GRACE_LAUNCHES)) return
         if (SystemClock.elapsedRealtime() < retryAt) return
         fetch(context.applicationContext)
     }
@@ -87,9 +96,18 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
      * counts it and makes sure one is loading.
      */
     fun onTransition(activity: Activity) {
-        if (!AdGate.eligible(activity)) return
+        val blocked = AdGate.blocked(activity, GRACE_LAUNCHES)
+        if (blocked != null) {
+            if (blocked != lastBlocked) AdGate.log(FORMAT, "page changes not counted: $blocked")
+            lastBlocked = blocked
+            return
+        }
+        lastBlocked = null
         val store = activity.getSharedPreferences(AdGate.FILE, Context.MODE_PRIVATE)
         val count = store.getInt(KEY_TRANSITIONS, 0) + 1
+        if (count < TRANSITIONS_PER_AD) {
+            AdGate.log(FORMAT, "page change $count of $TRANSITIONS_PER_AD" + if (isReady()) "" else " (loading one)")
+        }
         val reason = when {
             count < TRANSITIONS_PER_AD -> ""
             presenting || AdGate.showing || AppOpenAds.busy || pending != null -> "another ad is up"
@@ -119,7 +137,7 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
             activity.isFinishing || activity.isDestroyed -> "screen closed"
             activity !== resumedActivity -> "screen left"
             current == null -> "expired"
-            !AdGate.eligible(activity) -> "no longer allowed"
+            !AdGate.eligible(activity, GRACE_LAUNCHES) -> "no longer allowed"
             AdGate.showing || AppOpenAds.busy -> "another ad is up"
             else -> null
         }
