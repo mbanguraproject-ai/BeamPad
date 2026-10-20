@@ -83,17 +83,21 @@ object AdGate : Application.ActivityLifecycleCallbacks {
 
     /**
      * Why no full-screen ad may show now, or null when one may. Ads removed
-     * is checked first, so paying users never touch the SDK.
+     * is checked first, so paying users never touch the SDK. [graceLaunches]
+     * is how many first launches stay ad-free: [MIN_LAUNCHES] for the app
+     * open ad, as AdMob recommends; fewer for formats that follow the user's
+     * own taps.
      */
-    fun blocked(context: Context): String? = when {
+    fun blocked(context: Context, graceLaunches: Int = MIN_LAUNCHES): String? = when {
         adsRemoved(context) -> "ads removed"
         OnboardingActivity.shouldShow(context) -> "onboarding"
-        launches(context) <= MIN_LAUNCHES -> "launch ${launches(context)} of the first $MIN_LAUNCHES"
+        launches(context) <= graceLaunches -> "launch ${launches(context)} of the first $graceLaunches"
         !consentAllows(context) -> "no consent yet"
         else -> null
     }
 
-    fun eligible(context: Context): Boolean = blocked(context) == null
+    fun eligible(context: Context, graceLaunches: Int = MIN_LAUNCHES): Boolean =
+        blocked(context, graceLaunches) == null
 
     fun adsRemoved(context: Context): Boolean =
         (context.applicationContext as BeamPadApp).entitlements.adsRemoved

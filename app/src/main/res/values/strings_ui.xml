@@ -631,5 +631,6 @@
     <string name="diag_ads_status">Ads</string>
     <string name="diag_ads_on">On: an ad as the app opens and when you come back to it, and one every few page changes.</string>
     <string name="diag_ads_off">Not showing yet: %1$s.</string>
+    <string name="diag_ads_pages_only">Page-change ads are on. The ad as the app opens starts after the first %1$d launches (this is launch %2$d).</string>
     <string name="diag_ads_empty_body">Each ad loaded, shown or held back is listed here, with the reason.</string>
 </resources>
