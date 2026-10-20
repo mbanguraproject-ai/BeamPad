@@ -608,7 +608,6 @@
     <string name="cmd_diagnostics">Diagnostics</string>
 
     <!-- 1.4.0 -->
-    <string name="ad_cover_description">Loading BeamPad</string>
     <string name="shortcut_open">Open %1$s</string>
     <string name="present_rotate_landscape">Turn to landscape</string>
     <string name="present_rotate_portrait">Turn to portrait</string>

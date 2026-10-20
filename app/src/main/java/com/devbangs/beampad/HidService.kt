@@ -731,12 +731,17 @@ class HidService : Service() {
     }
 
     private fun buildNotification(): Notification {
-        // Single top: tapping the notification returns to the open screen
-        // rather than stacking a second copy of it.
+        // The same intent as the launcher icon: tapping the notification
+        // brings the app back exactly as it was left, on whatever screen.
+        // Clearing to MainActivity instead made Android redraw it from
+        // scratch whenever another screen was on top, and on Android 12+
+        // that shows the system splash (colour and icon) for a moment.
         val open = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                .setAction(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_LAUNCHER)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val builder = Notification.Builder(this, CHANNEL_ID)

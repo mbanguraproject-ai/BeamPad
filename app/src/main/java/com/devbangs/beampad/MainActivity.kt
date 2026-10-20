@@ -393,8 +393,8 @@ class MainActivity : BeamActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Arriving from the notification while already open shows Control;
-        // other screens can ask for a tab (Settings opens Devices).
+        // Other screens can ask for a tab (Settings opens Devices). The
+        // notification resumes the app as it was and does not come here.
         if (!::ui.isInitialized) return
         if (intent.hasExtra(EXTRA_MODE)) openShortcut(intent)
         else selectQuietly(intent.getIntExtra(EXTRA_TAB, R.id.tab_control))

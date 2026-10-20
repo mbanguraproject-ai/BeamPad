@@ -7,12 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreenViewProvider
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -21,19 +15,18 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 
 /**
- * App open ad, on every launch and every return to the app, always over
- * the brand screen and never over the app itself:
+ * App open ad, on every launch and every return to the app:
  *
  * - Launch: the ad loads while the splash plays. MainActivity keeps the
  *   splash up while [holds] is true and calls [onSplashDone] when its own
  *   time is over. A ready ad shows then, one still loading gets
  *   [MAX_LATE_WAIT_MS] more, and the splash stays under the ad until it
  *   closes, so closing it reveals the app as the splash fades.
- * - Return (from Home, another app, the lock screen), when an ad is ready:
- *   a cover in the splash's colours goes over the screen the user comes
- *   back to before it draws, the ad shows over that, and the cover goes
- *   when the ad closes. With no ad ready the cover never goes up, so a
- *   return without an ad shows no brand flash; one is loaded for the next.
+ * - Return (from Home, another app, the lock screen), when an ad is
+ *   ready: it shows straight over the screen the user comes back to, as
+ *   AdMob's own return ads do. Nothing is drawn before or after it (an
+ *   earlier brand cover in its place read as the icon flashing on every
+ *   return). With no ad ready nothing shows; one is loaded for the next.
  *
  * A new ad is loaded as soon as one closes and whenever the app goes to the
  * background, so the next launch or return usually has one ready at once.
@@ -68,8 +61,6 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** A return this soon after the app opened a system screen is part of that task. */
     private const val HANDOFF_WINDOW_MS = 5 * 60 * 1000L
 
-    private const val COVER_FADE_MS = 220L
-    private const val COVER_ICON_DP = 288
 
     private enum class Mode { LAUNCH, RETURN }
 
@@ -80,9 +71,8 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** What the current ad is for, and the screen it shows over; null when idle. */
     private var mode: Mode? = null
     private var target: Activity? = null
-    private var cover: View? = null
 
-    /** Waiting under the splash or cover for an ad still loading. */
+    /** Waiting under the splash for an ad still loading. */
     private var waiting = false
     private var showOnResume = false
 
@@ -148,14 +138,14 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             AdGate.log(FORMAT, "launch $launches skipped: $reason")
             return
         }
-        // A return still being handled (its cover is up) gives way to the launch.
+        // A return still being handled gives way to the launch.
         if (mode != null) finish("a launch took over")
         mode = Mode.LAUNCH
         target = activity
         if (!hasFreshAd()) fetch(activity)
     }
 
-    /** A launch or return is under way (splash held, cover up, or its ad showing). */
+    /** A launch or return is under way (splash held, or its ad on the way or showing). */
     val busy: Boolean get() = mode != null
 
     /**
@@ -235,64 +225,16 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             return
         }
         if (!hasFreshAd()) {
-            // A cover put up now and taken down with no ad behind it is just
-            // the icon flashing over the app. Nothing this time; the next
-            // return gets the ad loading now (one is also loaded every time
-            // the app goes to the background, so this is the exception).
+            // Nothing this time; the next return gets the ad loading now (one
+            // is also loaded every time the app goes to the background, so
+            // this is the exception).
             AdGate.log(FORMAT, "return skipped: no ad ready yet" + if (loading) " (loading)" else ", loading one")
             preload(activity.applicationContext)
             return
         }
         mode = Mode.RETURN
         target = activity
-        addCover(activity)
         showWhenResumed(activity)
-    }
-
-    /**
-     * The splash's colours and mark over the whole window, under the ad, so
-     * the ad never appears over a half-used screen. It takes the touches
-     * meant for the screen beneath while it is up.
-     */
-    private fun addCover(activity: Activity) {
-        val decor = activity.window?.decorView as? ViewGroup ?: return
-        val size = Ui.dp(activity, COVER_ICON_DP)
-        val view = FrameLayout(activity).apply {
-            setBackgroundColor(ContextCompat.getColor(activity, R.color.splash_background))
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(R.string.ad_cover_description)
-            addView(
-                ImageView(activity).apply {
-                    setImageResource(R.drawable.ic_launcher_foreground)
-                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                },
-                FrameLayout.LayoutParams(size, size, Gravity.CENTER)
-            )
-        }
-        runCatching {
-            decor.addView(view, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-            cover = view
-        }
-    }
-
-    /**
-     * Fades the cover when no ad came; when an ad was on top of it, removes
-     * it at once, so closing the ad lands straight on the app rather than on
-     * a moment of the cover.
-     */
-    private fun removeCover(atOnce: Boolean) {
-        val view = cover ?: return
-        cover = null
-        val parent = view.parent as? ViewGroup ?: return
-        if (atOnce || Motion.reduced(view.context) || !view.isAttachedToWindow) {
-            parent.removeView(view)
-            return
-        }
-        view.isClickable = false
-        view.animate().alpha(0f).setDuration(COVER_FADE_MS)
-            .withEndAction { (view.parent as? ViewGroup)?.removeView(view) }
-            .start()
     }
 
     // ---- Loading and showing --------------------------------------------------
@@ -330,7 +272,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
                         ad = loaded
                         loadedAt = SystemClock.elapsedRealtime()
                         AdGate.log(FORMAT, "loaded in ${loadedAt - started} ms")
-                        // Arrived while the splash or cover waits for it: show it now.
+                        // Arrived while the splash waits for it: show it now.
                         val waitingFor = target
                         if (waiting && waitingFor != null) {
                             waiting = false
@@ -405,10 +347,10 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * Ends the launch or return: the splash lets go, the cover goes, the app
-     * is in charge. [adClosed] is true when an ad was on screen and has
-     * closed; then the splash and the cover go at once, so closing the ad
-     * lands straight on the app. With no ad they fade.
+     * Ends the launch or return: the splash lets go, the app is in charge.
+     * [adClosed] is true when an ad was on screen and has closed; then the
+     * splash goes at once, so closing the ad lands straight on the app. With
+     * no ad it fades.
      */
     private fun finish(reason: String, adClosed: Boolean = false) {
         val ending = mode ?: return
@@ -426,7 +368,6 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             // The splash has not been handed over yet: it goes without its fade.
             revealAtOnce = target
         }
-        removeCover(atOnce = adWasUp)
         mode = null
         target = null
         showOnResume = false
@@ -485,7 +426,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
                 preload(activity.applicationContext)
             }
         }
-        // Left before the ad came (Home during the splash or the cover): this
+        // Left before the ad came (Home during the splash): this
         // launch or return is over, and an ad still loading is kept for the
         // next one. The ad covering the screen also stops it; that one ends
         // when the ad reports.
