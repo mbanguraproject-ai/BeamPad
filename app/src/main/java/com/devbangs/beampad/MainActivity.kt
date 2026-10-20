@@ -323,15 +323,21 @@ class MainActivity : BeamActivity() {
      * after rotation is the user carrying on: no hold.
      */
     private fun holdSplash(splash: SplashScreen, launched: Boolean) {
-        if (launched) {
-            splashUntil = SystemClock.uptimeMillis() + SPLASH_ANIMATION_MS + SPLASH_HOLD_MS
-            splashHandler.postDelayed({ AppOpenAds.onSplashDone(this) }, SPLASH_ANIMATION_MS + SPLASH_HOLD_MS)
-        }
+        // A rotation or a re-theme has no splash of its own; on Android 9 to
+        // 11 an exit listener would add the compat splash view and fade it.
+        if (!launched) return
+        splashUntil = SystemClock.uptimeMillis() + SPLASH_ANIMATION_MS + SPLASH_HOLD_MS
+        splashHandler.postDelayed({ AppOpenAds.onSplashDone(this) }, SPLASH_ANIMATION_MS + SPLASH_HOLD_MS)
         splash.setKeepOnScreenCondition {
             SystemClock.uptimeMillis() < splashUntil || AppOpenAds.holds(this)
         }
         splash.setOnExitAnimationListener { provider ->
-            if (Motion.reduced(this)) {
+            // Under the launch ad: the app has drawn behind the splash, which
+            // stays on top until the ad closes and AppOpenAds removes it.
+            if (AppOpenAds.parkSplash(this, provider)) return@setOnExitAnimationListener
+            // Straight from a closed launch ad to the app: a fade here would
+            // show the splash and its icon again between the two.
+            if (Motion.reduced(this) || AppOpenAds.skipSplashFade(this)) {
                 provider.remove()
             } else {
                 provider.view.animate()
