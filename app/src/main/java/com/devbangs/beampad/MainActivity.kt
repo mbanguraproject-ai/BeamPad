@@ -952,7 +952,7 @@ class MainActivity : BeamActivity() {
     private fun askForReviewOnReturn() {
         if (!Reviews.shouldAsk(this) || service?.isReady() == true) return
         ui.root.postDelayed({
-            if (resumed && hasWindowFocus() && sheet == null && service?.isReady() != true) {
+            if (resumed && hasWindowFocus() && sheet == null && service?.isReady() != true && !AppOpenAds.busy) {
                 Reviews.ask(this)
             }
         }, REVIEW_ON_RETURN_DELAY_MS)
