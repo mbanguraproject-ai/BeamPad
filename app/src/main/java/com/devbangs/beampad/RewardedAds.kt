@@ -3,7 +3,6 @@ package com.devbangs.beampad
 import android.app.Activity
 import android.content.Context
 import android.os.SystemClock
-import android.util.Log
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -26,7 +25,6 @@ import com.google.android.ump.UserMessagingPlatform
 object RewardedAds {
 
     private const val AD_UNIT = "ca-app-pub-9121922395304175/7281845718"
-    private const val TAG = "BeamPadAds"
     private const val FORMAT = "Rewarded"
 
     /** AdMob expires rewarded ads after an hour. */
@@ -74,7 +72,7 @@ object RewardedAds {
             AdRequest.Builder().build(),
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(loaded: RewardedAd) {
-                    Log.i(TAG, "rewarded loaded")
+                    AdGate.log(FORMAT, "loaded")
                     loading = false
                     ad = loaded
                     loadedAt = SystemClock.elapsedRealtime()
@@ -82,7 +80,7 @@ object RewardedAds {
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.w(TAG, "rewarded failed ${error.code}: ${error.message}")
+                    AdGate.log(FORMAT, "load failed ${error.code}: ${error.message}")
                     loading = false
                     onLoaded?.invoke(false)
                 }
@@ -117,7 +115,7 @@ object RewardedAds {
                 finish(if (earned) Outcome.EARNED else Outcome.NOT_EARNED)
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.w(TAG, "rewarded show failed ${error.code}: ${error.message}")
+                AdGate.log(FORMAT, "show failed ${error.code}: ${error.message}")
                 finish(if (earned) Outcome.EARNED else Outcome.UNAVAILABLE)
             }
         }

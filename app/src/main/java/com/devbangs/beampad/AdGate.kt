@@ -3,6 +3,7 @@ package com.devbangs.beampad
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
@@ -19,8 +20,9 @@ import com.google.android.ump.UserMessagingPlatform
  *   the ad never says so, [onAdScreenGone] still lets the app carry on, so
  *   a lost callback cannot leave a splash, a cover or a gate stuck;
  * - the eligibility every format checks first ([eligible]);
- * - a short log of what each format did and why, shown in Diagnostics, so
- *   an ad that did not appear is never a mystery.
+ * - in debug builds only, a short log of what each format did and why,
+ *   shown in Diagnostics, so an ad that did not appear is never a mystery
+ *   while developing; the store build keeps and shows none of it.
  */
 object AdGate : Application.ActivityLifecycleCallbacks {
 
@@ -36,6 +38,13 @@ object AdGate : Application.ActivityLifecycleCallbacks {
     private const val MAX_SHOW_MS = 10 * 60 * 1000L
 
     private const val LOG_SIZE = 30
+
+    /** Set at startup by [init]; the release build keeps no ad log. */
+    private var debug = false
+
+    fun init(context: Context) {
+        debug = debugBuild(context)
+    }
 
     private var owner: String? = null
     private var since = 0L
@@ -107,6 +116,10 @@ object AdGate : Application.ActivityLifecycleCallbacks {
         runCatching { UserMessagingPlatform.getConsentInformation(context).canRequestAds() }
             .getOrDefault(false)
 
+    /** Debug builds only show the ad log (Diagnostics); the store build never does. */
+    fun debugBuild(context: Context): Boolean =
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
     fun isAdScreen(activity: Activity): Boolean =
         activity.javaClass.name == "com.google.android.gms.ads.AdActivity"
 
@@ -117,6 +130,8 @@ object AdGate : Application.ActivityLifecycleCallbacks {
     private val events = ArrayDeque<Event>()
 
     fun log(format: String, what: String) {
+        // Debug builds only: the store build records nothing about its ads.
+        if (!debug) return
         Log.i(TAG, "$format: $what")
         synchronized(events) {
             events.addLast(Event(System.currentTimeMillis(), format, what))

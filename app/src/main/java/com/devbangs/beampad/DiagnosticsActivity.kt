@@ -136,10 +136,11 @@ class DiagnosticsActivity : PageActivity() {
 
     /**
      * What the ads did this session and why, so one that did not appear is
-     * never a mystery. Not shown to Pro and remove-ads users.
+     * never a mystery while developing. Debug builds only: users of the
+     * store build never see it.
      */
     private fun ads(content: ViewGroup) {
-        if (AdGate.adsRemoved(this)) return
+        if (!AdGate.debugBuild(this) || AdGate.adsRemoved(this)) return
         Ui.section(content, getString(R.string.diag_ads))
         val card = Ui.card(content)
         val blocked = AdGate.blocked(this)
