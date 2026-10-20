@@ -38,7 +38,9 @@ class AirPointer(context: Context, private val move: (dx: Int, dy: Int) -> Unit)
         lastTimestamp = 0L
         carryX = 0f
         carryY = 0f
-        sensors?.registerListener(this, gyro, SensorManager.SENSOR_DELAY_GAME)
+        // 100 readings a second, twice SENSOR_DELAY_GAME: the pointer follows
+        // the hand closely, and the engine paces what reaches the device.
+        sensors?.registerListener(this, gyro, SAMPLING_PERIOD_US)
     }
 
     fun stop() {
@@ -77,5 +79,8 @@ class AirPointer(context: Context, private val move: (dx: Int, dy: Int) -> Unit)
         /** About 470 px for a 30 degree turn at normal speed. */
         const val PIXELS_PER_RADIAN = 900f
         const val DEAD_ZONE = 0.03f
+
+        /** Below 200 Hz, which would need the high sampling rate permission. */
+        const val SAMPLING_PERIOD_US = 10_000
     }
 }

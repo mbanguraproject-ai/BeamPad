@@ -606,4 +606,30 @@
     <string name="cmd_connect">Connect to %1$s</string>
     <string name="cmd_disconnect">Disconnect %1$s</string>
     <string name="cmd_diagnostics">Diagnostics</string>
+
+    <!-- 1.4.0 -->
+    <string name="ad_cover_description">Loading BeamPad</string>
+    <string name="shortcut_open">Open %1$s</string>
+    <string name="present_rotate_landscape">Turn to landscape</string>
+    <string name="present_rotate_portrait">Turn to portrait</string>
+    <string name="present_alert">Talk length</string>
+    <string name="present_alert_body">Your phone buzzes twice a minute before, and again at the time. The clock turns red for the last minute.</string>
+    <string name="present_alert_off">No alerts</string>
+    <string name="present_alert_minutes">%1$d minutes</string>
+    <string name="present_timer_of">Time · of %1$d min</string>
+    <string name="set_momentum">Momentum scrolling</string>
+    <string name="set_momentum_body">A two-finger flick keeps scrolling and slows down, like a laptop trackpad. Touch the pad to stop it.</string>
+    <string name="set_link">Pointer link</string>
+    <string name="set_link_body">How often the pointer and scroll wheel update on the device. If the pointer lags or the connection drops on a TV, projector or TV box, choose Stable.</string>
+    <string name="set_link_smooth">Smooth · 90 Hz</string>
+    <string name="set_link_smooth_body">Recommended. Smooth and steady on phones, TVs and computers.</string>
+    <string name="set_link_fast">Fast · 125 Hz</string>
+    <string name="set_link_fast_body">The quickest pointer, for computers and recent TVs.</string>
+    <string name="set_link_stable">Stable · 60 Hz</string>
+    <string name="set_link_stable_body">For older TVs, projectors and TV boxes that fall behind at higher rates.</string>
+    <string name="diag_ads">Ads this session</string>
+    <string name="diag_ads_status">Ads</string>
+    <string name="diag_ads_on">On: an ad as the app opens and when you come back to it, and one every few page changes.</string>
+    <string name="diag_ads_off">Not showing yet: %1$s.</string>
+    <string name="diag_ads_empty_body">Each ad loaded, shown or held back is listed here, with the reason.</string>
 </resources>

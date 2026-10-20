@@ -42,7 +42,10 @@ class BeamPadApp : Application() {
         entitlements = Entitlements(this)
         billing = Billing(this, entitlements) { change -> notifyEntitlement(change) }
         billing.start()
+        // AdGate first: the others rely on it knowing when the AdMob screen closes.
+        registerActivityLifecycleCallbacks(AdGate)
         registerActivityLifecycleCallbacks(AppOpenAds)
+        registerActivityLifecycleCallbacks(InterstitialAds)
         ProPass.watch(this)
     }
 }

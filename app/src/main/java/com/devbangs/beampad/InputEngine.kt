@@ -2,9 +2,12 @@ package com.devbangs.beampad
 
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
+import kotlin.concurrent.withLock
 
 /**
  * Everything that turns intent into HID reports. The connection
@@ -15,13 +18,16 @@ import kotlin.concurrent.thread
  * Reports go out on one thread so keys arrive in order. Text is typed one
  * character per queue slot rather than as one long task, so a key pressed
  * while a long snippet is going out runs between characters instead of
- * waiting for the whole string. Pointer movement bypasses the queue: queued
- * behind typing it would lag the finger.
+ * waiting for the whole string. Pointer movement and the wheel bypass the
+ * queue (queued behind typing they would lag the finger) and go through
+ * [MotionPump] instead.
  */
 class InputEngine(
     private val sink: Sink,
     private val layout: () -> HidReports.Layout,
-    private val findMacro: (String) -> Macro?
+    private val findMacro: (String) -> Macro?,
+    /** Shortest gap between pointer reports, in nanoseconds; read per report. */
+    private val pointerIntervalNs: () -> Long = { DEFAULT_POINTER_INTERVAL_NS }
 ) {
 
     /** Sends one report. False when nothing is connected or the stack refused it. */
@@ -56,7 +62,13 @@ class InputEngine(
         val complete: Boolean get() = !interrupted && !cancelled
     }
 
-    private val exec = Executors.newSingleThreadExecutor()
+    private val exec = Executors.newSingleThreadExecutor { work ->
+        Thread({
+            // Keys are felt as much as the pointer: ahead of background work.
+            runCatching { Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY) }
+            work.run()
+        }, "beampad-keys")
+    }
     private val main = Handler(Looper.getMainLooper())
 
     /** True once anything reached the host; the review prompt only follows real use. */
@@ -69,6 +81,7 @@ class InputEngine(
 
     val keyboard = KeyboardEngine()
     val mouse = MouseEngine()
+    private val pump = MotionPump()
     val consumer = ConsumerEngine()
     val macros = MacroEngine()
 
@@ -95,6 +108,7 @@ class InputEngine(
 
     fun shutdown() {
         cancelAll()
+        pump.stop()
         exec.shutdown()
     }
 
@@ -258,34 +272,42 @@ class InputEngine(
         @Volatile var held = 0
             private set
 
-        private fun report(buttons: Int, dx: Int, dy: Int, wheel: Int): Boolean =
+        /**
+         * The button of a click in progress, between its down and up
+         * reports, so pointer reports sent meanwhile keep it down rather
+         * than cutting the click short.
+         */
+        @Volatile private var clicking = 0
+
+        /** Buttons every report must carry right now. */
+        internal val buttons: Int get() = held or clicking
+
+        internal fun report(buttons: Int, dx: Int, dy: Int, wheel: Int): Boolean =
             sink.send(
                 HidReports.REPORT_ID_MOUSE,
                 HidReports.mouse(buttons.toByte(), dx, dy, wheel)
             ).also { if (it) sentSomething = true }
 
         /**
-         * Relative movement, sent at once from the touch thread. Deltas beyond
-         * the report's -127..127 are split rather than clipped, so a fast
-         * flick travels the whole way.
+         * Relative movement. Returns at once: [MotionPump] merges it with any
+         * movement not yet sent and sends it off the touch thread, so a
+         * fast flick travels the whole way and a busy link never backs up.
          */
         fun move(dx: Int, dy: Int) {
-            var x = dx
-            var y = dy
-            while (x != 0 || y != 0) {
-                val sx = x.coerceIn(-127, 127)
-                val sy = y.coerceIn(-127, 127)
-                if (!report(held, sx, sy, 0)) return
-                x -= sx
-                y -= sy
-            }
+            if (dx != 0 || dy != 0) pump.add(dx, dy, 0)
         }
 
+        /** Wheel notches, merged and paced with the pointer. */
         fun scroll(amount: Int) {
+            if (amount != 0) pump.add(0, 0, amount)
+        }
+
+        /** The wheel, sent now and in order. On the report thread only (macros). */
+        internal fun scrollNow(amount: Int) {
             var left = amount
             while (left != 0) {
                 val step = left.coerceIn(-127, 127)
-                if (!report(held, 0, 0, step)) return
+                if (!report(buttons, 0, 0, step)) return
                 left -= step
             }
         }
@@ -304,8 +326,13 @@ class InputEngine(
         }
 
         internal fun clickNow(button: Int): Boolean {
-            if (!report(held or button, 0, 0, 0)) return false
+            clicking = button
+            if (!report(held or button, 0, 0, 0)) {
+                clicking = 0
+                return false
+            }
             pause(KEY_DELAY_MS)
+            clicking = 0
             report(held, 0, 0, 0)
             return true
         }
@@ -327,6 +354,104 @@ class InputEngine(
             if (held == 0) return
             held = 0
             queue { report(0, 0, 0, 0) }
+        }
+    }
+
+    // ---------------------------------------------------------------- motion
+
+    /**
+     * Pointer and wheel sender, on its own high-priority thread.
+     *
+     * Touch screens report 120 to 240 times a second and a gyroscope about
+     * as often; a Bluetooth link to a TV or a projector takes far fewer
+     * reports than that. Sending one report per touch event queued them up
+     * in the Bluetooth stack, which is what makes a pointer lag behind the
+     * finger, rubber-band, and on weak hosts drop the link. Here movement
+     * is added up as it arrives and sent as one report at most every
+     * [pointerIntervalNs]: the first movement after a pause goes out at
+     * once, and nothing ever waits behind stale movement. The binder call
+     * also leaves the UI thread, so drawing stays smooth while pointing.
+     */
+    private inner class MotionPump : Runnable {
+        private val lock = ReentrantLock()
+        private val moved = lock.newCondition()
+        private var dx = 0
+        private var dy = 0
+        private var wheel = 0
+        private var thread: Thread? = null
+        private var stopped = false
+        private var lastSentNs = 0L
+
+        fun add(x: Int, y: Int, w: Int) {
+            lock.withLock {
+                if (stopped) return
+                // A link that stalls must not release a huge jump later.
+                dx = (dx + x).coerceIn(-MAX_BACKLOG, MAX_BACKLOG)
+                dy = (dy + y).coerceIn(-MAX_BACKLOG, MAX_BACKLOG)
+                wheel = (wheel + w).coerceIn(-MAX_BACKLOG, MAX_BACKLOG)
+                if (thread == null) {
+                    thread = Thread(this, "beampad-pointer").apply {
+                        isDaemon = true
+                        start()
+                    }
+                }
+                moved.signal()
+            }
+        }
+
+        fun stop() {
+            lock.withLock {
+                stopped = true
+                dx = 0
+                dy = 0
+                wheel = 0
+                moved.signal()
+            }
+        }
+
+        override fun run() {
+            runCatching { Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY) }
+            try {
+                loop()
+            } catch (_: InterruptedException) {
+                // Only on shutdown.
+            }
+        }
+
+        private fun loop() {
+            while (true) {
+                lock.withLock {
+                    while (!stopped && dx == 0 && dy == 0 && wheel == 0) moved.await()
+                    if (stopped) return
+                }
+                // Pace: whatever arrives while waiting joins this report.
+                val interval = runCatching { pointerIntervalNs() }.getOrDefault(DEFAULT_POINTER_INTERVAL_NS)
+                val wait = lastSentNs + interval - System.nanoTime()
+                if (wait > 0) Thread.sleep(wait / 1_000_000, (wait % 1_000_000).toInt())
+                var x = 0
+                var y = 0
+                var w = 0
+                lock.withLock {
+                    if (stopped) return
+                    x = dx.coerceIn(-127, 127)
+                    y = dy.coerceIn(-127, 127)
+                    w = wheel.coerceIn(-127, 127)
+                    dx -= x
+                    dy -= y
+                    wheel -= w
+                }
+                if (x == 0 && y == 0 && w == 0) continue
+                lastSentNs = System.nanoTime()
+                val sent = runCatching { mouse.report(mouse.buttons, x, y, w) }.getOrDefault(false)
+                if (!sent) {
+                    // Nothing connected: drop it rather than replay it later.
+                    lock.withLock {
+                        dx = 0
+                        dy = 0
+                        wheel = 0
+                    }
+                }
+            }
         }
     }
 
@@ -444,7 +569,7 @@ class InputEngine(
                             }
                         }
                         is Action.Scroll -> {
-                            mouse.scroll(step.amount)
+                            mouse.scrollNow(step.amount)
                             true
                         }
                         is Action.Delay, is Action.RunMacro -> true
@@ -465,6 +590,12 @@ class InputEngine(
     companion object {
         /** Gap between reports. Slower stacks drop keys sent back-to-back. */
         const val KEY_DELAY_MS = 12L
+
+        /** 90 reports a second: smooth on phones, TVs and PCs alike. */
+        const val DEFAULT_POINTER_INTERVAL_NS = 11_000_000L
+
+        /** Most pointer travel held back while the link is busy (about 4 full reports). */
+        private const val MAX_BACKLOG = 508
         private const val DOUBLE_CLICK_GAP_MS = 60L
         private const val PROGRESS_EVERY = 8
         private const val MAX_MACRO_DEPTH = 3

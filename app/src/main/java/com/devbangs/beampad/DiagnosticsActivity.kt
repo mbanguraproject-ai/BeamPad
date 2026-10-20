@@ -112,6 +112,8 @@ class DiagnosticsActivity : PageActivity() {
             }
         }
 
+        ads(content)
+
         Ui.section(content, getString(R.string.diag_actions))
         val actions = Ui.card(content)
         Ui.linkRow(actions, getString(R.string.diag_share), getString(R.string.diag_share_body), R.drawable.ic_share_network) {
@@ -129,6 +131,32 @@ class DiagnosticsActivity : PageActivity() {
                 ConnectionLog.clear(this)
                 refresh()
             }
+        }
+    }
+
+    /**
+     * What the ads did this session and why, so one that did not appear is
+     * never a mystery. Not shown to Pro and remove-ads users.
+     */
+    private fun ads(content: ViewGroup) {
+        if (AdGate.adsRemoved(this)) return
+        Ui.section(content, getString(R.string.diag_ads))
+        val card = Ui.card(content)
+        val blocked = AdGate.blocked(this)
+        check(card,
+            if (blocked == null) Result.OK else Result.INFO,
+            getString(R.string.diag_ads_status),
+            if (blocked == null) getString(R.string.diag_ads_on) else getString(R.string.diag_ads_off, blocked))
+        val events = AdGate.recent().take(AD_ROWS)
+        if (events.isEmpty()) {
+            Ui.divider(card)
+            Ui.row(card, getString(R.string.diag_history_empty), getString(R.string.diag_ads_empty_body), R.drawable.ic_clock)
+        }
+        events.forEach { e ->
+            Ui.divider(card)
+            val time = DateFormat.getTimeFormat(this).format(Date(e.at))
+            val row = Ui.row(card, e.format, "${e.what} · $time", R.drawable.ic_pulse)
+            row.subtitle.maxLines = 3
         }
     }
 
@@ -212,6 +240,7 @@ class DiagnosticsActivity : PageActivity() {
 
     companion object {
         private const val HISTORY_ROWS = 25
+        private const val AD_ROWS = 12
         private val BAD_KINDS = setOf(
             ConnectionLog.Kind.LOST, ConnectionLog.Kind.FAILED,
             ConnectionLog.Kind.UNSUPPORTED, ConnectionLog.Kind.SEND_FAILED

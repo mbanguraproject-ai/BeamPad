@@ -426,7 +426,8 @@ class HidService : Service() {
         engine = InputEngine(
             sink = { id, report -> send(id, report) },
             layout = { layout },
-            findMacro = { id -> MacroStore(this).get(id) }
+            findMacro = { id -> MacroStore(this).get(id) },
+            pointerIntervalNs = { prefs.linkMode.intervalNs }
         )
         createChannel()
         startForegroundSafely()

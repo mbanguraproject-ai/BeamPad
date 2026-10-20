@@ -274,6 +274,7 @@ abstract class SurfaceFragment : Fragment() {
         pad.gesturesEnabled = Features.isPro(c)
         pad.tapToClick = prefs.tapToClick
         pad.touchResponse = prefs.touchResponse
+        pad.momentum = prefs.momentumScroll
     }
 
     companion object {

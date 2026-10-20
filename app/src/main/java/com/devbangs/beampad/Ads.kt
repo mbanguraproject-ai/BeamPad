@@ -1,6 +1,7 @@
 package com.devbangs.beampad
 
 import android.app.Activity
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -12,6 +13,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import kotlin.concurrent.thread
 
 /**
  * Banner loading, gated on consent and on the remove-ads entitlement.
@@ -46,25 +48,38 @@ object Ads {
     fun start(activity: Activity, entitlements: Entitlements, onReady: () -> Unit = {}) {
         if (entitlements.adsRemoved) return
         Consent.gather(activity) {
-            if (!sdkStarted) {
-                // Debug builds only: a release build must not carry test
-                // device IDs, and AdMob asks for them to be removed.
-                if (isDebuggable(activity) && TEST_DEVICES.isNotEmpty()) {
-                    MobileAds.setRequestConfiguration(
-                        RequestConfiguration.Builder()
-                            .setTestDeviceIds(TEST_DEVICES)
-                            .build()
-                    )
-                }
-                MobileAds.initialize(activity) { }
-                sdkStarted = true
-            }
+            initSdk(activity)
             onReady()
         }
     }
 
-    private fun isDebuggable(activity: Activity): Boolean =
-        (activity.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    /**
+     * Starts the SDK once per process. Called once consent allows ads, and
+     * by the full-screen formats before a load, so a screen restored without
+     * MainActivity (the process ended in the background) still initialises
+     * first. The work itself runs off the main thread, as Google recommends,
+     * so it never stalls the splash or the first frame.
+     */
+    fun initSdk(context: Context) {
+        if (sdkStarted) return
+        sdkStarted = true
+        val app = context.applicationContext
+        // Debug builds only: a release build must not carry test
+        // device IDs, and AdMob asks for them to be removed.
+        if (isDebuggable(app) && TEST_DEVICES.isNotEmpty()) {
+            MobileAds.setRequestConfiguration(
+                RequestConfiguration.Builder()
+                    .setTestDeviceIds(TEST_DEVICES)
+                    .build()
+            )
+        }
+        thread(name = "beampad-ads-init", isDaemon = true) {
+            runCatching { MobileAds.initialize(app) { } }
+        }
+    }
+
+    private fun isDebuggable(context: Context): Boolean =
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
     /**
      * Runs [block] once consent allows ads and the SDK is started; never for

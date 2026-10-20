@@ -20,8 +20,14 @@ import kotlin.math.max
  * - Tap clicks (when tap-to-click is on); two-finger tap right-clicks;
  *   three-finger tap middle-clicks.
  * - Tap, then touch again and move: drags with the left button held.
- * - Two fingers scroll; spreading or pinching them zooms instead.
+ * - Two fingers scroll; spreading or pinching them zooms instead. A flick
+ *   keeps scrolling and eases off ([momentum]), until the next touch.
  * - Three-finger swipes run the user's gesture actions.
+ *
+ * Touches are delivered unbuffered: as the screen reports them, rather than
+ * gathered once per display frame, which takes up to a frame of delay off
+ * every movement. Nothing is allocated per movement, so pointing never
+ * waits on the garbage collector.
  */
 class TrackpadView @JvmOverloads constructor(
     context: Context,
@@ -58,6 +64,9 @@ class TrackpadView @JvmOverloads constructor(
 
     var tapToClick: Boolean = true
     var pinchToZoom: Boolean = false
+
+    /** Two-finger flicks coast on, slowing down, like a laptop trackpad. */
+    var momentum: Boolean = true
     var gesturesEnabled: Boolean = false
 
     /** Slows the pointer for small targets on a TV or desktop. */
@@ -85,6 +94,17 @@ class TrackpadView @JvmOverloads constructor(
 
     private var twoFinger = TwoFinger.UNDECIDED
     private var scrollAccum = 0f
+
+    /** Two-finger scroll speed in px per ms, smoothed, for momentum. */
+    private var scrollVelocity = 0f
+    private var lastScrollTime = 0L
+    private var coasting = false
+    private var coastLastFrame = 0L
+    private var coastStarted = 0L
+
+    /** The centroid, written by [centroid] without allocating. */
+    private var cx = 0f
+    private var cy = 0f
     private var startSpan = 0f
     private var lastZoomSpan = 0f
 
@@ -103,6 +123,9 @@ class TrackpadView @JvmOverloads constructor(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 parent?.requestDisallowInterceptTouchEvent(true)
+                requestUnbufferedDispatch(event)
+                // A touch stops a coasting scroll, as on a laptop.
+                stopCoast()
                 val now = SystemClock.uptimeMillis()
                 downTime = now
                 maxPointers = 1
@@ -118,11 +141,14 @@ class TrackpadView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
+                stopCoast()
                 maxPointers = max(maxPointers, event.pointerCount)
                 resetCentroid(event)
                 if (event.pointerCount == 2) {
                     twoFinger = TwoFinger.UNDECIDED
                     scrollAccum = 0f
+                    scrollVelocity = 0f
+                    lastScrollTime = 0L
                     startSpan = span(event)
                     lastZoomSpan = startSpan
                 }
@@ -135,6 +161,8 @@ class TrackpadView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_POINTER_UP -> {
+                // A two-finger scroll lifting mid-flick coasts on.
+                if (event.pointerCount == 2 && twoFinger == TwoFinger.SCROLL) startCoast()
                 // Recompute without the lifted finger so the centroid does not jump.
                 resetCentroid(event, excluding = event.actionIndex)
             }
@@ -172,7 +200,7 @@ class TrackpadView @JvmOverloads constructor(
     }
 
     private fun handleMove(event: MotionEvent) {
-        val (cx, cy) = centroid(event)
+        centroid(event)
         val dx = cx - lastX
         val dy = cy - lastY
         lastX = cx
@@ -223,13 +251,8 @@ class TrackpadView @JvmOverloads constructor(
         }
         when (twoFinger) {
             TwoFinger.SCROLL -> {
-                val step = SCROLL_STEP_DP * density / scrollSpeed.coerceAtLeast(0.1f)
-                scrollAccum += dy
-                val steps = (scrollAccum / step).toInt()
-                if (steps != 0) {
-                    onScroll?.invoke(if (reverseScroll) -steps else steps)
-                    scrollAccum -= steps * step
-                }
+                trackScrollVelocity(dy)
+                emitScroll(dy)
             }
             TwoFinger.ZOOM -> {
                 val step = ZOOM_STEP_DP * density
@@ -244,6 +267,71 @@ class TrackpadView @JvmOverloads constructor(
             }
             TwoFinger.UNDECIDED -> Unit
         }
+    }
+
+    private fun emitScroll(dy: Float) {
+        val step = SCROLL_STEP_DP * density / scrollSpeed.coerceAtLeast(0.1f)
+        scrollAccum += dy
+        val steps = (scrollAccum / step).toInt()
+        if (steps != 0) {
+            onScroll?.invoke(if (reverseScroll) -steps else steps)
+            scrollAccum -= steps * step
+        }
+    }
+
+    private fun trackScrollVelocity(dy: Float) {
+        val now = SystemClock.uptimeMillis()
+        val dt = now - lastScrollTime
+        lastScrollTime = now
+        if (dt <= 0) return
+        val instant = dy / dt
+        // A fresh stroke takes the new speed; a running one blends towards it.
+        scrollVelocity = if (dt > COAST_STALE_MS) instant else scrollVelocity * 0.6f + instant * 0.4f
+    }
+
+    private val coast = object : Runnable {
+        override fun run() {
+            if (!coasting) return
+            val now = SystemClock.uptimeMillis()
+            val dt = (now - coastLastFrame).coerceIn(1L, 40L)
+            coastLastFrame = now
+            // Friction, per 16 ms frame whatever the display's rate.
+            scrollVelocity *= Math.pow(COAST_FRICTION.toDouble(), dt / 16.0).toFloat()
+            val minSpeed = COAST_MIN_DP_PER_MS * density
+            if (abs(scrollVelocity) < minSpeed || now - coastStarted > COAST_MAX_MS || !isAttachedToWindow) {
+                stopCoast()
+                return
+            }
+            emitScroll(scrollVelocity * dt)
+            postOnAnimation(this)
+        }
+    }
+
+    private fun startCoast() {
+        if (!momentum) return
+        // Fingers that stopped before lifting mean stop, not fling.
+        if (SystemClock.uptimeMillis() - lastScrollTime > COAST_STALE_MS) return
+        if (abs(scrollVelocity) < COAST_START_DP_PER_MS * density) return
+        coasting = true
+        coastStarted = SystemClock.uptimeMillis()
+        coastLastFrame = coastStarted
+        postOnAnimation(coast)
+    }
+
+    private fun stopCoast() {
+        if (!coasting) return
+        coasting = false
+        removeCallbacks(coast)
+    }
+
+    override fun onDetachedFromWindow() {
+        stopCoast()
+        super.onDetachedFromWindow()
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        if (visibility != VISIBLE) stopCoast()
     }
 
     private fun threeFingers(cx: Float, cy: Float) {
@@ -269,12 +357,13 @@ class TrackpadView @JvmOverloads constructor(
     }
 
     private fun resetCentroid(event: MotionEvent, excluding: Int = -1) {
-        val (x, y) = centroid(event, excluding)
-        lastX = x
-        lastY = y
+        centroid(event, excluding)
+        lastX = cx
+        lastY = cy
     }
 
-    private fun centroid(event: MotionEvent, excluding: Int = -1): Pair<Float, Float> {
+    /** Sets [cx] and [cy] to the mean of the fingers, leaving out [excluding]. */
+    private fun centroid(event: MotionEvent, excluding: Int = -1) {
         var sx = 0f
         var sy = 0f
         var n = 0
@@ -284,7 +373,13 @@ class TrackpadView @JvmOverloads constructor(
             sy += event.getY(i)
             n++
         }
-        return if (n == 0) event.x to event.y else (sx / n) to (sy / n)
+        if (n == 0) {
+            cx = event.x
+            cy = event.y
+        } else {
+            cx = sx / n
+            cy = sy / n
+        }
     }
 
     private fun span(event: MotionEvent): Float =
@@ -301,5 +396,12 @@ class TrackpadView @JvmOverloads constructor(
         private const val SCROLL_STEP_DP = 10f
         private const val ZOOM_STEP_DP = 40f
         private const val SWIPE_MIN_DP = 60f
+
+        /** Momentum: the flick speed that starts it, friction per frame, when it stops. */
+        private const val COAST_START_DP_PER_MS = 0.35f
+        private const val COAST_MIN_DP_PER_MS = 0.04f
+        private const val COAST_FRICTION = 0.94f
+        private const val COAST_MAX_MS = 1_800L
+        private const val COAST_STALE_MS = 80L
     }
 }

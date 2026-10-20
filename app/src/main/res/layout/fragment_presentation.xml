@@ -30,6 +30,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/timerLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/present_timer"
@@ -43,6 +44,20 @@
                     android:textAppearance="@style/Text.Numeric"
                     android:textSize="38sp" />
             </LinearLayout>
+
+            <!-- Portrait by default; this turns the screen sideways and back. -->
+            <ImageButton
+                android:id="@+id/rotate"
+                style="@style/Widget.BeamPad.IconButton.Plain"
+                android:src="@drawable/ic_device_rotate"
+                android:contentDescription="@string/present_rotate_landscape" />
+
+            <!-- The talk's length: buzzes a minute before and at the time. -->
+            <ImageButton
+                android:id="@+id/timerAlert"
+                style="@style/Widget.BeamPad.IconButton.Plain"
+                android:src="@drawable/ic_bell_ringing"
+                android:contentDescription="@string/present_alert" />
 
             <ImageButton
                 android:id="@+id/timerReset"

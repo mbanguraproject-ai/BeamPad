@@ -138,6 +138,16 @@ class SettingsActivity : PageActivity() {
             prefs.connectTimeout = it
         }
         Ui.divider(card)
+        picker(card, R.string.set_link, R.drawable.ic_gauge, prefs.linkMode, listOf(
+            Prefs.LinkMode.SMOOTH to getString(R.string.set_link_smooth),
+            Prefs.LinkMode.FAST to getString(R.string.set_link_fast),
+            Prefs.LinkMode.STABLE to getString(R.string.set_link_stable)
+        ), subtitle = getString(R.string.set_link_body), details = mapOf(
+            Prefs.LinkMode.SMOOTH to getString(R.string.set_link_smooth_body),
+            Prefs.LinkMode.FAST to getString(R.string.set_link_fast_body),
+            Prefs.LinkMode.STABLE to getString(R.string.set_link_stable_body)
+        )) { prefs.linkMode = it }
+        Ui.divider(card)
         Ui.switchRow(card, getString(R.string.settings_screen_on), getString(R.string.set_screen_on_body),
             R.drawable.ic_sun, prefs.keepScreenOn) { prefs.keepScreenOn = it; it }
         Ui.divider(card)
@@ -196,6 +206,9 @@ class SettingsActivity : PageActivity() {
         val card = Ui.card(c)
         Ui.switchRow(card, getString(R.string.set_tap_click), getString(R.string.set_tap_click_body),
             R.drawable.ic_hand_tap, prefs.tapToClick) { prefs.tapToClick = it; it }
+        Ui.divider(card)
+        Ui.switchRow(card, getString(R.string.set_momentum), getString(R.string.set_momentum_body),
+            R.drawable.ic_mouse_scroll, prefs.momentumScroll) { prefs.momentumScroll = it; it }
         Ui.divider(card)
         picker(card, R.string.set_touch, R.drawable.ic_hand_pointing, prefs.touchResponse, listOf(
             Prefs.TouchResponse.RELAXED to getString(R.string.set_touch_relaxed),

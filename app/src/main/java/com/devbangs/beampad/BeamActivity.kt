@@ -1,5 +1,7 @@
 package com.devbangs.beampad
 
+import android.content.Intent
+import android.content.IntentSender
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
@@ -60,6 +62,33 @@ abstract class BeamActivity : FragmentActivity() {
             appliedContrast != Prefs(this).highContrast ||
             appliedReducedMotion != Motion.reduced(this)
         if (appliedTheme != 0 && changed) recreate()
+    }
+
+    /**
+     * Every start goes through here (plain starts, result launchers,
+     * fragments). A screen of another app (system settings, the voice
+     * prompt, a share sheet, the store) is part of what the user is doing,
+     * so coming back from it is not a return for the app open ad.
+     */
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        if (intent.component?.packageName != packageName) AppOpenAds.handOff()
+        super.startActivityForResult(intent, requestCode, options)
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun startIntentSenderForResult(
+        intent: IntentSender,
+        requestCode: Int,
+        fillInIntent: Intent?,
+        flagsMask: Int,
+        flagsValues: Int,
+        extraFlags: Int,
+        options: Bundle?
+    ) {
+        // Play's update flow.
+        AppOpenAds.handOff()
+        super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options)
     }
 
     /** Pads [view] by the system bars and cutouts, for screens that scroll as a whole. */

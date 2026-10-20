@@ -398,7 +398,7 @@ class OnboardingActivity : BeamActivity() {
         private const val DISCOVERABLE_SECONDS = 180
         private const val MAX_PAIRED_SHOWN = 3
 
-        fun shouldShow(activity: android.app.Activity): Boolean =
-            !activity.getSharedPreferences(Prefs.FILE, MODE_PRIVATE).getBoolean(KEY_SEEN, false)
+        fun shouldShow(context: android.content.Context): Boolean =
+            !context.getSharedPreferences(Prefs.FILE, MODE_PRIVATE).getBoolean(KEY_SEEN, false)
     }
 }
