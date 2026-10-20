@@ -42,7 +42,7 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
     const val TRANSITIONS_PER_AD = 3
 
     /** Since any full-screen ad closed. */
-    private const val MIN_GAP_MS = 30_000L
+    private const val MIN_GAP_MS = 15_000L
 
     /** First launches without interstitials: the one with setup and first pairing. */
     const val GRACE_LAUNCHES = 1
