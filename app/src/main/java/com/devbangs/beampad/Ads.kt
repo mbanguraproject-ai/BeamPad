@@ -3,9 +3,12 @@ package com.devbangs.beampad
 import android.app.Activity
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.os.Handler
+import android.os.Looper
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.view.doOnLayout
+import androidx.core.view.isVisible
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -17,11 +20,13 @@ import kotlin.concurrent.thread
 
 /**
  * Banner loading, gated on consent and on the remove-ads entitlement.
- * The banner lives in Settings, away from every control surface; [start]
- * runs as the app opens so consent is settled before any ad loads.
+ * The banner lives at the foot of Settings, away from every control
+ * surface; [start] runs as the app opens so consent is settled before any
+ * ad loads.
  *
- * The slot has zero height until an ad actually arrives, so a failed or
- * skipped load leaves no empty gap in the layout.
+ * The slot keeps the banner's height while the first ad loads, so it
+ * never pushes anything when the ad appears, and collapses if none comes
+ * (retrying a few times while the page stays open).
  */
 object Ads {
 
@@ -37,8 +42,15 @@ object Ads {
      */
     private val TEST_DEVICES = listOf("072B81DAA6F3356B9674DB7F001A957F")
 
+    private const val FORMAT = "Banner"
+
+    /** Further tries when a page's first banner request fails (no fill, offline). */
+    private val RETRY_DELAYS_MS = longArrayOf(15_000, 45_000, 120_000)
+
     private var sdkStarted = false
     private var view: AdView? = null
+    private val main = Handler(Looper.getMainLooper())
+    private var pendingRetry: Runnable? = null
 
     /**
      * Gathers consent and starts the SDK, without showing anything. Run as
@@ -117,6 +129,8 @@ object Ads {
         if (existing != null) {
             if (existing.parent === slot) return
             (existing.parent as? android.view.ViewGroup)?.removeView(existing)
+            pendingRetry?.let { main.removeCallbacks(it) }
+            pendingRetry = null
             existing.destroy()
             view = null
         }
@@ -135,17 +149,31 @@ object Ads {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
+        var everLoaded = false
+        var failures = 0
         banner.adListener = object : AdListener() {
             override fun onAdLoaded() {
-                android.util.Log.i("BeamPadAds", "loaded")
+                everLoaded = true
+                failures = 0
+                banner.isVisible = true
+                AdGate.log(FORMAT, "loaded")
             }
 
             override fun onAdFailedToLoad(error: LoadAdError) {
-                android.util.Log.w("BeamPadAds", "failed ${error.code}: ${error.message}")
-                // Collapse the slot: an empty banner frame looks like a bug.
-                slot.removeAllViews()
-                view?.destroy()
-                view = null
+                AdGate.log(FORMAT, "load failed ${error.code}: ${error.message}")
+                // A failed refresh keeps the ad already showing; AdMob tries
+                // again at the next refresh.
+                if (everLoaded) return
+                // Nothing yet: collapse rather than leave an empty frame,
+                // and try again a little later while the page is open,
+                // instead of no banner for the rest of the visit.
+                banner.isVisible = false
+                if (failures >= RETRY_DELAYS_MS.size) return
+                val retry = Runnable {
+                    if (view === banner && banner.isAttachedToWindow) banner.loadAd(AdRequest.Builder().build())
+                }
+                main.postDelayed(retry, RETRY_DELAYS_MS[failures++])
+                pendingRetry = retry
             }
         }
         banner.loadAd(AdRequest.Builder().build())
@@ -164,6 +192,8 @@ object Ads {
 
     /** Called after a successful purchase: removes the banner immediately. */
     fun detach(slot: FrameLayout) {
+        pendingRetry?.let { main.removeCallbacks(it) }
+        pendingRetry = null
         view?.destroy()
         view = null
         slot.removeAllViews()
