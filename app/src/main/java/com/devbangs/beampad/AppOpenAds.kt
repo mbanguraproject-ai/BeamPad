@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreenViewProvider
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -105,6 +106,13 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
     /** A launch whose ad was on screen when it ended: its splash goes at once, without the fade. */
     private var revealAtOnce: Activity? = null
+
+    /**
+     * The launch splash, handed over to the app behind the ad and kept on
+     * top of it there, so the ad still sits on the splash. [finish] removes
+     * it the moment the ad closes: the app has already drawn under it.
+     */
+    private var parkedSplash: SplashScreenViewProvider? = null
     private var backgroundSinceHandOff = false
 
     private val main = Handler(Looper.getMainLooper())
@@ -116,7 +124,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             val context = target?.applicationContext
             if (presenting && context != null) {
                 AdGate.end(FORMAT)
-                finish("ad screen closed")
+                finish("ad screen closed", adClosed = true)
                 preload(context)
             }
         }
@@ -152,8 +160,24 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     /** A launch or return is under way (splash held, cover up, or its ad showing). */
     val busy: Boolean get() = mode != null
 
-    /** Whether [activity]'s splash should stay up: until its ad has closed or is skipped. */
-    fun holds(activity: Activity): Boolean = mode == Mode.LAUNCH && target === activity
+    /**
+     * Whether [activity]'s splash should stay up on its own: until the ad is
+     * on screen, or the launch is skipped. Once the ad covers the screen the
+     * app draws behind it and the splash is handed over and parked
+     * ([parkSplash]), so closing the ad needs nothing but removing it.
+     */
+    fun holds(activity: Activity): Boolean = mode == Mode.LAUNCH && target === activity && !shown
+
+    /**
+     * Called by [activity]'s splash exit listener. While the launch ad is on
+     * screen, keeps the splash over the app until the ad closes and returns
+     * true; otherwise returns false and the caller removes it.
+     */
+    fun parkSplash(activity: Activity, provider: SplashScreenViewProvider): Boolean {
+        if (mode != Mode.LAUNCH || target !== activity || !shown) return false
+        parkedSplash = provider
+        return true
+    }
 
     /**
      * Asked once as [activity]'s splash leaves: true when an ad was just on
@@ -362,7 +386,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
             override fun onAdDismissedFullScreenContent() {
                 AdGate.end(FORMAT)
-                if (mine == session) finish("closed")
+                if (mine == session) finish("closed", adClosed = true)
                 preload(appContext)
             }
 
@@ -379,16 +403,28 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         }
     }
 
-    /** Ends the launch or return: the splash lets go, the cover fades, the app is in charge. */
-    private fun finish(reason: String) {
+    /**
+     * Ends the launch or return: the splash lets go, the cover goes, the app
+     * is in charge. [adClosed] is true when an ad was on screen and has
+     * closed; then the splash and the cover go at once, so closing the ad
+     * lands straight on the app. With no ad they fade.
+     */
+    private fun finish(reason: String, adClosed: Boolean = false) {
         val ending = mode ?: return
         AdGate.log(FORMAT, "${ending.name.lowercase()} ended: $reason")
         session++
         main.removeCallbacks(showTimeout)
         main.removeCallbacks(giveUp)
-        // The ad was up (or was being put up): no splash or cover after it.
-        val adWasUp = shown || presenting
-        if (ending == Mode.LAUNCH && adWasUp) revealAtOnce = target
+        val adWasUp = shown || adClosed
+        val parked = parkedSplash
+        parkedSplash = null
+        if (parked != null) {
+            // The app drew behind the ad: one view to remove, no handover in view.
+            runCatching { parked.remove() }
+        } else if (ending == Mode.LAUNCH && adWasUp) {
+            // The splash has not been handed over yet: it goes without its fade.
+            revealAtOnce = target
+        }
         removeCover(atOnce = adWasUp)
         mode = null
         target = null
@@ -426,7 +462,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             // whether or not it said so.
             shown -> {
                 AdGate.end(FORMAT)
-                finish("closed")
+                finish("closed", adClosed = true)
                 preload(activity.applicationContext)
             }
         }
