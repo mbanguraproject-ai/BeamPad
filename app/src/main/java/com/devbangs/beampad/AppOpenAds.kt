@@ -102,6 +102,9 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     private var everBackgrounded = false
     private var anyStarted = false
     private var handOffAt = 0L
+
+    /** A launch whose ad was on screen when it ended: its splash goes at once, without the fade. */
+    private var revealAtOnce: Activity? = null
     private var backgroundSinceHandOff = false
 
     private val main = Handler(Looper.getMainLooper())
@@ -151,6 +154,18 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
 
     /** Whether [activity]'s splash should stay up: until its ad has closed or is skipped. */
     fun holds(activity: Activity): Boolean = mode == Mode.LAUNCH && target === activity
+
+    /**
+     * Asked once as [activity]'s splash leaves: true when an ad was just on
+     * top of it. Closing the ad then goes straight to the app; the splash's
+     * usual fade would otherwise show it, icon and all, between the ad and
+     * the app.
+     */
+    fun skipSplashFade(activity: Activity): Boolean {
+        val skip = revealAtOnce === activity
+        if (skip) revealAtOnce = null
+        return skip
+    }
 
     /**
      * The splash has played: show the ad if it is ready, wait a little longer
@@ -236,11 +251,16 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         }
     }
 
-    private fun removeCover() {
+    /**
+     * Fades the cover when no ad came; when an ad was on top of it, removes
+     * it at once, so closing the ad lands straight on the app rather than on
+     * a moment of the cover.
+     */
+    private fun removeCover(atOnce: Boolean) {
         val view = cover ?: return
         cover = null
         val parent = view.parent as? ViewGroup ?: return
-        if (Motion.reduced(view.context) || !view.isAttachedToWindow) {
+        if (atOnce || Motion.reduced(view.context) || !view.isAttachedToWindow) {
             parent.removeView(view)
             return
         }
@@ -366,7 +386,10 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         session++
         main.removeCallbacks(showTimeout)
         main.removeCallbacks(giveUp)
-        removeCover()
+        // The ad was up (or was being put up): no splash or cover after it.
+        val adWasUp = shown || presenting
+        if (ending == Mode.LAUNCH && adWasUp) revealAtOnce = target
+        removeCover(atOnce = adWasUp)
         mode = null
         target = null
         showOnResume = false
@@ -438,6 +461,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
             finish("screen destroyed")
         }
         if (activity === resumedActivity) resumedActivity = null
+        if (activity === revealAtOnce) revealAtOnce = null
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {

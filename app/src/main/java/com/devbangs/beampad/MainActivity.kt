@@ -331,7 +331,9 @@ class MainActivity : BeamActivity() {
             SystemClock.uptimeMillis() < splashUntil || AppOpenAds.holds(this)
         }
         splash.setOnExitAnimationListener { provider ->
-            if (Motion.reduced(this)) {
+            // Straight from a closed launch ad to the app: a fade here would
+            // show the splash and its icon again between the two.
+            if (Motion.reduced(this) || AppOpenAds.skipSplashFade(this)) {
                 provider.remove()
             } else {
                 provider.view.animate()
