@@ -27,6 +27,7 @@ import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The connection engine. Owns the Bluetooth HID registration and the link
@@ -615,12 +616,16 @@ class HidService : Service() {
         val dev = connectedDevice ?: return false
         val ok = runCatching { h.sendReport(dev, id, report) }.getOrDefault(false)
         if (!ok) {
-            log(ConnectionLog.Kind.SEND_FAILED, "report $id")
+            refusedSince.incrementAndGet()
             // Connected but refused: say so (once in a while), rather than
-            // leave a key press that silently did nothing.
+            // leave a key press that silently did nothing. Logged at the
+            // same pace, with a count: writing the log for every refused
+            // report (up to 90 a second while pointing) cost the sending
+            // threads the most exactly when the link was struggling.
             val now = SystemClock.elapsedRealtime()
             if (now - lastSendFailedNotice > SEND_FAILED_NOTICE_GAP_MS) {
                 lastSendFailedNotice = now
+                log(ConnectionLog.Kind.SEND_FAILED, "report $id, ${refusedSince.getAndSet(0)} refused")
                 notice(Notice.SEND_FAILED)
             }
         }
@@ -628,6 +633,7 @@ class HidService : Service() {
     }
 
     @Volatile private var lastSendFailedNotice = 0L
+    private val refusedSince = AtomicInteger()
 
     // Thin wrappers kept for screens written against the earlier API.
 

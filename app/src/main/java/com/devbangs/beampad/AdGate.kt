@@ -37,6 +37,28 @@ object AdGate : Application.ActivityLifecycleCallbacks {
     /** A showing flag older than this is stale (a callback lost for good). */
     private const val MAX_SHOW_MS = 10 * 60 * 1000L
 
+    /**
+     * How long a format waits for its ad to report itself on screen after
+     * show(). Generous: on a budget phone the first ad screen of a session
+     * (WebView start-up) can take several seconds, and giving up early let
+     * the ad land over the app instead of the splash.
+     */
+    const val SHOW_TIMEOUT_MS = 6_000L
+
+    /**
+     * A load AdMob has not answered after this long is treated as lost, so
+     * one request that never calls back cannot stop a format for the rest
+     * of the session.
+     */
+    const val LOAD_STUCK_MS = 60_000L
+
+    /**
+     * When the last AdMob screen closes, an ad still marked as showing that
+     * began longer ago than this is stale (its close was never reported)
+     * and is cleared. Anything newer is a show still on its way.
+     */
+    private const val STALE_AFTER_CLOSE_MS = 8_000L
+
     private const val LOG_SIZE = 30
 
     /** Set at startup by [init]; the release build keeps no ad log. */
@@ -151,7 +173,16 @@ object AdGate : Application.ActivityLifecycleCallbacks {
     override fun onActivityDestroyed(activity: Activity) {
         if (!isAdScreen(activity)) return
         adScreens = (adScreens - 1).coerceAtLeast(0)
-        if (adScreens == 0) goneListeners.toList().forEach { it() }
+        if (adScreens != 0) return
+        goneListeners.toList().forEach { it() }
+        // Nothing of AdMob's is on screen any more. A format that never
+        // reported its close would otherwise keep every other ad blocked
+        // until MAX_SHOW_MS ran out.
+        val stale = owner
+        if (stale != null && SystemClock.elapsedRealtime() - since > STALE_AFTER_CLOSE_MS) {
+            log(stale, "cleared: its screen closed without a report")
+            end(stale)
+        }
     }
 
     override fun onActivityStarted(activity: Activity) = Unit
