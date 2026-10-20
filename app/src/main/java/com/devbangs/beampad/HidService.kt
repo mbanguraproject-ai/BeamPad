@@ -747,7 +747,10 @@ class HidService : Service() {
         val builder = Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(statusText())
-            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            // BeamPad's own mark, in its colour, rather than the system's
+            // Bluetooth symbol, so the notification reads as the app's.
+            .setSmallIcon(R.drawable.ic_stat_beampad)
+            .setColor(getColor(R.color.splash_background))
             .setContentIntent(open)
             .setOnlyAlertOnce(true)
             .setOngoing(true)
