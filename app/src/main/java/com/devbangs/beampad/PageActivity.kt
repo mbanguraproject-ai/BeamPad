@@ -31,23 +31,48 @@ abstract class PageActivity : BeamActivity() {
         private set
     private var bound = false
 
-    private val serviceListener: () -> Unit = { runOnUiThread { refresh() } }
+    /**
+     * Whether the page redraws when the connection changes. Pages that show
+     * nothing of it turn this off, so they are not rebuilt (and do not
+     * flicker) as the service binds a moment after they open.
+     */
+    protected open val refreshOnServiceChange: Boolean = true
+
+    private val serviceListener: () -> Unit = {
+        runOnUiThread { if (refreshOnServiceChange) scheduleRefresh() }
+    }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             val s = (binder as? HidService.LocalBinder)?.service ?: return
             service = s
             s.addListener(serviceListener)
-            refresh()
+            if (refreshOnServiceChange) scheduleRefresh()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             service = null
-            refresh()
+            if (refreshOnServiceChange) scheduleRefresh()
         }
     }
 
-    private val entitlementObserver: (Entitlements.Change) -> Unit = { refresh() }
+    private val entitlementObserver: (Entitlements.Change) -> Unit = { scheduleRefresh() }
+
+    private var refreshPosted = false
+
+    /**
+     * A redraw for something that changed in the background (the service,
+     * a purchase). Several in a row become one, on the next frame, rather
+     * than the page being rebuilt again and again as it opens.
+     */
+    protected fun scheduleRefresh() {
+        if (refreshPosted || !::page.isInitialized) return
+        refreshPosted = true
+        page.root.post {
+            refreshPosted = false
+            refresh()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

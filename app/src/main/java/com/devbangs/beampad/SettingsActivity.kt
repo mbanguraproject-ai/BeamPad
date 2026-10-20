@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.core.view.isVisible
 import java.util.Locale
 
 /**
@@ -24,32 +25,38 @@ class SettingsActivity : PageActivity() {
     /** Bound without auto-create, for the test characters, which need a live connection. */
     override val wantsService = true
 
+    /** Nothing here shows the live connection, so binding must not rebuild the page. */
+    override val refreshOnServiceChange = false
+
+    /** Whether the privacy options row was drawn, so a consent answer redraws only if it changes. */
+    private var privacyShown: Boolean? = null
+
     override fun title(): CharSequence = getString(R.string.settings)
 
     /**
-     * The app's only banner: here, under Restore purchases, never on a
-     * control surface. Created once and moved between redraws, so changing
-     * a setting does not request a new ad. Zero height until an ad loads.
+     * The app's only banner, never on a control surface: anchored at the
+     * foot of Settings, outside the scrolling list. Redrawing the list
+     * (changing a setting) never touches it, so it neither blinks nor
+     * requests a new ad, and it never pushes the settings around when it
+     * arrives. Zero height until an ad loads.
      */
     private lateinit var adSlot: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        adSlot = FrameLayout(this).apply {
-            setBackgroundResource(R.drawable.bg_ad_slot)
-            clipToOutline = true
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                val side = resources.getDimensionPixelSize(R.dimen.gutter)
-                setMargins(side, Ui.dp(context, 12), side, 0)
-            }
-        }
+        adSlot = FrameLayout(this)
+        page.footer.addView(adSlot, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ))
+        page.footer.isVisible = !app.entitlements.adsRemoved
         Ads.attach(this, adSlot, app.entitlements)
         // The privacy options row depends on where consent stands; ask if
-        // this process has not heard yet.
-        if (!Consent.updated) Consent.update(this) { refresh() }
+        // this process has not heard yet, and redraw only if the answer
+        // changes what is shown.
+        if (!Consent.updated) Consent.update(this) {
+            if (Consent.privacyOptionsRequired(this) != privacyShown) refresh()
+        }
     }
 
     override fun onResume() {
@@ -116,11 +123,10 @@ class SettingsActivity : PageActivity() {
             restore()
         }
 
-        (adSlot.parent as? ViewGroup)?.removeView(adSlot)
-        if (app.entitlements.adsRemoved) {
+        // A purchase made from here removes the banner at once.
+        if (app.entitlements.adsRemoved && page.footer.isVisible) {
             Ads.detach(adSlot)
-        } else {
-            c.addView(adSlot)
+            page.footer.isVisible = false
         }
     }
 
@@ -158,7 +164,9 @@ class SettingsActivity : PageActivity() {
             MainActivity.openTab(this, R.id.tab_devices)
         }
         Ui.divider(card)
-        val lastName = service?.lastHostName()
+        // From the saved devices, not the service: the page does not wait
+        // for the service, or redraw when it binds.
+        val lastName = DeviceStore(this).get(prefs.lastHost)?.displayName
         val forget = Ui.row(card, getString(R.string.settings_forget),
             when {
                 prefs.lastHost == null -> getString(R.string.settings_forget_none)
@@ -367,13 +375,17 @@ class SettingsActivity : PageActivity() {
         }
         // Where a regulation applies (GDPR, US state laws), users must be
         // able to change or withdraw consent; AdMob limits ads without it.
-        if (Consent.privacyOptionsRequired(this)) {
+        privacyShown = Consent.privacyOptionsRequired(this)
+        if (privacyShown == true) {
             Ui.divider(card)
             Ui.linkRow(card, getString(R.string.settings_privacy_options), getString(R.string.settings_privacy_options_body),
                 R.drawable.ic_sliders) {
                 Consent.showPrivacyOptions(this) {
                     // A withdrawal stops ads at once.
-                    if (!Consent.canRequestAds) Ads.detach(adSlot)
+                    if (!Consent.canRequestAds) {
+                        Ads.detach(adSlot)
+                        page.footer.isVisible = false
+                    }
                     refresh()
                 }
             }
