@@ -135,7 +135,10 @@ class ProActivity : BeamActivity() {
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            ui.scroll.updatePadding(left = bars.left, top = bars.top, right = bars.right)
+            // The status bar as a margin, not padding: the page scrolls
+            // clear of the clock and icons instead of passing under them.
+            ui.scroll.updateLayoutParams<FrameLayout.LayoutParams> { topMargin = bars.top }
+            ui.scroll.updatePadding(left = bars.left, right = bars.right)
             ui.footer.updatePadding(
                 left = bars.left + dp(16),
                 right = bars.right + dp(16),
