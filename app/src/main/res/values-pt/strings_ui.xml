@@ -596,7 +596,7 @@
     <string name="mode_numpad">Teclado num.</string>
     <string name="mode_gamepad">Gamepad</string>
     <string name="tip_numpad">Estas são as teclas do teclado numérico. Se elas moverem o cursor em vez de digitar números, pressione Num Lock.</string>
-    <string name="tip_gamepad">Segure os botões o quanto quiser e pressione vários ao mesmo tempo, como em um controle de verdade.</string>
+    <string name="tip_gamepad">Deslize para cima em um gatilho para pressioná-lo mais, e toque duas vezes em um analógico para clicar. Os botões ficam pressionados o quanto quiser, vários ao mesmo tempo.</string>
     <string name="numpad_num_lock">Num Lock</string>
     <string name="numpad_enter">Enter</string>
     <string name="numpad_tab">Tab</string>
@@ -615,4 +615,26 @@
     <string name="set_gamepad">Suporte a gamepad</string>
     <string name="set_gamepad_body">Permite que o BeamPad funcione como controle de jogos. Alterar isso reinicia a conexão, e os dispositivos precisam parear de novo para vê-lo.</string>
     <string name="set_gamepad_repair">Remova o BeamPad da lista Bluetooth do dispositivo e pareie de novo para aplicar isto.</string>
+    <string name="pad_dpad">Direcional</string>
+    <string name="pad_left_trigger">Gatilho esquerdo</string>
+    <string name="pad_right_trigger">Gatilho direito</string>
+    <string name="pad_view">Exibir</string>
+    <string name="pad_menu">Menu</string>
+    <string name="pad_create">Criar</string>
+    <string name="pad_options">Opções</string>
+    <string name="pad_cross">Xis</string>
+    <string name="pad_circle">Círculo</string>
+    <string name="pad_square">Quadrado</string>
+    <string name="pad_triangle">Triângulo</string>
+    <string name="pad_tilt">Inclinar para dirigir</string>
+    <string name="pad_tilt_on">Inclinar para dirigir ativado: gire o celular como um volante para dirigir com o analógico esquerdo.</string>
+    <string name="pad_tilt_off">Inclinar para dirigir desativado</string>
+    <string name="pad_tilt_none">Este celular não tem sensor de movimento para dirigir inclinando.</string>
+    <string name="set_group_gamepad">Gamepad</string>
+    <string name="set_pad_labels">Nomes dos botões</string>
+    <string name="set_pad_labels_body">Nomeie os botões como no controle que seus jogos mostram</string>
+    <string name="set_pad_floating">Analógicos flutuantes</string>
+    <string name="set_pad_floating_body">Um analógico se centraliza onde seu polegar toca</string>
+    <string name="set_pad_tilt">Inclinar para dirigir</string>
+    <string name="set_pad_tilt_body">Gire o celular como um volante para mover o analógico esquerdo</string>
 </resources>

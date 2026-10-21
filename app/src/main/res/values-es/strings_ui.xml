@@ -596,7 +596,7 @@
     <string name="mode_numpad">Teclado num.</string>
     <string name="mode_gamepad">Mando</string>
     <string name="tip_numpad">Son las teclas propias del teclado numérico. Si mueven el cursor en lugar de escribir dígitos, pulsa Bloq Num.</string>
-    <string name="tip_gamepad">Mantén pulsados los botones el tiempo que quieras y pulsa varios a la vez, como en un mando de verdad.</string>
+    <string name="tip_gamepad">Desliza hacia arriba en un gatillo para pulsarlo más, y toca dos veces un joystick para hacer clic. Los botones se mantienen pulsados lo que quieras, varios a la vez.</string>
     <string name="numpad_num_lock">Bloq Num</string>
     <string name="numpad_enter">Intro</string>
     <string name="numpad_tab">Tab</string>
@@ -615,4 +615,26 @@
     <string name="set_gamepad">Compatibilidad con mando</string>
     <string name="set_gamepad_body">Permite que BeamPad funcione como mando de juegos. Cambiarlo reinicia la conexión, y los dispositivos tienen que volver a vincularse para verlo.</string>
     <string name="set_gamepad_repair">Quita BeamPad de la lista Bluetooth del dispositivo y vuelve a vincularlo para aplicar esto.</string>
+    <string name="pad_dpad">Cruceta</string>
+    <string name="pad_left_trigger">Gatillo izquierdo</string>
+    <string name="pad_right_trigger">Gatillo derecho</string>
+    <string name="pad_view">Vista</string>
+    <string name="pad_menu">Menú</string>
+    <string name="pad_create">Crear</string>
+    <string name="pad_options">Opciones</string>
+    <string name="pad_cross">Equis</string>
+    <string name="pad_circle">Círculo</string>
+    <string name="pad_square">Cuadrado</string>
+    <string name="pad_triangle">Triángulo</string>
+    <string name="pad_tilt">Inclinar para girar</string>
+    <string name="pad_tilt_on">Inclinar para girar activado: gira el teléfono como un volante para dirigir con el joystick izquierdo.</string>
+    <string name="pad_tilt_off">Inclinar para girar desactivado</string>
+    <string name="pad_tilt_none">Este teléfono no tiene sensor de movimiento para girar inclinándolo.</string>
+    <string name="set_group_gamepad">Mando</string>
+    <string name="set_pad_labels">Nombres de los botones</string>
+    <string name="set_pad_labels_body">Nombra los botones como en el mando que muestran tus juegos</string>
+    <string name="set_pad_floating">Joysticks flotantes</string>
+    <string name="set_pad_floating_body">Un joystick se centra donde apoyas el pulgar</string>
+    <string name="set_pad_tilt">Inclinar para girar</string>
+    <string name="set_pad_tilt_body">Gira el teléfono como un volante para mover el joystick izquierdo</string>
 </resources>

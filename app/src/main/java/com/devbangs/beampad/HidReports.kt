@@ -35,10 +35,20 @@ object HidReports {
 
     /** Hat switch (D-pad): 0 up, then clockwise in eighths; 8 is centred. */
     const val HAT_UP = 0
+    const val HAT_UP_RIGHT = 1
     const val HAT_RIGHT = 2
+    const val HAT_DOWN_RIGHT = 3
     const val HAT_DOWN = 4
+    const val HAT_DOWN_LEFT = 5
     const val HAT_LEFT = 6
+    const val HAT_UP_LEFT = 7
     const val HAT_CENTER = 8
+
+    // The D-pad's directions as held, combined into a hat by [hat].
+    const val DPAD_UP = 1
+    const val DPAD_RIGHT = 2
+    const val DPAD_DOWN = 4
+    const val DPAD_LEFT = 8
 
     // Consumer Control usage codes (HID usage page 0x0C)
     const val CC_VOLUME_UP = 0x00E9
@@ -251,6 +261,16 @@ object HidReports {
         0x75, 0x08,                     //   Report Size (8)
         0x95.toByte(), 0x04,            //   Report Count (4)
         0x81.toByte(), 0x02,            //   Input (Data,Var,Abs) - sticks
+        // The analog triggers, as the Xbox controller sends them over
+        // Bluetooth: Android reads them as the left and right trigger.
+        0x05, 0x02,                     //   Usage Page (Simulation Controls)
+        0x09, 0xC5.toByte(),            //   Usage (Brake) - left trigger
+        0x09, 0xC4.toByte(),            //   Usage (Accelerator) - right trigger
+        0x15, 0x00,                     //   Logical Min (0)
+        0x26, 0xFF.toByte(), 0x00,      //   Logical Max (255)
+        0x75, 0x08,                     //   Report Size (8)
+        0x95.toByte(), 0x02,            //   Report Count (2)
+        0x81.toByte(), 0x02,            //   Input (Data,Var,Abs) - triggers
         0xC0.toByte()                   // End Collection
     )
 
@@ -258,8 +278,11 @@ object HidReports {
     fun descriptor(gamepad: Boolean): ByteArray =
         if (gamepad) KEYBOARD_DESCRIPTOR + GAMEPAD_COLLECTION else KEYBOARD_DESCRIPTOR
 
-    /** Gamepad report: 16 button bits, the hat (low four bits), then the two sticks. */
-    fun gamepad(buttons: Int, hat: Int, lx: Int, ly: Int, rx: Int, ry: Int): ByteArray =
+    /**
+     * Gamepad report: 16 button bits, the hat (low four bits), the two
+     * sticks, then the left and right triggers at 0..255.
+     */
+    fun gamepad(buttons: Int, hat: Int, lx: Int, ly: Int, rx: Int, ry: Int, lt: Int, rt: Int): ByteArray =
         byteArrayOf(
             (buttons and 0xFF).toByte(),
             ((buttons shr 8) and 0xFF).toByte(),
@@ -267,8 +290,32 @@ object HidReports {
             lx.coerceIn(-127, 127).toByte(),
             ly.coerceIn(-127, 127).toByte(),
             rx.coerceIn(-127, 127).toByte(),
-            ry.coerceIn(-127, 127).toByte()
+            ry.coerceIn(-127, 127).toByte(),
+            lt.coerceIn(0, 255).toByte(),
+            rt.coerceIn(0, 255).toByte()
         )
+
+    /** The D-pad's held directions (DPAD_* bits) as a hat value: diagonals included. */
+    fun hat(dpad: Int): Int {
+        val up = (dpad and DPAD_UP) != 0
+        val down = (dpad and DPAD_DOWN) != 0
+        val left = (dpad and DPAD_LEFT) != 0
+        val right = (dpad and DPAD_RIGHT) != 0
+        // Opposite directions cancel, as on a real D-pad's rocker.
+        val v = if (up == down) 0 else if (up) -1 else 1
+        val h = if (left == right) 0 else if (left) -1 else 1
+        return when {
+            v < 0 && h == 0 -> HAT_UP
+            v < 0 && h > 0 -> HAT_UP_RIGHT
+            v == 0 && h > 0 -> HAT_RIGHT
+            v > 0 && h > 0 -> HAT_DOWN_RIGHT
+            v > 0 && h == 0 -> HAT_DOWN
+            v > 0 && h < 0 -> HAT_DOWN_LEFT
+            v == 0 && h < 0 -> HAT_LEFT
+            v < 0 && h < 0 -> HAT_UP_LEFT
+            else -> HAT_CENTER
+        }
+    }
 
     /** Consumer report: one 16-bit usage code, little endian. */
     fun consumer(usage: Int): ByteArray =

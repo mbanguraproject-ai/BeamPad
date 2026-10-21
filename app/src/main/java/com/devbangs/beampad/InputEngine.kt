@@ -479,6 +479,8 @@ class InputEngine(
         private var ly = 0
         private var rx = 0
         private var ry = 0
+        private var lt = 0
+        private var rt = 0
         private var dirty = false
         private var stopped = false
         private var thread: Thread? = null
@@ -491,7 +493,7 @@ class InputEngine(
 
         fun release(button: Int) = update { buttons = buttons and button.inv() }
 
-        /** The D-pad: one of HidReports.HAT_*, or HAT_CENTER when let go. */
+        /** The D-pad: one of HidReports.HAT_* (diagonals too), or HAT_CENTER when let go. */
         fun hat(direction: Int) = update {
             hat = direction
             if (direction != HidReports.HAT_CENTER) latchedHat = direction
@@ -508,6 +510,11 @@ class InputEngine(
             }
         }
 
+        /** A trigger at 0..255; [right] for the right one. */
+        fun trigger(right: Boolean, value: Int) = update {
+            if (right) rt = value else lt = value
+        }
+
         /**
          * Everything let go: leaving the gamepad, or the link dropping. Sends
          * nothing when the pad is already at rest, so a device paired without
@@ -518,7 +525,7 @@ class InputEngine(
                 if (stopped) return
                 val atRest = buttons == 0 && latched == 0 &&
                     hat == HidReports.HAT_CENTER && latchedHat == HidReports.HAT_CENTER &&
-                    lx == 0 && ly == 0 && rx == 0 && ry == 0
+                    lx == 0 && ly == 0 && rx == 0 && ry == 0 && lt == 0 && rt == 0
                 if (atRest) return
                 buttons = 0
                 latched = 0
@@ -528,6 +535,8 @@ class InputEngine(
                 ly = 0
                 rx = 0
                 ry = 0
+                lt = 0
+                rt = 0
                 wake()
             }
         }
@@ -582,7 +591,7 @@ class InputEngine(
                     if (stopped) return
                     val sendButtons = buttons or latched
                     val sendHat = if (hat == HidReports.HAT_CENTER) latchedHat else hat
-                    report = HidReports.gamepad(sendButtons, sendHat, lx, ly, rx, ry)
+                    report = HidReports.gamepad(sendButtons, sendHat, lx, ly, rx, ry, lt, rt)
                     // A tap already let go goes out once more, released.
                     dirty = sendButtons != buttons || sendHat != hat
                     latched = 0

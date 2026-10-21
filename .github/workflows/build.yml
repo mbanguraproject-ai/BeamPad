@@ -162,7 +162,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Render screens
-        run: ./gradlew --no-daemon :app:testDebugUnitTest --tests "*ScreenshotTest*" :wear:testDebugUnitTest
+        run: ./gradlew --no-daemon :app:testDebugUnitTest :wear:testDebugUnitTest
 
       - name: Test report on failure
         if: failure()

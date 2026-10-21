@@ -596,7 +596,7 @@
     <string name="mode_numpad">Pavé num.</string>
     <string name="mode_gamepad">Manette</string>
     <string name="tip_numpad">Ce sont les touches du pavé numérique. Si elles déplacent le curseur au lieu de taper des chiffres, appuyez sur Verr Num.</string>
-    <string name="tip_gamepad">Maintenez les boutons aussi longtemps que vous voulez et appuyez sur plusieurs à la fois, comme sur une vraie manette.</string>
+    <string name="tip_gamepad">Glissez vers le haut sur une gâchette pour l’enfoncer davantage, et touchez deux fois un joystick pour cliquer. Les boutons restent enfoncés aussi longtemps que vous voulez, plusieurs à la fois.</string>
     <string name="numpad_num_lock">Verr Num</string>
     <string name="numpad_enter">Entrée</string>
     <string name="numpad_tab">Tab</string>
@@ -615,4 +615,26 @@
     <string name="set_gamepad">Prise en charge de la manette</string>
     <string name="set_gamepad_body">Permet à BeamPad de servir de manette de jeu. La modifier redémarre la connexion, et les appareils doivent être associés à nouveau pour la voir.</string>
     <string name="set_gamepad_repair">Supprimez BeamPad de la liste Bluetooth de l’appareil et associez-le à nouveau pour appliquer ce réglage.</string>
+    <string name="pad_dpad">Croix directionnelle</string>
+    <string name="pad_left_trigger">Gâchette gauche</string>
+    <string name="pad_right_trigger">Gâchette droite</string>
+    <string name="pad_view">Affichage</string>
+    <string name="pad_menu">Menu</string>
+    <string name="pad_create">Créer</string>
+    <string name="pad_options">Options</string>
+    <string name="pad_cross">Croix</string>
+    <string name="pad_circle">Rond</string>
+    <string name="pad_square">Carré</string>
+    <string name="pad_triangle">Triangle</string>
+    <string name="pad_tilt">Inclinaison pour diriger</string>
+    <string name="pad_tilt_on">Inclinaison activée : tournez le téléphone comme un volant pour diriger avec le joystick gauche.</string>
+    <string name="pad_tilt_off">Inclinaison désactivée</string>
+    <string name="pad_tilt_none">Ce téléphone n’a pas de capteur de mouvement pour diriger par inclinaison.</string>
+    <string name="set_group_gamepad">Manette</string>
+    <string name="set_pad_labels">Noms des boutons</string>
+    <string name="set_pad_labels_body">Nommez les boutons comme sur la manette affichée par vos jeux</string>
+    <string name="set_pad_floating">Joysticks flottants</string>
+    <string name="set_pad_floating_body">Un joystick se centre là où votre pouce se pose</string>
+    <string name="set_pad_tilt">Inclinaison pour diriger</string>
+    <string name="set_pad_tilt_body">Tournez le téléphone comme un volant pour bouger le joystick gauche</string>
 </resources>
