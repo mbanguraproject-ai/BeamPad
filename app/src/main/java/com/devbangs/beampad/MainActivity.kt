@@ -26,6 +26,7 @@ import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -381,12 +382,13 @@ class MainActivity : BeamActivity() {
     private var fullScreen = false
 
     /**
-     * Full screen, for the gamepad: the top bar, the tabs, the mode bar and
-     * the system bars all step aside so it plays like a controller. The
-     * status card stays while nothing is connected, as the way to connect;
-     * once connected it goes too. A swipe from an edge shows the system
-     * bars for a moment. Separate from focus mode, so the keyboard leaving
-     * focus as the gamepad arrives cannot bring the bars back.
+     * Full screen, for the gamepad: the top bar, the tabs, the mode bar, the
+     * status card and the system bars all step aside so it plays like a
+     * controller. The gamepad shows the state in a slim pill of its own
+     * instead ([statusLine]), with the card's action. A swipe from an edge
+     * shows the system bars for a moment. Separate from focus mode, so the
+     * keyboard leaving focus as the gamepad arrives cannot bring the bars
+     * back.
      */
     fun setFullScreen(on: Boolean) {
         if (!::ui.isInitialized) return
@@ -410,6 +412,7 @@ class MainActivity : BeamActivity() {
         }
         nav.isVisible = !(focused || fullScreen)
         ui.headerRow.isVisible = !fullScreen
+        ui.statusCard.isVisible = !fullScreen && currentStep() != Step.CONNECTED
         controlFragment()?.setFocus(focused || fullScreen)
         // The column takes over the inset the hidden bar or rail was handling.
         ViewCompat.requestApplyInsets(ui.contentColumn)
@@ -564,11 +567,20 @@ class MainActivity : BeamActivity() {
         }
 
         renderTopBar(step, s)
-        ui.statusCard.isVisible = !connected
+        ui.statusCard.isVisible = !connected && !fullScreen
 
         if (connected) {
             // A sheet about finding the device has nothing left to say.
             sheet?.dismiss()
+            val device = s?.connectedDevice
+            statusLine = StatusLine(
+                icon = device?.let { s.typeOf(it).iconRes } ?: R.drawable.ic_devices,
+                title = device?.let { s.deviceLabel(it) } ?: getString(R.string.device_fallback),
+                action = null,
+                warn = false,
+                busy = false,
+                connected = true
+            )
         } else {
             renderSetup(step, s)
         }
@@ -701,8 +713,31 @@ class MainActivity : BeamActivity() {
         ui.statusDetail.text = detail
         ui.statusAction.isVisible = action != null
         action?.let { ui.statusAction.setText(it) }
-        ui.statusProgress.isVisible = step == Step.STARTING || step == Step.CONNECTING
+        val busy = step == Step.STARTING || step == Step.CONNECTING
+        ui.statusProgress.isVisible = busy
+        statusLine = StatusLine(icon, getString(title), action?.let { getString(it) }, warn, busy, connected = false)
     }
+
+    /**
+     * The status card in one line, for the gamepad's pill while the card
+     * steps aside for full screen: the card's icon and title, its action
+     * (run with [runStatusAction]), and the device's name once connected.
+     */
+    class StatusLine(
+        @DrawableRes val icon: Int,
+        val title: String,
+        val action: String?,
+        val warn: Boolean,
+        val busy: Boolean,
+        val connected: Boolean
+    )
+
+    /** The state as the status card shows it; null until the first refresh. */
+    var statusLine: StatusLine? = null
+        private set
+
+    /** What the status card's button does: connect, reconnect, turn on Bluetooth. */
+    fun runStatusAction() = onStatusAction()
 
     /**
      * Medium haptic and optional tone to confirm the link, then the device

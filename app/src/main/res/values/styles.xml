@@ -441,6 +441,43 @@
         <item name="iconSize">18dp</item>
     </style>
 
+    <!-- Gamepad: round keys (A B X Y, Home, close) whose letter or symbol
+         sits at full size with no padding to cut it short. -->
+    <style name="PadRound" parent="Key">
+        <item name="android:layout_weight">0</item>
+        <item name="android:background">@drawable/bg_key_round</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <!-- A B X Y: one square cell of their diamond each, so always round;
+         the diamond leaves a gap between neighbours. -->
+    <style name="PadFace" parent="PadRound">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">22sp</item>
+        <item name="iconSize">24dp</item>
+    </style>
+
+    <!-- The gamepad's small keys between the sticks. -->
+    <style name="PadPill" parent="Key.Small">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:background">@drawable/bg_key_pill</item>
+    </style>
+
+    <!-- LB and RB, above the triggers; each sets its shoulder's shape. -->
+    <style name="PadBumper" parent="Key">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">0</item>
+    </style>
+
     <!-- Round keys for transport: the play key is larger and accented. -->
     <style name="Key.Round">
         <item name="android:layout_width">64dp</item>

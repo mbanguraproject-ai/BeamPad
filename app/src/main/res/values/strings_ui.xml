@@ -688,5 +688,5 @@
     <string name="pad_close_title">Close the gamepad?</string>
     <string name="pad_close_body">You go back to your other controls. The device stays connected.</string>
     <string name="pad_close_action">Close</string>
-    <string name="pad_not_connected">Not connected yet. Connect with the card above the gamepad.</string>
+    <string name="pad_not_connected">Not connected yet. Connect with the button at the top.</string>
 </resources>

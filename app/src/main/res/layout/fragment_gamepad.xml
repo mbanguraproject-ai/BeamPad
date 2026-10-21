@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Gamepad, full screen while it is on (MainActivity.setFullScreen): the
-     triggers at the two edges; the left stick over the D-pad and A B X Y
-     over the right stick, as on an Xbox pad; View, Home, Menu, the stick
-     clicks, tilt steering and the close button between them. Every button
-     holds while pressed, and several can be held at once. Until gamepad
-     support is turned on, the setup card shows instead. -->
+<!-- Gamepad, full screen while it is on (MainActivity.setFullScreen),
+     laid out as an Xbox pad: LB over LT and RB over RT at the two edges;
+     the left stick above and outside the D-pad, A B X Y above and outside
+     the right stick (PadClusterLayout); between them the state and the
+     close button, Home, View and Menu, the stick clicks and tilt steering.
+     Every button holds while pressed, and several can be held at once.
+     Left to right whatever the language, as a controller is. Until
+     gamepad support is turned on, the setup card shows instead. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -14,155 +16,180 @@
         android:id="@+id/pad"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layoutDirection="ltr"
         android:orientation="horizontal"
         android:paddingStart="@dimen/gutter"
-        android:paddingTop="@dimen/space_sm"
+        android:paddingTop="@dimen/space_xs"
         android:paddingEnd="@dimen/gutter"
-        android:paddingBottom="@dimen/space_sm">
+        android:paddingBottom="@dimen/space_xs">
 
-        <com.devbangs.beampad.TriggerView
-            android:id="@+id/padL2"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/pad_left_trigger" />
-
-        <!-- Left: bumper, stick, D-pad. -->
+        <!-- Left edge: LB over LT. -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="64dp"
             android:layout_height="match_parent"
-            android:layout_weight="1.25"
-            android:layout_marginStart="@dimen/gap"
             android:orientation="vertical">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/padL1"
-                style="@style/Key.Small"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_weight="0" />
-            <com.devbangs.beampad.JoystickView
-                android:id="@+id/leftStick"
+                style="@style/PadBumper"
+                android:background="@drawable/bg_pad_bumper_left" />
+            <com.devbangs.beampad.TriggerView
+                android:id="@+id/padL2"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:layout_marginTop="@dimen/gap"
+                android:contentDescription="@string/pad_left_trigger" />
+        </LinearLayout>
+
+        <!-- The left stick, then the D-pad over it for touches. -->
+        <com.devbangs.beampad.PadClusterLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.3"
+            android:layout_marginStart="@dimen/gap">
+            <com.devbangs.beampad.JoystickView
+                android:id="@+id/leftStick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
                 android:contentDescription="@string/pad_left_stick" />
             <com.devbangs.beampad.GamepadDpadView
                 android:id="@+id/dpad"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:layout_marginTop="@dimen/gap" />
-        </LinearLayout>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end" />
+        </com.devbangs.beampad.PadClusterLayout>
 
-        <!-- Middle: close, then the small buttons. -->
+        <!-- Middle: the state and close, then the small buttons. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/gap"
+            android:gravity="center_horizontal"
             android:orientation="vertical">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padClose"
-                style="@style/Key.Small"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_weight="0"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_key_round"
-                android:contentDescription="@string/pad_close"
-                app:icon="@drawable/ic_x"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="20dp" />
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/gap"
+                android:layout_height="40dp"
                 android:orientation="horizontal">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padSelect"
-                style="@style/Key.Small"
-                android:layout_width="0dp"
-                android:layout_height="44dp" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padStart"
-                style="@style/Key.Small"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_marginStart="@dimen/gap" />
+                <!-- The status card in one line (MainActivity.statusLine). -->
+                <LinearLayout
+                    android:id="@+id/padStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pad_status"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:visibility="invisible">
+                    <ImageView
+                        android:id="@+id/padStatusIcon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:importantForAccessibility="no" />
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/padStatusProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="true"
+                        android:visibility="gone"
+                        app:indicatorColor="?attr/bpAccent2"
+                        app:indicatorSize="14dp"
+                        app:trackColor="@android:color/transparent"
+                        app:trackThickness="2dp" />
+                    <TextView
+                        android:id="@+id/padStatusText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/Text.Key.Small" />
+                </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/padClose"
+                    style="@style/PadRound"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="@dimen/space_xs"
+                    android:contentDescription="@string/pad_close"
+                    app:icon="@drawable/ic_x"
+                    app:iconSize="18dp" />
             </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/gap"
-                android:orientation="horizontal">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padHome"
-                style="@style/Key.Small"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:text="@string/pad_home" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/gap"
-                android:orientation="horizontal">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padL3"
-                style="@style/Key.Small"
-                android:layout_width="0dp"
-                android:layout_height="44dp" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padR3"
-                style="@style/Key.Small"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_marginStart="@dimen/gap" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/gap"
-                android:orientation="horizontal">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padTilt"
-                style="@style/Key.Small"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:contentDescription="@string/pad_tilt"
-                app:icon="@drawable/ic_steering_wheel"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="22dp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Right: bumper, A B X Y, stick. A B X Y by position (A at the
-             bottom, B right, X left, Y top, as Android numbers them); only
-             the labels change. -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.25"
-            android:layout_marginStart="@dimen/gap"
-            android:orientation="vertical">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/padR1"
-                style="@style/Key.Small"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_weight="0" />
-            <com.devbangs.beampad.SquareFrameLayout
+            <Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:layout_marginTop="@dimen/gap">
+                android:layout_weight="1" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/padHome"
+                style="@style/PadRound"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="@string/pad_home"
+                app:icon="@drawable/ic_house"
+                app:iconSize="26dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap"
+                android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/padSelect"
+                    style="@style/PadPill" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/padStart"
+                    style="@style/PadPill"
+                    android:layout_marginStart="@dimen/space_xs" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xs"
+                android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/padL3"
+                    style="@style/PadPill" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/padR3"
+                    style="@style/PadPill"
+                    android:layout_marginStart="@dimen/space_xs" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/padTilt"
+                style="@style/PadPill"
+                android:layout_width="match_parent"
+                android:layout_weight="0"
+                android:layout_marginTop="@dimen/space_xs"
+                android:contentDescription="@string/pad_tilt"
+                app:icon="@drawable/ic_steering_wheel"
+                app:iconSize="22dp" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- The right stick, then A B X Y over it for touches. A B X Y by
+             position (A at the bottom, B right, X left, Y top, as Android
+             numbers them); only the labels change. -->
+        <com.devbangs.beampad.PadClusterLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.3"
+            android:layout_marginStart="@dimen/gap">
+            <com.devbangs.beampad.JoystickView
+                android:id="@+id/rightStick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:contentDescription="@string/pad_right_stick" />
             <LinearLayout
                 android:id="@+id/abxy"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
                 android:orientation="vertical">
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -175,13 +202,7 @@
                         android:layout_weight="1" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/padY"
-                        style="@style/Key"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_key_round"
-                        android:textSize="22sp"
-                        app:iconGravity="textStart"
-                        app:iconPadding="0dp"
-                        app:iconSize="24dp" />
+                        style="@style/PadFace" />
                     <Space
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
@@ -191,36 +212,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:layout_marginTop="4dp"
                     android:orientation="horizontal">
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/padX"
-                        style="@style/Key"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_key_round"
-                        android:textSize="22sp"
-                        app:iconGravity="textStart"
-                        app:iconPadding="0dp"
-                        app:iconSize="24dp" />
+                        style="@style/PadFace" />
                     <Space
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/padB"
-                        style="@style/Key"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_key_round"
-                        android:textSize="22sp"
-                        app:iconGravity="textStart"
-                        app:iconPadding="0dp"
-                        app:iconSize="24dp" />
+                        style="@style/PadFace" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:layout_marginTop="4dp"
                     android:orientation="horizontal">
                     <Space
                         android:layout_width="0dp"
@@ -228,35 +235,33 @@
                         android:layout_weight="1" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/padA"
-                        style="@style/Key"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_key_round"
-                        android:textSize="22sp"
-                        app:iconGravity="textStart"
-                        app:iconPadding="0dp"
-                        app:iconSize="24dp" />
+                        style="@style/PadFace" />
                     <Space
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1" />
                 </LinearLayout>
             </LinearLayout>
-            </com.devbangs.beampad.SquareFrameLayout>
-            <com.devbangs.beampad.JoystickView
-                android:id="@+id/rightStick"
+        </com.devbangs.beampad.PadClusterLayout>
+
+        <!-- Right edge: RB over RT. -->
+        <LinearLayout
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:orientation="vertical">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/padR1"
+                style="@style/PadBumper"
+                android:background="@drawable/bg_pad_bumper_right" />
+            <com.devbangs.beampad.TriggerView
+                android:id="@+id/padR2"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:layout_marginTop="@dimen/gap"
-                android:contentDescription="@string/pad_right_stick" />
+                android:contentDescription="@string/pad_right_trigger" />
         </LinearLayout>
-
-        <com.devbangs.beampad.TriggerView
-            android:id="@+id/padR2"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/gap"
-            android:contentDescription="@string/pad_right_trigger" />
     </LinearLayout>
 
     <!-- Scrolls, so its button stays in reach on a phone held sideways. -->

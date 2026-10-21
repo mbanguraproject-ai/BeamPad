@@ -27,6 +27,10 @@ import kotlin.math.min
  * Diagonals take a narrower slice than the four directions, so a thumb
  * meaning "up" does not drift into "up and right". Reports the held
  * directions as HidReports.DPAD_* bits.
+ *
+ * A touch that lands outside the D-pad's circle is not its own: in
+ * [PadClusterLayout] its empty corner can overlap the stick's square, and
+ * the stick gets that touch.
  */
 class GamepadDpadView @JvmOverloads constructor(
     context: Context,
@@ -46,14 +50,21 @@ class GamepadDpadView @JvmOverloads constructor(
         color = context.themeColor(R.attr.bpKeyStroke)
     }
     private val heldPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = context.themeColor(R.attr.bpAccentSoft) }
+    // Filled, with a stroke rounding the corners: a solid arrow per arm.
     private val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 2.5f * density
-        strokeCap = Paint.Cap.ROUND
+        style = Paint.Style.FILL_AND_STROKE
+        strokeWidth = 2f * density
         strokeJoin = Paint.Join.ROUND
         color = context.themeColor(R.attr.bpText)
     }
     private val arrowHeldPaint = Paint(arrowPaint).apply { color = context.themeColor(R.attr.bpAccent) }
+
+    /** The dimple at the centre, where the thumb rests. */
+    private val hubPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.5f * density
+        color = context.themeColor(R.attr.bpKeyStroke)
+    }
 
     /** The cross as one outline, so the arms meet without seams. */
     private val cross = Path()
@@ -100,16 +111,18 @@ class GamepadDpadView @JvmOverloads constructor(
         }
         canvas.restore()
         canvas.drawPath(cross, strokePaint)
-        // An arrow near each arm's end.
+        canvas.drawCircle(cx, cy, thick * HUB_DIMPLE, hubPaint)
+        // A solid arrow near each arm's end.
         DIRECTIONS.forEach { (bit, angle) ->
             canvas.save()
             canvas.rotate(angle, cx, cy)
-            val tip = cy - half + thick * 0.42f
+            val tip = cy - half + thick * 0.3f
             val w = thick * 0.2f
             arrow.reset()
-            arrow.moveTo(cx - w, tip + w * 0.8f)
-            arrow.lineTo(cx, tip)
-            arrow.lineTo(cx + w, tip + w * 0.8f)
+            arrow.moveTo(cx, tip)
+            arrow.lineTo(cx + w, tip + w * 1.1f)
+            arrow.lineTo(cx - w, tip + w * 1.1f)
+            arrow.close()
             canvas.drawPath(arrow, if (held and bit != 0) arrowHeldPaint else arrowPaint)
             canvas.restore()
         }
@@ -122,6 +135,9 @@ class GamepadDpadView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                // Outside the circle: an empty corner, left to the stick.
+                val reach = side(width, height) / 2f
+                if (hypot(event.x - width / 2f, event.y - height / 2f) > reach) return false
                 parent?.requestDisallowInterceptTouchEvent(true)
                 requestUnbufferedDispatch(event)
                 set(directionAt(event.x, event.y))
@@ -180,7 +196,10 @@ class GamepadDpadView @JvmOverloads constructor(
         const val MAX_SIZE_DP = 180
 
         /** Each arm's width as a share of the D-pad's size. */
-        const val ARM = 0.36f
+        const val ARM = 0.38f
+
+        /** The centre dimple's radius as a share of an arm's width. */
+        const val HUB_DIMPLE = 0.3f
 
         /** The dead hub's radius as a share of the size. */
         const val HUB = 0.09f

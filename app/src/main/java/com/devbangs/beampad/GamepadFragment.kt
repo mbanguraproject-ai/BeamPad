@@ -19,6 +19,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.devbangs.beampad.databinding.FragmentGamepadBinding
 import com.google.android.material.button.MaterialButton
@@ -44,9 +45,10 @@ import kotlin.math.sign
  * - The buttons can be named as on an Xbox, PlayStation or Nintendo pad;
  *   the device sees the same buttons whichever names show.
  *
- * Full screen while it shows: only the pad and its close button, which
- * asks first, as Back does. The status card stays while nothing is
- * connected, as the way to connect.
+ * Full screen while it shows: only the pad, laid out as an Xbox pad, and
+ * its close button, which asks first, as Back does. A slim pill beside it
+ * stands in for the status card: the device once connected; before, what
+ * is needed, and a tap does it (connect, reconnect, turn on Bluetooth).
  *
  * The gamepad is a separate part of what BeamPad presents over Bluetooth
  * and is off until the user turns it on here (see [HidReports.descriptor]),
@@ -59,7 +61,7 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
 
     override val firstTip = R.string.tip_gamepad
 
-    // Full screen, so the top bar named in the usual hint is not there.
+    // Full screen, so the top bar and the card named in the usual hint are not there.
     override val notConnectedHint = R.string.pad_not_connected
 
     /** Back while playing asks first, like the close button. */
@@ -120,6 +122,11 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         ui.rightStick.onClick = { down -> click(HidReports.PAD_R3, down) }
 
         TooltipCompat.setTooltipText(ui.padTilt, getString(R.string.pad_tilt))
+        TooltipCompat.setTooltipText(ui.padHome, getString(R.string.pad_home))
+        ui.padStatus.setOnClickListener {
+            Haptics.tick(it)
+            host?.runStatusAction()
+        }
         ui.padTilt.setOnClickListener {
             Haptics.tick(it)
             toggleTilt()
@@ -152,6 +159,7 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         ui.leftStick.floating = app.prefs.padFloating
         ui.rightStick.floating = app.prefs.padFloating
         render()
+        renderStatus()
     }
 
     override fun onPause() {
@@ -163,6 +171,7 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
 
     override fun onConnectionChanged(connected: Boolean, changed: Boolean) {
         render()
+        renderStatus()
     }
 
     /**
@@ -178,6 +187,44 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         askBeforeLeaving.isEnabled = on
         if (isResumed) (activity as? MainActivity)?.setFullScreen(on)
         if (on && app.prefs.padTilt && isResumed) startTilt() else stopTilt()
+    }
+
+    /**
+     * The status pill: the device's name once connected; until then what
+     * the status card would say, as its action where it has one ("Connect",
+     * "Reconnect"), which a tap runs.
+     */
+    private fun renderStatus() {
+        val ui = _ui ?: return
+        val line = host?.statusLine
+        ui.padStatus.isInvisible = line == null
+        line ?: return
+        val context = ui.padStatus.context
+        ui.padStatusIcon.setImageResource(line.icon)
+        ui.padStatusIcon.imageTintList = ColorStateList.valueOf(
+            context.themeColor(
+                when {
+                    line.connected -> R.attr.bpLive
+                    line.warn -> R.attr.bpDanger
+                    else -> R.attr.bpAccent2
+                }
+            )
+        )
+        ui.padStatusIcon.isVisible = !line.busy
+        ui.padStatusProgress.isVisible = line.busy
+        ui.padStatusText.text = line.action ?: line.title
+        ui.padStatusText.setTextColor(
+            context.themeColor(
+                when {
+                    line.action != null -> R.attr.bpAccent2
+                    line.connected -> R.attr.bpTextDim
+                    else -> R.attr.bpText
+                }
+            )
+        )
+        ui.padStatus.contentDescription = listOfNotNull(line.title, line.action).joinToString(". ")
+        ui.padStatus.isClickable = line.action != null
+        TooltipCompat.setTooltipText(ui.padStatus, if (line.action != null) line.title else null)
     }
 
     /** "Close the gamepad?": back to the controls the user came from. */
