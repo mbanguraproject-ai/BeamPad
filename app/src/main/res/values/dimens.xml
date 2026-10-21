@@ -23,7 +23,14 @@
     <dimen name="radius_sheet">28dp</dimen>
 
     <!-- Heights -->
-    <dimen name="top_bar_height">64dp</dimen>
+    <!-- The top of the main screen, compact here for short windows (a phone
+         held sideways, split screen); values-h480dp has the usual sizes.
+         Short of height, the controls need every row it can spare, above
+         all while the status card shows. -->
+    <dimen name="top_bar_height">52dp</dimen>
+    <dimen name="mode_bar_height">44dp</dimen>
+    <dimen name="status_card_padding_v">8dp</dimen>
+    <dimen name="status_tile">32dp</dimen>
     <dimen name="button_height">52dp</dimen>
     <dimen name="button_height_small">40dp</dimen>
     <dimen name="field_height">52dp</dimen>

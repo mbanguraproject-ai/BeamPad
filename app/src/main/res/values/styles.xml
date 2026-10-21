@@ -330,8 +330,10 @@
 
     <!-- ===== Chips ===== -->
 
+    <!-- As wide as its name, then an equal share of the room left: even
+         when everything fits, and never cut short when it does not. -->
     <style name="ToolChip">
-        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_height">@dimen/chip_height</item>
         <item name="android:clickable">true</item>
@@ -343,8 +345,8 @@
         <item name="android:layout_height">match_parent</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center</item>
-        <item name="android:paddingStart">8dp</item>
-        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
         <item name="android:background">@drawable/bg_tool_chip</item>
         <item name="android:duplicateParentState">true</item>
     </style>

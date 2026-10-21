@@ -85,12 +85,21 @@
             app:iconTint="?attr/bpOnAccent" />
     </LinearLayout>
 
-    <!-- Tools share the row evenly; the Pro lock is a corner badge. -->
-    <LinearLayout
+    <!-- Tools share the row evenly; the Pro lock is a corner badge. When
+         their names need more room (a longer language, large text) the row
+         scrolls sideways instead of cutting a name short. -->
+    <HorizontalScrollView
         android:id="@+id/toolsRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/gap"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <FrameLayout
@@ -148,6 +157,7 @@
             </FrameLayout>
         </FrameLayout>
     </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- What was sent this session, newest first, tap to send again. Held in
          memory only: typed text is never written to storage. -->

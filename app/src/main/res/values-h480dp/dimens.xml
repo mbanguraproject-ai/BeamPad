@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Windows at least 480dp tall (every phone held upright, tablets): the
+     main screen's top at its usual size. values/ has the compact sizes for
+     shorter windows. -->
+<resources>
+    <dimen name="top_bar_height">64dp</dimen>
+    <dimen name="mode_bar_height">52dp</dimen>
+    <dimen name="status_card_padding_v">14dp</dimen>
+    <dimen name="status_tile">40dp</dimen>
+    <integer name="status_detail_lines">3</integer>
+</resources>

@@ -12,7 +12,7 @@
     <FrameLayout
         android:id="@+id/modeTrack"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="@dimen/mode_bar_height"
         android:layout_marginStart="@dimen/gutter"
         android:layout_marginEnd="@dimen/gutter"
         android:layout_marginBottom="@dimen/space_sm"

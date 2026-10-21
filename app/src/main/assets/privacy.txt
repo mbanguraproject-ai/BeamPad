@@ -36,7 +36,7 @@ Internet and network state. Required by the advertising SDK and by Google Play b
 
 Advertising ID. Used by the advertising SDK to serve and measure ads.
 
-Bluetooth (connect and advertise). Required for the phone to present itself as a Bluetooth keyboard and mouse to your TV. BeamPad does not collect information about nearby devices beyond the one you choose to pair with.
+Bluetooth (connect and advertise). Required for the phone to present itself as a Bluetooth keyboard and mouse to your TV, and as a gamepad if you turn that on. BeamPad does not collect information about nearby devices beyond the one you choose to pair with.
 
 Notifications. Used only for the ongoing notification that keeps the keyboard connection alive.
 
@@ -45,6 +45,10 @@ Biometric or device credential. Used only to confirm it is you before a protecte
 WHAT IS SENT TO YOUR TV
 
 When you send text or move the pointer, that input goes over Bluetooth to the device you paired with, exactly as a physical keyboard or mouse would. It is not stored by BeamPad.
+
+THE WATCH APP
+
+The optional Wear OS app sends the buttons you press only to BeamPad on your own phone, through Google Play services on your paired devices, and shows the connection state that BeamPad sends back. Nothing from it goes to Dev_Bangs or anyone else.
 
 CHILDREN
 

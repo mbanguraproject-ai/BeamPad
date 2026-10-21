@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The status card's explanation: up to two lines in a short window,
+         where the controls need the height (wide there, so the longest
+         message still fits); values-h480dp allows three. -->
+    <integer name="status_detail_lines">2</integer>
+</resources>
