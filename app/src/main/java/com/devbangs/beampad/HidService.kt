@@ -397,7 +397,8 @@ class HidService : Service() {
                 "Phone as keyboard and mouse",
                 "Dev_Bangs",
                 BluetoothHidDevice.SUBCLASS1_COMBO,
-                HidReports.KEYBOARD_DESCRIPTOR
+                // The gamepad only when the user turned it on: see HidReports.descriptor.
+                HidReports.descriptor(gamepad = prefs.gamepad)
             )
             val ok = runCatching {
                 device.registerApp(sdp, null, null, callbackExec, hidCallback)

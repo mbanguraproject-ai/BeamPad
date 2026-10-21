@@ -71,6 +71,7 @@ class ProActivity : BeamActivity() {
         Feature(Features.Pro.MACROS, R.drawable.ic_magic_wand, R.string.feat_macros, R.string.feat_macros_body),
         Feature(Features.Pro.PROFILES, R.drawable.ic_devices, R.string.feat_profiles, R.string.feat_profiles_body),
         Feature(Features.Pro.PRESENTATION, R.drawable.ic_presentation, R.string.feat_presentation, R.string.feat_presentation_body),
+        Feature(Features.Pro.GAMEPAD, R.drawable.ic_game_controller, R.string.feat_gamepad, R.string.feat_gamepad_body),
         Feature(Features.Pro.TRACKPAD, R.drawable.ic_sliders_horizontal, R.string.feat_trackpad, R.string.feat_trackpad_body),
         Feature(Features.Pro.LIVE_TYPING, R.drawable.ic_lightning, R.string.feat_live, R.string.feat_live_body),
         Feature(Features.Pro.VOICE, R.drawable.ic_microphone, R.string.feat_voice, R.string.feat_voice_body),

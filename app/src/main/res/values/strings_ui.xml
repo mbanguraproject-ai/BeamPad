@@ -639,4 +639,26 @@
     <string name="widget_description">Volume and play/pause for the connected TV or computer</string>
     <string name="widget_open">Tap to open BeamPad</string>
     <string name="widget_not_connected">Not connected. Open BeamPad to connect.</string>
+    <string name="mode_numpad">Numpad</string>
+    <string name="mode_gamepad">Gamepad</string>
+    <string name="tip_numpad">These are the keypad’s own keys. If they move the cursor instead of typing digits, press Num Lock.</string>
+    <string name="tip_gamepad">Hold buttons as long as you like and press several at once, as on a real pad.</string>
+    <string name="numpad_num_lock">Num Lock</string>
+    <string name="numpad_enter">Enter</string>
+    <string name="numpad_tab">Tab</string>
+    <string name="pad_select">Select</string>
+    <string name="pad_home">Home</string>
+    <string name="pad_start">Start</string>
+    <string name="pad_left_stick">Left stick</string>
+    <string name="pad_right_stick">Right stick</string>
+    <string name="pad_setup_title">Turn on the gamepad</string>
+    <string name="pad_setup_body">BeamPad can also be a game controller for TVs, TV boxes and computers. The device learns this when it pairs, so after turning it on you pair once more.</string>
+    <string name="pad_setup_action">Turn on gamepad</string>
+    <string name="pad_repair_title">Pair once more</string>
+    <string name="pad_repair_body">On the TV or computer, open its Bluetooth devices, remove BeamPad, then pair it again. Your keyboard and mouse keep working as before.</string>
+    <string name="feat_gamepad">Gamepad</string>
+    <string name="feat_gamepad_body">Two sticks, a D-pad and every button, for games on your TV or computer</string>
+    <string name="set_gamepad">Gamepad support</string>
+    <string name="set_gamepad_body">Lets BeamPad act as a game controller. Changing it restarts the connection, and devices need to pair again to see it.</string>
+    <string name="set_gamepad_repair">Remove BeamPad from the device’s Bluetooth list and pair again to apply this.</string>
 </resources>
