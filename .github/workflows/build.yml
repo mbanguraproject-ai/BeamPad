@@ -97,6 +97,17 @@ jobs:
       - name: Release APK and AAB
         run: ./gradlew --no-daemon assembleRelease bundleRelease
 
+      # Play flags apps whose R8 optimisation is limited; any library rule
+      # that turns it off or keeps whole packages would show here.
+      - name: R8 rules check
+        run: |
+          f=app/build/outputs/mapping/release/configuration.txt
+          [ -f "$f" ] || { echo "No merged R8 configuration found"; exit 0; }
+          echo "Merged rules: $(wc -l < "$f") lines"
+          grep -nE '^-(dontoptimize|dontshrink|dontobfuscate|optimizations|optimizationpasses)' "$f" || echo "Optimisation is not switched off anywhere."
+          echo "--- keep rules with package-wide wildcards:"
+          grep -nE '^-keep[a-z,]* .*\*\*' "$f" | head -40 || true
+
       - name: Collect
         id: out
         run: |
