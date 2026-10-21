@@ -118,7 +118,8 @@ class SettingsActivity : PageActivity() {
         }
         val row = Ui.row(card, title, body,
             R.drawable.ic_crown_simple_fill, Ui.Tone.ACCENT) { ProActivity.open(this, null) }
-        row.subtitle.maxLines = 3
+        // Four lines: at large text sizes three cut the summary short.
+        row.subtitle.maxLines = 4
         if (!paid) {
             row.trailing.addView(Ui.button(row.trailing, Ui.ButtonKind.SMALL_PRIMARY, getString(R.string.see_pro)) {
                 ProActivity.open(this, null)

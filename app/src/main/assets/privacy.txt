@@ -10,7 +10,7 @@ Nothing. BeamPad has no accounts, no sign-in, no analytics and no crash reportin
 
 ADVERTISING
 
-On the free plan, BeamPad shows ads provided by Google AdMob: a banner in Settings, a full-screen ad that can appear while the app is opening, and, only when you choose to watch one, a short ad on the Pro page that unlocks Pro features for a day. To serve them, the Google Mobile Ads SDK receives your device's advertising ID, approximate location derived from your IP address, and general device information. That data goes to Google, not to Dev_Bangs, and is handled under Google's own privacy policy at policies.google.com/privacy.
+On the free plan, BeamPad shows ads provided by Google AdMob: a banner in Settings; a full-screen ad that can appear when the app opens or when you come back to it, and now and then as you move between pages; and, only when you choose to watch one, a short ad on the Pro page that unlocks Pro features for a day. To serve them, the Google Mobile Ads SDK receives your device's advertising ID, approximate location derived from your IP address, and general device information. That data goes to Google, not to Dev_Bangs, and is handled under Google's own privacy policy at policies.google.com/privacy.
 
 Where the law requires it, BeamPad asks for your consent before requesting any ad, and you can change that choice at any time under Settings, Ad privacy options.
 

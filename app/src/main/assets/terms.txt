@@ -1,6 +1,6 @@
 BeamPad Terms of Use
 
-Last updated: September 2026
+Last updated: October 2026
 
 By using BeamPad you agree to these terms.
 
@@ -22,7 +22,13 @@ Snippets are stored only on your device and are encrypted. Because the encryptio
 
 ADS AND PURCHASES
 
-BeamPad is free and supported by advertising. You may remove ads with a one-time purchase through Google Play. Purchases are handled by Google Play and are subject to its terms and refund policy. The purchase applies to the Google account that made it.
+BeamPad is free and supported by advertising. BeamPad Pro unlocks more features and removes ads. It is sold through Google Play as a subscription (weekly, monthly or yearly, sometimes with a free trial) or as a one-time lifetime purchase; the price, the period and any free trial are shown on the Pro page before you buy.
+
+Subscriptions renew automatically at the end of each period until you cancel them in Google Play. If you cancel before a free trial ends, you are not charged. Cancelling stops the next renewal; Pro stays on until the end of the period you paid for.
+
+You can also unlock Pro features for 24 hours by choosing to watch a short ad on the Pro page. Ads keep showing during that day, and nothing is charged. An earlier one-time purchase that removed ads keeps removing them.
+
+Purchases are handled by Google Play and are subject to its terms and refund policy. They apply to the Google account that made them.
 
 RESPONSIBLE USE
 

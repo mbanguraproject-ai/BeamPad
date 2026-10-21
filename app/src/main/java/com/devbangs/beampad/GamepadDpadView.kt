@@ -66,8 +66,8 @@ class GamepadDpadView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        val half = min(w, h) / 2f - strokePaint.strokeWidth
-        val thick = min(w, h) * ARM
+        val half = side(w, h) / 2f - strokePaint.strokeWidth
+        val thick = side(w, h) * ARM
         val cx = w / 2f
         val cy = h / 2f
         val corner = 10 * density
@@ -82,7 +82,7 @@ class GamepadDpadView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        val size = min(width, height).toFloat()
+        val size = side(width, height)
         val cx = width / 2f
         val cy = height / 2f
         val half = size / 2f
@@ -115,6 +115,9 @@ class GamepadDpadView @JvmOverloads constructor(
         }
     }
 
+    /** The D-pad's size: the room it has, up to a thumb's reach on a large screen. */
+    private fun side(w: Int, h: Int): Float = min(min(w, h).toFloat(), MAX_SIZE_DP * density)
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
@@ -133,7 +136,7 @@ class GamepadDpadView @JvmOverloads constructor(
     private fun directionAt(x: Float, y: Float): Int {
         val dx = x - width / 2f
         val dy = y - height / 2f
-        if (hypot(dx, dy) < min(width, height) * HUB) return 0
+        if (hypot(dx, dy) < side(width, height) * HUB) return 0
         // 0 along the horizontal, 90 along the vertical, whichever side.
         val fromHorizontal = Math.toDegrees(atan2(abs(dy), abs(dx)).toDouble())
         var bits = 0
@@ -173,6 +176,9 @@ class GamepadDpadView @JvmOverloads constructor(
     }
 
     private companion object {
+        /** The largest the D-pad grows, like the sticks' cap. */
+        const val MAX_SIZE_DP = 180
+
         /** Each arm's width as a share of the D-pad's size. */
         const val ARM = 0.36f
 
