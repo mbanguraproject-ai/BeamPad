@@ -8,7 +8,14 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.drawable.GradientDrawable
+import android.view.ContextThemeWrapper
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
 import com.google.android.material.navigation.NavigationBarView
 import org.junit.Before
@@ -307,4 +314,113 @@ class ScreenshotTest {
         settle()
         shoot(activity, "onboarding_3")
     }
+
+    /** No first-run tip over the controls. */
+    private fun tipSeen(fragment: String) {
+        app.getSharedPreferences(SurfaceFragment.TIPS_FILE, Context.MODE_PRIVATE).edit()
+            .putBoolean(fragment, true)
+            .commit()
+    }
+
+    /** The pad once gamepad support is on, in landscape as it shows on a phone. */
+    @Test
+    @Config(qualifiers = "w852dp-h393dp-land-xhdpi")
+    fun gamepad() {
+        pro(true)
+        Prefs(app).gamepad = true
+        tipSeen("GamepadFragment")
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.GAMEPAD), "land_gamepad")
+        appearance(Appearance.LIGHT)
+        shoot(main(ControlMode.GAMEPAD), "land_gamepad_light")
+        Prefs(app).gamepad = false
+        pro(false)
+    }
+
+    @Test
+    fun numpadLight() {
+        tipSeen("NumpadFragment")
+        appearance(Appearance.LIGHT)
+        shoot(main(ControlMode.NUMPAD), "light_control_numpad")
+    }
+
+    /**
+     * The home screen widget and the notification's controls as their
+     * layouts inflate. The launcher and the system draw what is around them
+     * (the wallpaper, the notification's header and its Disconnect button).
+     */
+    @Test
+    fun outsideTheApp() {
+        val density = app.resources.displayMetrics.density
+        fun dp(value: Int) = (value * density).toInt()
+        val connected = app.getString(R.string.status_connected_to, "Living room TV")
+
+        val home = FrameLayout(app).apply {
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF22325C.toInt(), 0xFF5B3A7E.toInt(), 0xFFC9725E.toInt())
+            )
+        }
+        val column = LinearLayout(app).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(56), dp(16), dp(16))
+        }
+        home.addView(column, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        fun widget(status: String) {
+            val view = LayoutInflater.from(app).inflate(R.layout.widget_controls, column, false)
+            view.findViewById<TextView>(R.id.widgetStatus).text = status
+            column.addView(view, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(132)).apply {
+                bottomMargin = dp(24)
+            })
+        }
+        widget(app.getString(R.string.widget_open))
+        widget(connected)
+
+        // The notification's own row, on the shade's dark and light cards.
+        listOf(
+            android.R.style.Theme_DeviceDefault to 0xFF2B2D31.toInt(),
+            android.R.style.Theme_DeviceDefault_Light to 0xFFF2F2F5.toInt()
+        ).forEach { (theme, card) ->
+            val themed = ContextThemeWrapper(app, theme)
+            val row = LayoutInflater.from(themed).inflate(R.layout.notification_controls, column, false)
+            row.findViewById<TextView>(R.id.status).text = connected
+            val frame = FrameLayout(themed).apply {
+                background = GradientDrawable().apply {
+                    setColor(card)
+                    cornerRadius = dp(24).toFloat()
+                }
+                setPadding(dp(16), dp(14), dp(8), dp(14))
+                addView(row)
+            }
+            column.addView(frame, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = dp(16)
+            })
+        }
+        shoot(home, "widget_and_notification")
+    }
+
+    private fun translated() {
+        appearance(Appearance.DARK)
+        val lang = app.resources.configuration.locales[0].language
+        shoot(main(ControlMode.REMOTE), "${lang}_control_remote")
+        shoot(screen<SettingsActivity>(), "${lang}_settings")
+        shoot(screen<ProActivity>(), "${lang}_pro")
+    }
+
+    @Test
+    @Config(qualifiers = "fr-w393dp-h852dp-xhdpi")
+    fun french() {
+        translated()
+        tipSeen("NumpadFragment")
+        shoot(main(ControlMode.NUMPAD), "fr_control_numpad")
+    }
+
+    @Test
+    @Config(qualifiers = "es-w393dp-h852dp-xhdpi")
+    fun spanish() = translated()
+
+    @Test
+    @Config(qualifiers = "pt-w393dp-h852dp-xhdpi")
+    fun portuguese() = translated()
 }

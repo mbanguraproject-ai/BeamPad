@@ -151,12 +151,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Render screens
-        run: ./gradlew --no-daemon :app:testDebugUnitTest --tests "*ScreenshotTest*"
+        run: ./gradlew --no-daemon :app:testDebugUnitTest --tests "*ScreenshotTest*" :wear:testDebugUnitTest
 
       - name: Test report on failure
         if: failure()
         run: |
-          find app/build/test-results -name "*.xml" -exec grep -l "<failure" {} \; | while read f; do
+          find app/build/test-results wear/build/test-results -name "*.xml" -exec grep -l "<failure" {} \; | while read f; do
             echo "=== $f"; sed -n '/<failure/,/<\/failure>/p' "$f" | head -60
           done
 
@@ -165,6 +165,7 @@ jobs:
         run: |
           [ -d app/build/screenshots ] || exit 0
           mkdir -p /tmp/shots && cp app/build/screenshots/*.png /tmp/shots/
+          cp wear/build/screenshots/*.png /tmp/shots/ 2>/dev/null || true
           cd /tmp/shots
           echo "${GITHUB_SHA}" > SHA
           git init -q -b ci-shots
