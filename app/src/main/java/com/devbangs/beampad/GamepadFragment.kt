@@ -14,6 +14,7 @@ import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.TooltipCompat
@@ -43,6 +44,10 @@ import kotlin.math.sign
  * - The buttons can be named as on an Xbox, PlayStation or Nintendo pad;
  *   the device sees the same buttons whichever names show.
  *
+ * Full screen while it shows: only the pad and its close button, which
+ * asks first, as Back does. The status card stays while nothing is
+ * connected, as the way to connect.
+ *
  * The gamepad is a separate part of what BeamPad presents over Bluetooth
  * and is off until the user turns it on here (see [HidReports.descriptor]),
  * because a device learns it only when pairing: turning it on restarts the
@@ -53,6 +58,14 @@ import kotlin.math.sign
 class GamepadFragment : SurfaceFragment(), SensorEventListener {
 
     override val firstTip = R.string.tip_gamepad
+
+    // Full screen, so the top bar named in the usual hint is not there.
+    override val notConnectedHint = R.string.pad_not_connected
+
+    /** Back while playing asks first, like the close button. */
+    private val askBeforeLeaving = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = askClose()
+    }
 
     private var _ui: FragmentGamepadBinding? = null
     private val ui get() = _ui!!
@@ -116,6 +129,13 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
             Haptics.tick(it)
             turnOn()
         }
+
+        ui.padClose.setOnClickListener {
+            Haptics.tick(it)
+            askClose()
+        }
+        TooltipCompat.setTooltipText(ui.padClose, getString(R.string.pad_close))
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, askBeforeLeaving)
     }
 
     override fun onResume() {
@@ -138,14 +158,33 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         render()
     }
 
-    /** The pad once gamepad support is on; the step that turns it on before. */
+    /**
+     * The pad, full screen, once gamepad support is on; the step that turns
+     * it on before, with the app around it as usual.
+     */
     private fun render() {
         val ui = _ui ?: return
         val on = app.prefs.gamepad
         ui.pad.isVisible = on
-        ui.setup.isVisible = !on
+        ui.setupScroll.isVisible = !on
         ui.padTilt.isSelected = app.prefs.padTilt
+        askBeforeLeaving.isEnabled = on
+        if (isResumed) (activity as? MainActivity)?.setImmersive(on)
         if (on && app.prefs.padTilt && isResumed) startTilt() else stopTilt()
+    }
+
+    /** "Close the gamepad?": back to the controls the user came from. */
+    private fun askClose() {
+        val context = context ?: return
+        Sheets.confirm(
+            context,
+            getString(R.string.pad_close_title),
+            getString(R.string.pad_close_body),
+            getString(R.string.pad_close_action)
+        ) {
+            pad?.reset()
+            (parentFragment as? ControlFragment)?.closeGamepad()
+        }
     }
 
     /**
@@ -365,6 +404,7 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
     override fun onDestroyView() {
         stopTilt()
         pad?.reset()
+        (activity as? MainActivity)?.setImmersive(false)
         // Leaving the gamepad gives the phone its own orientation back; a
         // rotation (the activity being recreated) keeps landscape.
         activity?.takeUnless { it.isChangingConfigurations }

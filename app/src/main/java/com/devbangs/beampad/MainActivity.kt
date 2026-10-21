@@ -30,7 +30,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -373,11 +375,42 @@ class MainActivity : BeamActivity() {
     fun setFocus(on: Boolean) {
         if (!::ui.isInitialized || focused == on) return
         focused = on
+        applyChrome()
+    }
+
+    private var immersive = false
+
+    /**
+     * Full screen, for the gamepad: the top bar, the tabs, the mode bar and
+     * the system bars all step aside so it plays like a controller. The
+     * status card stays while nothing is connected, as the way to connect;
+     * once connected it goes too. A swipe from an edge shows the system
+     * bars for a moment. Separate from focus mode, so the keyboard leaving
+     * focus as the gamepad arrives cannot bring the bars back.
+     */
+    fun setImmersive(on: Boolean) {
+        if (!::ui.isInitialized) return
+        // Every time, not only on a change: coming back from another screen
+        // (an ad, the Pro page) can show the system bars again.
+        val bars = WindowCompat.getInsetsController(window, window.decorView)
+        if (on) {
+            bars.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            bars.hide(WindowInsetsCompat.Type.systemBars())
+        } else {
+            bars.show(WindowInsetsCompat.Type.systemBars())
+        }
+        if (immersive == on) return
+        immersive = on
+        applyChrome()
+    }
+
+    private fun applyChrome() {
         if (!Motion.reduced(this)) {
             TransitionManager.beginDelayedTransition(ui.shell, AutoTransition().apply { duration = 180 })
         }
-        nav.isVisible = !on
-        controlFragment()?.setFocus(on)
+        nav.isVisible = !(focused || immersive)
+        ui.headerRow.isVisible = !immersive
+        controlFragment()?.setFocus(focused || immersive)
         // The column takes over the inset the hidden bar or rail was handling.
         ViewCompat.requestApplyInsets(ui.contentColumn)
     }
@@ -690,7 +723,9 @@ class MainActivity : BeamActivity() {
         val device = s.connectedDevice ?: return
         if (!Features.profiles(this)) return
         val saved = DeviceStore(this).get(device.address) ?: return
-        when {
+        // A game in progress keeps the gamepad: the profile's surface is
+        // for when the user is not already playing.
+        if (!immersive) when {
             saved.defaultPanelId != null && PanelStore(this).get(saved.defaultPanelId) != null ->
                 openControl(panelId = saved.defaultPanelId, fromUser = false)
             saved.preferredMode != null -> openControl(mode = saved.preferredMode, fromUser = false)

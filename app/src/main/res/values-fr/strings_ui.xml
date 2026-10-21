@@ -637,4 +637,9 @@
     <string name="set_pad_floating_body">Un joystick se centre là où votre pouce se pose</string>
     <string name="set_pad_tilt">Inclinaison pour diriger</string>
     <string name="set_pad_tilt_body">Tournez le téléphone comme un volant pour bouger le joystick gauche</string>
+    <string name="pad_close">Fermer la manette</string>
+    <string name="pad_close_title">Fermer la manette ?</string>
+    <string name="pad_close_body">Vous revenez à vos autres commandes. L’appareil reste connecté.</string>
+    <string name="pad_close_action">Fermer</string>
+    <string name="pad_not_connected">Pas encore connecté. Connectez-vous avec la carte au-dessus de la manette.</string>
 </resources>
