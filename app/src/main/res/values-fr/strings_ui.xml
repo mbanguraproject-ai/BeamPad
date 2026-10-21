@@ -10,7 +10,7 @@
     <string name="on">Activé</string>
     <string name="off">Désactivé</string>
     <string name="none">Aucun</string>
-    <string name="no_device">Aucun appareil pour l’instant</string>
+    <string name="no_device">Aucun appareil</string>
     <string name="state_connected">Connecté</string>
     <string name="state_connecting">Connexion…</string>
     <string name="state_available">Disponible</string>
