@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BeamPad</string>
+    <string name="connecting">Procurando seu celular…</string>
+    <string name="no_phone">Celular fora de alcance</string>
+    <string name="phone_app">Abra o BeamPad no celular</string>
+    <string name="up">Cima</string>
+    <string name="down">Baixo</string>
+    <string name="left">Esquerda</string>
+    <string name="right">Direita</string>
+    <string name="ok">OK</string>
+    <string name="back">Voltar</string>
+    <string name="home">Início</string>
+    <string name="mute">Silenciar</string>
+    <string name="play_pause">Reproduzir / pausar</string>
+</resources>
