@@ -5,3 +5,6 @@ app/build/
 *.apk
 beampad-release.jks
 keystore.properties
+
+# Bundles made by sign-release.sh
+/BeamPad-*.aab
