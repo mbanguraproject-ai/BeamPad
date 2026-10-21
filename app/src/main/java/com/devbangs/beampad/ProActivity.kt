@@ -115,6 +115,12 @@ class ProActivity : BeamActivity() {
             )
             insets
         }
+        // The page scrolls clear of the footer however tall it is: a trial's
+        // fine print runs to five lines, and a fixed gap left the end of the
+        // page (the last rows of Free vs Pro) under the button for good.
+        ui.footer.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top != oldBottom - oldTop) ui.scroll.updatePadding(bottom = bottom - top + dp(16))
+        }
 
         ui.close.setOnClickListener { finish() }
         ui.restore.setOnClickListener { restore() }

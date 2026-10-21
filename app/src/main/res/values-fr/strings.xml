@@ -130,7 +130,7 @@
     <string name="pro_highlight">%1$s fait partie de Pro</string>
     <string name="pro_welcome">Bienvenue dans BeamPad Pro. Tout est débloqué.</string>
     <string name="pass_title">Ou essayez les fonctions Pro pendant une journée</string>
-    <string name="pass_body">Regardez une courte publicité pour utiliser les fonctions Pro pendant 24 heures : le clavier complet, les panneaux, les macros, Lancer et plus encore. Les publicités restent affichées, et les extraits illimités sont réservés à Pro payant. Rien à payer ni à résilier.</string>
+    <string name="pass_body">Regardez une courte publicité pour utiliser les fonctions Pro pendant 24 heures : le clavier complet, la manette, les panneaux, les macros, Lancer et plus encore. Les publicités restent affichées, et les extraits illimités sont réservés à Pro payant. Rien à payer ni à résilier.</string>
     <string name="pass_watch">Regarder une courte publicité</string>
     <string name="pass_loading">Chargement de la publicité…</string>
     <string name="pass_no_ad">Aucune publicité disponible pour le moment. Réessayez dans un instant.</string>
@@ -173,7 +173,7 @@
     <string name="feat_trackpad_body">Vitesse, accélération, gestes, pincer pour zoomer et mode précision</string>
     <string name="compare_title">GRATUIT VS PRO</string>
     <string name="plan_free">Gratuit</string>
-    <string name="cmp_remote">Clavier, télécommande, médias, pavé tactile et souris</string>
+    <string name="cmp_remote">Clavier, télécommande, médias, pavé tactile, souris et pavé numérique</string>
     <string name="cmp_reconnect">Reconnexion en une touche</string>
     <string name="cmp_snippets">Extraits enregistrés</string>
     <string name="cmp_snippets_free">3</string>
@@ -230,7 +230,7 @@
     <string name="ads_removed">Publicités supprimées. Merci.</string>
     <string name="settings">Paramètres</string>
     <string name="settings_pro_title">Passer à BeamPad Pro</string>
-    <string name="settings_pro_body">Panneaux, macros, profils d’appareil, mode présentation et zéro pub.</string>
+    <string name="settings_pro_body">Manette, panneaux, macros, profils d’appareil, mode présentation et zéro pub.</string>
     <string name="settings_pro_active">BeamPad Pro est actif</string>
     <string name="settings_pro_active_body">Merci pour votre soutien. Touchez pour voir ou gérer votre offre.</string>
     <string name="settings_pass_active">Pass Pro actif</string>

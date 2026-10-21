@@ -9,6 +9,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
@@ -100,7 +101,27 @@ class KeyboardFragment : SurfaceFragment() {
         return ui.root
     }
 
+    /**
+     * Names before icons: when the four tools' names need more than the
+     * row (a longer language, large text) their icons step aside, which is
+     * usually enough. Only beyond that does the row scroll. Checked before
+     * each frame is drawn, so the row never shows a name cut short.
+     */
+    private val fitTools = ViewTreeObserver.OnPreDrawListener {
+        val row = _ui?.toolsRow ?: return@OnPreDrawListener true
+        val tools = row.getChildAt(0) as? ViewGroup ?: return@OnPreDrawListener true
+        if (row.width == 0 || tools.width <= row.width) return@OnPreDrawListener true
+        val icons = (0 until tools.childCount)
+            .mapNotNull { ((tools.getChildAt(it) as? ViewGroup)?.getChildAt(0) as? ViewGroup)?.getChildAt(0) }
+            .filter { it.isVisible }
+        if (icons.isEmpty()) return@OnPreDrawListener true
+        icons.forEach { it.isVisible = false }
+        // Lay out again without them before anything is drawn.
+        false
+    }
+
     override fun onViewCreated(view: View, state: Bundle?) {
+        ui.toolsRow.viewTreeObserver.addOnPreDrawListener(fitTools)
         ui.send.setOnClickListener {
             Haptics.tick(it)
             // While text is going out the button is Stop.
@@ -686,6 +707,7 @@ class KeyboardFragment : SurfaceFragment() {
     }
 
     override fun onDestroyView() {
+        _ui?.toolsRow?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnPreDrawListener(fitTools)
         super.onDestroyView()
         // Another surface took over (a device profile, say): bring the tabs back.
         (activity as? MainActivity)?.setFocus(false)

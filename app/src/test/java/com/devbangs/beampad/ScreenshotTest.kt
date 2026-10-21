@@ -17,6 +17,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
+import com.android.billingclient.api.ProductDetails
 import com.google.android.material.navigation.NavigationBarView
 import org.junit.Before
 import org.junit.Test
@@ -95,15 +96,21 @@ class ScreenshotTest {
         shoot(dialog.window!!.decorView, name)
     }
 
+    /** Measures and lays out [root] at the screen's size, as a frame would. */
+    private fun lay(root: View) {
+        val metrics = root.resources.displayMetrics
+        root.measure(
+            View.MeasureSpec.makeMeasureSpec(metrics.widthPixels, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(metrics.heightPixels, View.MeasureSpec.EXACTLY)
+        )
+        root.layout(0, 0, metrics.widthPixels, metrics.heightPixels)
+    }
+
     private fun shoot(root: View, name: String) {
         val metrics = root.resources.displayMetrics
         val w = metrics.widthPixels
         val h = metrics.heightPixels
-        root.measure(
-            View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY)
-        )
-        root.layout(0, 0, w, h)
+        lay(root)
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         root.draw(Canvas(bitmap))
         val dir = File("build/screenshots").apply { mkdirs() }
@@ -139,6 +146,8 @@ class ScreenshotTest {
     @Test
     @Config(qualifiers = "w852dp-h393dp-land-xhdpi")
     fun landscape() {
+        tipSeen("PresentationFragment")
+        tipSeen("RemoteFragment")
         appearance(Appearance.DARK)
         pro(true)
         shoot(main(ControlMode.PRESENTATION), "land_presentation")
@@ -416,6 +425,7 @@ class ScreenshotTest {
         appearance(Appearance.DARK)
         val lang = app.resources.configuration.locales[0].language
         shoot(main(ControlMode.REMOTE), "${lang}_control_remote")
+        shoot(main(ControlMode.KEYBOARD), "${lang}_control_keyboard")
         shoot(screen<SettingsActivity>(), "${lang}_settings")
         shoot(screen<ProActivity>(), "${lang}_pro")
     }
@@ -488,4 +498,66 @@ class ScreenshotTest {
         Prefs(app).gamepad = false
         pro(false)
     }
+
+    /** A Play product for the paywall's plans; Play builds these from its own JSON. */
+    private fun product(type: String): ProductDetails {
+        val json = org.json.JSONObject().put("productId", "pro").put("type", type)
+            .put("title", "BeamPad Pro").put("name", "BeamPad Pro").put("description", "").toString()
+        val make = ProductDetails::class.java.declaredConstructors.first {
+            it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
+        }
+        make.isAccessible = true
+        return make.newInstance(json) as ProductDetails
+    }
+
+    /**
+     * The paywall with plans as Play lists them (weekly, monthly with a free
+     * trial, yearly, lifetime): the top, and scrolled to the very end, which
+     * must clear the footer however tall the trial's fine print makes it.
+     */
+    private fun paywall() {
+        appearance(Appearance.DARK)
+        val lang = app.resources.configuration.locales[0].language
+        val euro = lang != "en"
+        fun plan(period: Billing.Period, units: Int, cents: Int, trial: String?) = Billing.Plan(
+            period,
+            product(if (period == Billing.Period.LIFETIME) "inapp" else "subs"),
+            "offer",
+            if (euro) "$units,$cents €" else "$$units.$cents",
+            units * 1_000_000L + cents * 10_000L,
+            if (euro) "EUR" else "USD",
+            trial
+        )
+        val plans = listOf(
+            plan(Billing.Period.WEEKLY, 1, 99, null),
+            plan(Billing.Period.MONTHLY, 4, 99, "P7D"),
+            plan(Billing.Period.YEARLY, 29, 99, null),
+            plan(Billing.Period.LIFETIME, 49, 99, null)
+        )
+        val billing = (app as BeamPadApp).billing
+        Billing::class.java.getDeclaredField("plans").apply { isAccessible = true }.set(billing, plans)
+        Billing::class.java.getDeclaredField("plansLoaded").apply { isAccessible = true }.setBoolean(billing, true)
+        val pro = screen<ProActivity>()
+        shoot(pro, "paywall_${lang}_top")
+        // Once more for the footer's height to reach the page's padding.
+        lay(pro.window.decorView)
+        val scroll = pro.findViewById<android.widget.ScrollView>(R.id.scroll)
+        scroll.scrollTo(0, scroll.getChildAt(0).height)
+        shoot(pro, "paywall_${lang}_end")
+    }
+
+    @Test
+    fun paywallEnglish() = paywall()
+
+    @Test
+    @Config(qualifiers = "fr-w393dp-h852dp-xhdpi")
+    fun paywallFrench() = paywall()
+
+    @Test
+    @Config(qualifiers = "es-w393dp-h852dp-xhdpi")
+    fun paywallSpanish() = paywall()
+
+    @Test
+    @Config(qualifiers = "pt-w393dp-h852dp-xhdpi")
+    fun paywallPortuguese() = paywall()
 }

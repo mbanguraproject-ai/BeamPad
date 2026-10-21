@@ -130,7 +130,7 @@
     <string name="pro_highlight">%1$s faz parte do Pro</string>
     <string name="pro_welcome">Boas-vindas ao BeamPad Pro. Tudo está desbloqueado.</string>
     <string name="pass_title">Ou experimente os recursos Pro por um dia</string>
-    <string name="pass_body">Assista a um anúncio curto para usar os recursos Pro por 24 horas: o teclado completo, painéis, macros, Abrir e mais. Os anúncios continuam aparecendo, e os trechos ilimitados ficam com o Pro pago. Nada a pagar ou cancelar.</string>
+    <string name="pass_body">Assista a um anúncio curto para usar os recursos Pro por 24 horas: o teclado completo, o gamepad, painéis, macros, Abrir e mais. Os anúncios continuam aparecendo, e os trechos ilimitados ficam com o Pro pago. Nada a pagar ou cancelar.</string>
     <string name="pass_watch">Assistir a um anúncio curto</string>
     <string name="pass_loading">Carregando o anúncio…</string>
     <string name="pass_no_ad">Nenhum anúncio disponível agora. Tente de novo daqui a pouco.</string>
@@ -173,7 +173,7 @@
     <string name="feat_trackpad_body">Velocidade, aceleração, gestos, pinça para zoom e modo de precisão</string>
     <string name="compare_title">GRÁTIS VS PRO</string>
     <string name="plan_free">Grátis</string>
-    <string name="cmp_remote">Teclado, controle remoto, mídia, touchpad e mouse</string>
+    <string name="cmp_remote">Teclado, controle remoto, mídia, touchpad, mouse e teclado numérico</string>
     <string name="cmp_reconnect">Reconexão com um toque</string>
     <string name="cmp_snippets">Trechos salvos</string>
     <string name="cmp_snippets_free">3</string>
@@ -230,7 +230,7 @@
     <string name="ads_removed">Anúncios removidos. Obrigado.</string>
     <string name="settings">Configurações</string>
     <string name="settings_pro_title">Mude para o BeamPad Pro</string>
-    <string name="settings_pro_body">Painéis, macros, perfis, modo apresentação e sem anúncios.</string>
+    <string name="settings_pro_body">Gamepad, painéis, macros, perfis, modo apresentação e sem anúncios.</string>
     <string name="settings_pro_active">O BeamPad Pro está ativo</string>
     <string name="settings_pro_active_body">Obrigado pelo apoio. Toque para ver ou gerenciar seu plano.</string>
     <string name="settings_pass_active">Passe Pro ativo</string>

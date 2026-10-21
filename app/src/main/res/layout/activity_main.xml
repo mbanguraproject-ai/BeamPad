@@ -191,13 +191,13 @@
         android:background="@drawable/bg_card"
         android:paddingStart="14dp"
         android:paddingEnd="12dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="14dp">
+        android:paddingTop="@dimen/status_card_padding_v"
+        android:paddingBottom="@dimen/status_card_padding_v">
 
         <FrameLayout
             android:id="@+id/statusTile"
-            android:layout_width="@dimen/icon_tile"
-            android:layout_height="@dimen/icon_tile"
+            android:layout_width="@dimen/status_tile"
+            android:layout_height="@dimen/status_tile"
             android:layout_marginEnd="@dimen/space_sm"
             android:background="@drawable/bg_icon_tile_accent">
 
@@ -231,7 +231,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:maxLines="3"
+                android:maxLines="@integer/status_detail_lines"
                 android:ellipsize="end"
                 android:textAppearance="@style/Text.Small" />
         </LinearLayout>

@@ -294,8 +294,12 @@
             style="@style/Widget.BeamPad.ProButton"
             android:layout_width="match_parent"
             android:layout_height="58dp"
+            android:maxLines="1"
             android:text="@string/cta_continue"
-            android:textSize="17sp" />
+            app:autoSizeMaxTextSize="17sp"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform" />
 
         <TextView
             android:id="@+id/finePrint"

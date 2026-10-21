@@ -147,7 +147,7 @@
 
     <!-- Pro pass: a day of Pro features for watching a rewarded ad -->
     <string name="pass_title">Or try Pro features for a day</string>
-    <string name="pass_body">Watch a short ad to use Pro features for 24 hours: the full keyboard, panels, macros, Launch and more. Ads keep showing, and unlimited snippets stay with paid Pro. Nothing to pay or cancel.</string>
+    <string name="pass_body">Watch a short ad to use Pro features for 24 hours: the full keyboard, the gamepad, panels, macros, Launch and more. Ads keep showing, and unlimited snippets stay with paid Pro. Nothing to pay or cancel.</string>
     <string name="pass_watch">Watch a short ad</string>
     <string name="pass_loading">Loading the ad…</string>
     <string name="pass_no_ad">No ad is available right now. Try again in a little while.</string>
@@ -189,7 +189,7 @@
     <string name="feat_trackpad_body">Speed, acceleration, gestures, pinch-to-zoom and precision mode</string>
     <string name="compare_title">FREE VS PRO</string>
     <string name="plan_free">Free</string>
-    <string name="cmp_remote">Keyboard, remote, media, trackpad and mouse</string>
+    <string name="cmp_remote">Keyboard, remote, media, trackpad, mouse and numpad</string>
     <string name="cmp_reconnect">One-tap reconnect</string>
     <string name="cmp_snippets">Saved snippets</string>
     <string name="cmp_snippets_free">3</string>
@@ -248,7 +248,7 @@
     <!-- Settings -->
     <string name="settings">Settings</string>
     <string name="settings_pro_title">Upgrade to BeamPad Pro</string>
-    <string name="settings_pro_body">Custom panels, macros, device profiles, presentation mode and no ads.</string>
+    <string name="settings_pro_body">Gamepad, custom panels, macros, device profiles, presentation mode and no ads.</string>
     <string name="settings_pro_active">BeamPad Pro is active</string>
     <string name="settings_pro_active_body">Thanks for your support. Tap to see or manage your plan.</string>
     <string name="settings_pass_active">Pro pass active</string>
