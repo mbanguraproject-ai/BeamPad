@@ -64,9 +64,23 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    // Robolectric renders the watch screen for the screenshot test.
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.systemProperty("robolectric.graphicsMode", "NATIVE")
+            }
+        }
+    }
 }
 
 dependencies {
     // Messages to the phone app, which sends them to the connected device.
     implementation("com.google.android.gms:play-services-wearable:18.2.0")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("androidx.test:core-ktx:1.6.1")
 }

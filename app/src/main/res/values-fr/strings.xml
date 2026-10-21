@@ -4,11 +4,11 @@
     <string name="tab_snippets">Extraits</string>
     <string name="tab_keyboard">Clavier</string>
     <string name="tab_trackpad">Pavé tactile</string>
-    <string name="get_pro">Passer à Pro</string>
+    <string name="get_pro">Passez Pro</string>
     <string name="pro_badge">PRO</string>
     <string name="plan_free_label">Offre gratuite · Tapez sur votre TV</string>
     <string name="plan_pro_label">Offre Pro · Merci pour votre soutien</string>
-    <string name="status_permission">Autoriser les appareils à proximité</string>
+    <string name="status_permission">Appareils à proximité</string>
     <string name="status_permission_detail">BeamPad en a besoin pour servir de clavier Bluetooth à votre TV.</string>
     <string name="status_no_bluetooth">Pas de Bluetooth</string>
     <string name="status_no_bluetooth_detail">Cet appareil n’a pas de Bluetooth et ne peut donc pas se connecter à une TV.</string>
@@ -16,9 +16,9 @@
     <string name="status_bt_off_detail">Activez-le pour vous connecter à votre TV.</string>
     <string name="status_starting">Préparation…</string>
     <string name="status_starting_detail">Configuration du mode clavier.</string>
-    <string name="status_unsupported">Mode clavier indisponible</string>
+    <string name="status_unsupported">Clavier indisponible</string>
     <string name="status_unsupported_detail">Le Bluetooth a refusé le mode clavier. Désactivez puis réactivez le Bluetooth, et réessayez.</string>
-    <string name="status_ready">Connectez-vous à votre TV</string>
+    <string name="status_ready">Connectez votre TV</string>
     <string name="status_ready_last">Dernier utilisé : %1$s</string>
     <string name="status_ready_first">Associez une fois, et BeamPad se reconnecte tout seul ensuite.</string>
     <string name="status_connecting_short">Connexion…</string>
@@ -230,7 +230,7 @@
     <string name="ads_removed">Publicités supprimées. Merci.</string>
     <string name="settings">Paramètres</string>
     <string name="settings_pro_title">Passer à BeamPad Pro</string>
-    <string name="settings_pro_body">Panneaux personnalisés, macros, profils d’appareil, mode présentation et aucune publicité.</string>
+    <string name="settings_pro_body">Panneaux, macros, profils d’appareil, mode présentation et zéro pub.</string>
     <string name="settings_pro_active">BeamPad Pro est actif</string>
     <string name="settings_pro_active_body">Merci pour votre soutien. Touchez pour voir ou gérer votre offre.</string>
     <string name="settings_pass_active">Pass Pro actif</string>
