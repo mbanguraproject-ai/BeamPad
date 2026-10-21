@@ -435,4 +435,57 @@ class ScreenshotTest {
     @Test
     @Config(qualifiers = "pt-w393dp-h852dp-xhdpi")
     fun portuguese() = translated()
+
+    /** Whole pages in one tall window, so every row is checked, not only the first screen. */
+    private fun fullPages() {
+        appearance(Appearance.DARK)
+        val lang = app.resources.configuration.locales[0].language
+        shoot(screen<SettingsActivity>(), "full_${lang}_settings")
+        shoot(screen<ProActivity>(), "full_${lang}_pro")
+    }
+
+    @Test
+    @Config(qualifiers = "en-w393dp-h4800dp-xhdpi")
+    fun fullPagesEnglish() = fullPages()
+
+    @Test
+    @Config(qualifiers = "fr-w393dp-h4800dp-xhdpi")
+    fun fullPagesFrench() = fullPages()
+
+    @Test
+    @Config(qualifiers = "es-w393dp-h4800dp-xhdpi")
+    fun fullPagesSpanish() = fullPages()
+
+    @Test
+    @Config(qualifiers = "pt-w393dp-h4800dp-xhdpi")
+    fun fullPagesPortuguese() = fullPages()
+
+    /** The gamepad's longest labels (French) and its PlayStation names. */
+    @Test
+    @Config(qualifiers = "fr-w852dp-h393dp-land-xhdpi")
+    fun gamepadFrench() {
+        pro(true)
+        Prefs(app).gamepad = true
+        tipSeen("GamepadFragment")
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.GAMEPAD), "fr_land_gamepad")
+        Prefs(app).padLabels = Prefs.PadLabels.PLAYSTATION
+        shoot(main(ControlMode.GAMEPAD), "fr_land_gamepad_playstation")
+        Prefs(app).padLabels = Prefs.PadLabels.XBOX
+        Prefs(app).gamepad = false
+        pro(false)
+    }
+
+    /** A tablet held sideways: the gamepad is not forced round, and has room to spare. */
+    @Test
+    @Config(qualifiers = "w1280dp-h800dp-land-mdpi")
+    fun gamepadTablet() {
+        pro(true)
+        Prefs(app).gamepad = true
+        tipSeen("GamepadFragment")
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.GAMEPAD), "tablet_gamepad")
+        Prefs(app).gamepad = false
+        pro(false)
+    }
 }
