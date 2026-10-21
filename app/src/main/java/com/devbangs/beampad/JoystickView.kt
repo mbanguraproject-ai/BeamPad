@@ -24,7 +24,8 @@ import kotlin.math.min
  * [floating]: the base centres where the thumb lands, so the stick is
  * wherever the thumb is instead of where it has to be found. A double tap
  * clicks the stick (L3 / R3) and holds the click while the thumb stays
- * down, so it can be clicked and pushed at once.
+ * down, so it can be clicked and pushed at once. The first touch must be
+ * a tap, so quick pushes of the stick never click it by accident.
  */
 class JoystickView @JvmOverloads constructor(
     context: Context,
@@ -76,6 +77,13 @@ class JoystickView @JvmOverloads constructor(
     private var lastUpX = 0f
     private var lastUpY = 0f
     private val doubleTapSlop = ViewConfiguration.get(context).scaledDoubleTapSlop
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+
+    /** This touch, so far: when it began, where, and whether it has moved like a push. */
+    private var downAt = 0L
+    private var downX = 0f
+    private var downY = 0f
+    private var pushed = false
 
     private val radius: Float
         get() = min(width, height).coerceAtMost((MAX_BASE_DP * density * 2).toInt()) / 2f - ringPaint.strokeWidth
@@ -107,6 +115,10 @@ class JoystickView @JvmOverloads constructor(
                 requestUnbufferedDispatch(event)
                 isActive = true
                 val now = SystemClock.uptimeMillis()
+                downAt = now
+                downX = event.x
+                downY = event.y
+                pushed = false
                 val second = now - lastUpAt < DOUBLE_TAP_MS &&
                     hypot(event.x - lastUpX, event.y - lastUpY) < doubleTapSlop
                 if (floating) {
@@ -121,7 +133,10 @@ class JoystickView @JvmOverloads constructor(
                 }
                 follow(event.x, event.y)
             }
-            MotionEvent.ACTION_MOVE -> follow(event.x, event.y)
+            MotionEvent.ACTION_MOVE -> {
+                if (hypot(event.x - downX, event.y - downY) > touchSlop) pushed = true
+                follow(event.x, event.y)
+            }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 isActive = false
                 knobX = 0f
@@ -130,8 +145,12 @@ class JoystickView @JvmOverloads constructor(
                     clicked = false
                     onClick?.invoke(false)
                     lastUpAt = 0L
-                } else if (event.actionMasked == MotionEvent.ACTION_UP) {
-                    lastUpAt = SystemClock.uptimeMillis()
+                } else {
+                    // Only a tap (short, barely moved) can start a click: two
+                    // quick pushes of the stick in a game never click it.
+                    val now = SystemClock.uptimeMillis()
+                    val tap = event.actionMasked == MotionEvent.ACTION_UP && !pushed && now - downAt < TAP_MS
+                    lastUpAt = if (tap) now else 0L
                     lastUpX = event.x
                     lastUpY = event.y
                 }
@@ -175,5 +194,8 @@ class JoystickView @JvmOverloads constructor(
 
         /** A second touch this soon after the first lift is a click. */
         const val DOUBLE_TAP_MS = 280L
+
+        /** The first touch of a click is a tap: lifted within this long. */
+        const val TAP_MS = 200L
     }
 }
