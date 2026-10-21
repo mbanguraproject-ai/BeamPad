@@ -486,6 +486,21 @@ class ScreenshotTest {
         pro(false)
     }
 
+    /** A short phone held sideways (2340 x 1080 at 3x): the D-pad and A B X Y still large. */
+    @Test
+    @Config(qualifiers = "w780dp-h360dp-land-xhdpi")
+    fun gamepadShort() {
+        pro(true)
+        Prefs(app).gamepad = true
+        tipSeen("GamepadFragment")
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.GAMEPAD), "short_land_gamepad")
+        appearance(Appearance.LIGHT)
+        shoot(main(ControlMode.GAMEPAD), "short_land_gamepad_light")
+        Prefs(app).gamepad = false
+        pro(false)
+    }
+
     /** A tablet held sideways: the gamepad is not forced round, and has room to spare. */
     @Test
     @Config(qualifiers = "w1280dp-h800dp-land-mdpi")

@@ -55,8 +55,21 @@ class JoystickView @JvmOverloads constructor(
         strokeWidth = 2 * density
         color = context.themeColor(R.attr.bpStrokeStrong)
     }
+    /** A faint ring where the knob's edge reaches at full tilt. */
+    private val guidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = density
+        color = context.themeColor(R.attr.bpStroke)
+    }
     private val knobPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = context.themeColor(R.attr.bpAccent)
+    }
+
+    /** The knob's concave top, where the thumb sits. */
+    private val dimplePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.5f * density
+        color = context.themeColor(R.attr.bpOnAccent) and 0x00FFFFFF or (0x4D shl 24)
     }
     private val clickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -103,7 +116,9 @@ class JoystickView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         canvas.drawCircle(centerX, centerY, radius, basePaint)
         canvas.drawCircle(centerX, centerY, radius, ringPaint)
+        canvas.drawCircle(centerX, centerY, radius * GUIDE, guidePaint)
         canvas.drawCircle(centerX + knobX, centerY + knobY, knobRadius, knobPaint)
+        canvas.drawCircle(centerX + knobX, centerY + knobY, knobRadius * DIMPLE, dimplePaint)
         if (clicked) canvas.drawCircle(centerX + knobX, centerY + knobY, knobRadius - clickPaint.strokeWidth, clickPaint)
     }
 
@@ -185,6 +200,10 @@ class JoystickView @JvmOverloads constructor(
     private companion object {
         /** The knob's size as a share of the base's. */
         const val KNOB = 0.42f
+
+        /** The guide ring's and the knob's dimple's radii, as shares of the base's and the knob's. */
+        const val GUIDE = 0.72f
+        const val DIMPLE = 0.62f
 
         /** Below this share of full travel the stick reads as centred. */
         const val DEAD_ZONE = 0.08f

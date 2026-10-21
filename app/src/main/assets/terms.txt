@@ -6,7 +6,7 @@ By using BeamPad you agree to these terms.
 
 WHAT BEAMPAD IS
 
-BeamPad turns your phone into a Bluetooth keyboard, trackpad and remote for televisions, set-top boxes and computers. It is provided free of charge.
+BeamPad turns your phone into a Bluetooth keyboard, trackpad, remote and gamepad for televisions, set-top boxes and computers. It is free to use; BeamPad Pro is an optional paid upgrade, described below.
 
 NO WARRANTY
 
@@ -41,3 +41,4 @@ To the extent permitted by law, Dev_Bangs is not liable for any loss or damage a
 CONTACT
 
 Dev_Bangs, Freetown, Sierra Leone.
+Email: mebssoftware9@gmail.com

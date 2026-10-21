@@ -641,5 +641,5 @@
     <string name="pad_close_title">Fermer la manette ?</string>
     <string name="pad_close_body">Vous revenez à vos autres commandes. L’appareil reste connecté.</string>
     <string name="pad_close_action">Fermer</string>
-    <string name="pad_not_connected">Pas encore connecté. Connectez-vous avec la carte au-dessus de la manette.</string>
+    <string name="pad_not_connected">Pas encore connecté. Connectez-vous avec le bouton en haut.</string>
 </resources>

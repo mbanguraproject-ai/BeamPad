@@ -3,8 +3,11 @@ package com.devbangs.beampad
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Shader
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -17,7 +20,8 @@ import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
  * An analog trigger (LT / RT) as a pedal: touching it presses it, and how
  * high the finger is sets how far, filling from the bottom. The top quarter
  * is a full press, so a quick tap near the label is all the way down, and
- * sliding down eases off, for throttle and brake in racing games.
+ * sliding down eases off, for throttle and brake in racing games. Grip
+ * ridges in the middle show it is a pedal to slide on, not a key.
  *
  * Reports 0..1: 0 only when let go, so a touch anywhere is a press.
  */
@@ -46,18 +50,35 @@ class TriggerView @JvmOverloads constructor(
         strokeWidth = density
         color = context.themeColor(R.attr.bpKeyStroke)
     }
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = context.themeColor(R.attr.bpAccent) }
+    private val accent = context.themeColor(R.attr.bpAccent)
+    private val accent2 = context.themeColor(R.attr.bpAccent2)
+
+    /** The press: the accent, brightening towards the top (set to the size in [onSizeChanged]). */
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = accent }
     private val textColor = context.themeColor(R.attr.bpText)
     private val textOnFillColor = context.themeColor(R.attr.bpOnAccent)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 15f, resources.displayMetrics)
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
+    private val ridgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 2 * density
+        strokeCap = Paint.Cap.ROUND
+        color = context.themeColor(R.attr.bpKeyStroke)
+    }
+    private val ridgeOnFillColor = textOnFillColor and 0x00FFFFFF or (0x59 shl 24)
     private val face = RectF()
     private val fill = RectF()
 
     init {
         isClickable = true
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        fillPaint.shader = LinearGradient(0f, h.toFloat(), 0f, 0f, accent, accent2, Shader.TileMode.CLAMP)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -70,6 +91,13 @@ class TriggerView @JvmOverloads constructor(
             canvas.clipRect(fill)
             canvas.drawRoundRect(face, corner, corner, fillPaint)
             canvas.restore()
+        }
+        // Grip ridges at the middle, light on the fill once it covers them.
+        val ridge = width * RIDGE_WIDTH / 2
+        for (i in -1..1) {
+            val y = height / 2f + i * RIDGE_GAP_DP * density
+            ridgePaint.color = if (y >= fill.top && value > 0f) ridgeOnFillColor else strokePaint.color
+            canvas.drawLine(width / 2f - ridge, y, width / 2f + ridge, y, ridgePaint)
         }
         canvas.drawRoundRect(face, corner, corner, strokePaint)
         textPaint.color = if (value >= LABEL_ON_FILL) textOnFillColor else textColor
@@ -127,6 +155,10 @@ class TriggerView @JvmOverloads constructor(
 
         /** From here the label sits on the fill and turns to its colour. */
         const val LABEL_ON_FILL = 0.85f
+
+        /** The grip ridges: their width as a share of the trigger's, and their spacing. */
+        const val RIDGE_WIDTH = 0.36f
+        const val RIDGE_GAP_DP = 7
 
         const val ACCESSIBILITY_PRESS_MS = 80L
     }

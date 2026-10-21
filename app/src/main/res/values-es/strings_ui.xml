@@ -641,5 +641,5 @@
     <string name="pad_close_title">¿Cerrar el mando?</string>
     <string name="pad_close_body">Vuelves a tus otros controles. El dispositivo sigue conectado.</string>
     <string name="pad_close_action">Cerrar</string>
-    <string name="pad_not_connected">Aún no está conectado. Conéctate con la tarjeta de encima del mando.</string>
+    <string name="pad_not_connected">Aún no está conectado. Conéctate con el botón de arriba.</string>
 </resources>
