@@ -169,7 +169,7 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         ui.setupScroll.isVisible = !on
         ui.padTilt.isSelected = app.prefs.padTilt
         askBeforeLeaving.isEnabled = on
-        if (isResumed) (activity as? MainActivity)?.setImmersive(on)
+        if (isResumed) (activity as? MainActivity)?.setFullScreen(on)
         if (on && app.prefs.padTilt && isResumed) startTilt() else stopTilt()
     }
 
@@ -404,7 +404,7 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
     override fun onDestroyView() {
         stopTilt()
         pad?.reset()
-        (activity as? MainActivity)?.setImmersive(false)
+        (activity as? MainActivity)?.setFullScreen(false)
         // Leaving the gamepad gives the phone its own orientation back; a
         // rotation (the activity being recreated) keeps landscape.
         activity?.takeUnless { it.isChangingConfigurations }

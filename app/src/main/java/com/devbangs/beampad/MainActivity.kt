@@ -378,7 +378,7 @@ class MainActivity : BeamActivity() {
         applyChrome()
     }
 
-    private var immersive = false
+    private var fullScreen = false
 
     /**
      * Full screen, for the gamepad: the top bar, the tabs, the mode bar and
@@ -388,7 +388,7 @@ class MainActivity : BeamActivity() {
      * bars for a moment. Separate from focus mode, so the keyboard leaving
      * focus as the gamepad arrives cannot bring the bars back.
      */
-    fun setImmersive(on: Boolean) {
+    fun setFullScreen(on: Boolean) {
         if (!::ui.isInitialized) return
         // Every time, not only on a change: coming back from another screen
         // (an ad, the Pro page) can show the system bars again.
@@ -399,8 +399,8 @@ class MainActivity : BeamActivity() {
         } else {
             bars.show(WindowInsetsCompat.Type.systemBars())
         }
-        if (immersive == on) return
-        immersive = on
+        if (fullScreen == on) return
+        fullScreen = on
         applyChrome()
     }
 
@@ -408,9 +408,9 @@ class MainActivity : BeamActivity() {
         if (!Motion.reduced(this)) {
             TransitionManager.beginDelayedTransition(ui.shell, AutoTransition().apply { duration = 180 })
         }
-        nav.isVisible = !(focused || immersive)
-        ui.headerRow.isVisible = !immersive
-        controlFragment()?.setFocus(focused || immersive)
+        nav.isVisible = !(focused || fullScreen)
+        ui.headerRow.isVisible = !fullScreen
+        controlFragment()?.setFocus(focused || fullScreen)
         // The column takes over the inset the hidden bar or rail was handling.
         ViewCompat.requestApplyInsets(ui.contentColumn)
     }
@@ -725,7 +725,7 @@ class MainActivity : BeamActivity() {
         val saved = DeviceStore(this).get(device.address) ?: return
         // A game in progress keeps the gamepad: the profile's surface is
         // for when the user is not already playing.
-        if (!immersive) when {
+        if (!fullScreen) when {
             saved.defaultPanelId != null && PanelStore(this).get(saved.defaultPanelId) != null ->
                 openControl(panelId = saved.defaultPanelId, fromUser = false)
             saved.preferredMode != null -> openControl(mode = saved.preferredMode, fromUser = false)

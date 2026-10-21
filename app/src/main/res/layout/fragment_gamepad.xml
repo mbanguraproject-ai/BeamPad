@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Gamepad, full screen while it is on (MainActivity.setImmersive): the
+<!-- Gamepad, full screen while it is on (MainActivity.setFullScreen): the
      triggers at the two edges; the left stick over the D-pad and A B X Y
      over the right stick, as on an Xbox pad; View, Home, Menu, the stick
      clicks, tilt steering and the close button between them. Every button
