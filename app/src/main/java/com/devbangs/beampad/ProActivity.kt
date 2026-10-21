@@ -90,6 +90,7 @@ class ProActivity : BeamActivity() {
         Triple(R.string.cmp_panels_macros, null, CHECK),
         Triple(R.string.cmp_profiles_presentation, null, CHECK),
         Triple(R.string.cmp_trackpad, null, CHECK),
+        Triple(R.string.feat_gamepad, null, CHECK),
         Triple(R.string.cmp_live_voice, null, CHECK),
         Triple(R.string.cmp_keys_clipboard, null, CHECK),
         Triple(R.string.cmp_snippets, R.string.cmp_snippets_free, R.string.cmp_unlimited),
