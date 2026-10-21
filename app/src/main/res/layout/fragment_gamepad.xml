@@ -286,6 +286,7 @@
             android:padding="@dimen/space_lg">
 
             <ImageView
+                android:id="@+id/setupIcon"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:importantForAccessibility="no"

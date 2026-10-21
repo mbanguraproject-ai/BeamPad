@@ -129,6 +129,13 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
             Haptics.tick(it)
             turnOn()
         }
+        // A phone held sideways has little height left under the top bar:
+        // the card drops its picture and some padding so its button shows.
+        if (resources.configuration.screenHeightDp < COMPACT_HEIGHT_DP) {
+            ui.setupIcon.isVisible = false
+            val padding = resources.getDimensionPixelSize(R.dimen.space_md)
+            ui.setup.setPadding(padding, padding, padding, padding)
+        }
 
         ui.padClose.setOnClickListener {
             Haptics.tick(it)
@@ -415,6 +422,9 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
 
     private companion object {
         const val LARGE_SCREEN_DP = 600
+
+        /** Below this height the setup card is drawn compact. */
+        const val COMPACT_HEIGHT_DP = 480
         const val ACCESSIBILITY_PRESS_MS = 80L
 
         /** Turning the phone this far is full lock. */
