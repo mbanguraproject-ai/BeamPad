@@ -14,6 +14,14 @@ val keystoreProps = Properties().apply {
 
 android {
     namespace = "com.devbangs.beampad"
+
+    // A release build's lint check starts a second large JVM next to R8,
+    // more memory than a GitHub Codespace has: the system killed the
+    // daemon ("Gradle build daemon disappeared unexpectedly"). It runs on
+    // CI, which sets CI, on every push; local release builds skip it.
+    lint {
+        checkReleaseBuilds = System.getenv("CI") != null
+    }
     compileSdk = 36
 
     defaultConfig {
