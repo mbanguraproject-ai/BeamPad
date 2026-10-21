@@ -28,7 +28,8 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 
 /**
  * Three steps, per the blueprint: what are you controlling, how to pair
- * it, which controls to start with; then straight into those controls.
+ * it, which controls to start with; then the Pro page once, and those
+ * controls behind it.
  * No tour: advanced features are taught where they are met. The keyboard
  * layout is asked for computers, because a mismatch fails silently and
  * the user would have no way to guess why symbols arrive wrong.
@@ -385,7 +386,14 @@ class OnboardingActivity : BeamActivity() {
         prefs.lastMode = mode
         prefs.lastPanelId = null
         getSharedPreferences(Prefs.FILE, MODE_PRIVATE).edit().putBoolean(KEY_SEEN, true).apply()
-        startActivity(Intent(this, MainActivity::class.java))
+        val main = Intent(this, MainActivity::class.java)
+        // New users see what Pro adds once, as onboarding ends; its close
+        // button leads on to the controls they picked, which open beneath.
+        if ((application as BeamPadApp).entitlements.isPro) {
+            startActivity(main)
+        } else {
+            startActivities(arrayOf(main, ProActivity.intent(this, null)))
+        }
         finish()
     }
 
