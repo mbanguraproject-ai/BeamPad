@@ -627,6 +627,7 @@
     <string name="pad_square">Quadrado</string>
     <string name="pad_triangle">Triângulo</string>
     <string name="pad_tilt">Inclinar para dirigir</string>
+    <string name="pad_tilt_short">Inclinar</string>
     <string name="pad_tilt_on">Inclinar para dirigir ativado: gire o celular como um volante para dirigir com o analógico esquerdo.</string>
     <string name="pad_tilt_off">Inclinar para dirigir desativado</string>
     <string name="pad_tilt_none">Este celular não tem sensor de movimento para dirigir inclinando.</string>

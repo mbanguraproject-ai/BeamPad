@@ -163,8 +163,10 @@
                 android:layout_weight="0"
                 android:layout_marginTop="@dimen/space_xs"
                 android:contentDescription="@string/pad_tilt"
+                android:text="@string/pad_tilt_short"
                 app:icon="@drawable/ic_steering_wheel"
-                app:iconSize="22dp" />
+                app:iconPadding="6dp"
+                app:iconSize="20dp" />
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

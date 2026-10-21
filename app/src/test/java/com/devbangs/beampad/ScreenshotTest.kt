@@ -496,7 +496,12 @@ class ScreenshotTest {
         appearance(Appearance.DARK)
         shoot(main(ControlMode.GAMEPAD), "short_land_gamepad")
         appearance(Appearance.LIGHT)
-        shoot(main(ControlMode.GAMEPAD), "short_land_gamepad_light")
+        val light = main(ControlMode.GAMEPAD)
+        shoot(light, "short_land_gamepad_light")
+        // Held, A and B light in their own colours.
+        light.findViewById<View>(R.id.padA).isPressed = true
+        light.findViewById<View>(R.id.padB).isPressed = true
+        shoot(light, "short_land_gamepad_pressed")
         Prefs(app).gamepad = false
         pro(false)
     }

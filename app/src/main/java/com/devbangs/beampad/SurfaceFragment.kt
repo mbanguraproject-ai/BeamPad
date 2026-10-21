@@ -107,10 +107,14 @@ abstract class SurfaceFragment : Fragment() {
             if (now - lastNudge > NUDGE_INTERVAL_MS) {
                 lastNudge = now
                 context?.let { Toast.makeText(it, notConnectedHint, Toast.LENGTH_SHORT).show() }
+                onNudged()
             }
         }
         return null
     }
+
+    /** A press while nothing is connected, as the hint shows: a surface can point at the way to connect. */
+    protected open fun onNudged() = Unit
 
     protected fun perform(action: Action) {
         val service = service() ?: return
