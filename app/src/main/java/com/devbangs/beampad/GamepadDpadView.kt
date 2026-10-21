@@ -55,12 +55,30 @@ class GamepadDpadView @JvmOverloads constructor(
     }
     private val arrowHeldPaint = Paint(arrowPaint).apply { color = context.themeColor(R.attr.bpAccent) }
 
-    private val arm = RectF()
+    /** The cross as one outline, so the arms meet without seams. */
+    private val cross = Path()
     private val arrow = Path()
 
     init {
         contentDescription = context.getString(R.string.pad_dpad)
         isClickable = true
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        val half = min(w, h) / 2f - strokePaint.strokeWidth
+        val thick = min(w, h) * ARM
+        val cx = w / 2f
+        val cy = h / 2f
+        val corner = 10 * density
+        val vertical = Path().apply {
+            addRoundRect(RectF(cx - thick / 2, cy - half, cx + thick / 2, cy + half), corner, corner, Path.Direction.CW)
+        }
+        val horizontal = Path().apply {
+            addRoundRect(RectF(cx - half, cy - thick / 2, cx + half, cy + thick / 2), corner, corner, Path.Direction.CW)
+        }
+        cross.reset()
+        cross.op(vertical, horizontal, Path.Op.UNION)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -69,14 +87,23 @@ class GamepadDpadView @JvmOverloads constructor(
         val cy = height / 2f
         val half = size / 2f
         val thick = size * ARM
-        val corner = 10 * density
-        // Each arm from the centre outwards, drawn lit when held.
+        canvas.drawPath(cross, keyPaint)
+        // A held arm lights from the hub outwards, inside the cross.
+        canvas.save()
+        canvas.clipPath(cross)
+        DIRECTIONS.forEach { (bit, angle) ->
+            if (held and bit == 0) return@forEach
+            canvas.save()
+            canvas.rotate(angle, cx, cy)
+            canvas.drawRect(cx - thick / 2, cy - half, cx + thick / 2, cy - thick / 2, heldPaint)
+            canvas.restore()
+        }
+        canvas.restore()
+        canvas.drawPath(cross, strokePaint)
+        // An arrow near each arm's end.
         DIRECTIONS.forEach { (bit, angle) ->
             canvas.save()
             canvas.rotate(angle, cx, cy)
-            arm.set(cx - thick / 2, cy - half, cx + thick / 2, cy)
-            canvas.drawRoundRect(arm, corner, corner, if (held and bit != 0) heldPaint else keyPaint)
-            canvas.drawRoundRect(arm, corner, corner, strokePaint)
             val tip = cy - half + thick * 0.42f
             val w = thick * 0.2f
             arrow.reset()
@@ -86,9 +113,6 @@ class GamepadDpadView @JvmOverloads constructor(
             canvas.drawPath(arrow, if (held and bit != 0) arrowHeldPaint else arrowPaint)
             canvas.restore()
         }
-        // The hub over the arms' inner ends.
-        canvas.drawRect(cx - thick / 2 + density, cy - thick / 2 + density,
-            cx + thick / 2 - density, cy + thick / 2 - density, keyPaint)
     }
 
     @SuppressLint("ClickableViewAccessibility")
