@@ -498,4 +498,25 @@
         <item name="iconTint">?attr/bpText</item>
         <item name="iconSize">22dp</item>
     </style>
+
+    <!-- A control in the connection notification. Framework attributes only:
+         the system draws it, in its own theme (light or dark). -->
+    <style name="NotificationControl">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+        <item name="android:tint">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- A button on the home screen widget. Fixed colours: the launcher draws it. -->
+    <style name="WidgetControl">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">@drawable/bg_widget_button</item>
+        <item name="android:tint">@android:color/white</item>
+    </style>
 </resources>

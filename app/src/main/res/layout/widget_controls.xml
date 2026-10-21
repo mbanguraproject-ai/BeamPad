@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home screen widget: the connection's state (tap to open BeamPad), then
+     volume down, play/pause, volume up and mute for the connected device.
+     Drawn by the launcher, so only RemoteViews-safe views, fixed colours
+     and the theme-free ic_ctl_ icons. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_widget"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:id="@+id/widgetHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_stat_beampad"
+            android:tint="@android:color/white" />
+
+        <TextView
+            android:id="@+id/widgetStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/app_name"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/widgetVolumeDown"
+            style="@style/WidgetControl"
+            android:contentDescription="@string/act_vol_down"
+            android:src="@drawable/ic_ctl_volume_down" />
+
+        <ImageButton
+            android:id="@+id/widgetPlayPause"
+            style="@style/WidgetControl"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/act_play_pause"
+            android:src="@drawable/ic_ctl_play_pause" />
+
+        <ImageButton
+            android:id="@+id/widgetVolumeUp"
+            style="@style/WidgetControl"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/act_vol_up"
+            android:src="@drawable/ic_ctl_volume_up" />
+
+        <ImageButton
+            android:id="@+id/widgetMute"
+            style="@style/WidgetControl"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/act_mute"
+            android:src="@drawable/ic_ctl_mute" />
+    </LinearLayout>
+</LinearLayout>

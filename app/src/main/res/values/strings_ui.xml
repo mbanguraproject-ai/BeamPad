@@ -632,4 +632,11 @@
     <string name="diag_ads_off">Not showing yet: %1$s.</string>
     <string name="diag_ads_pages_only">Page-change ads are on. The ad as the app opens starts after the first %1$d launches (this is launch %2$d).</string>
     <string name="diag_ads_empty_body">Each ad loaded, shown or held back is listed here, with the reason.</string>
+
+    <!-- 1.5.0 -->
+    <string name="tile_open">Tap to open</string>
+    <string name="widget_label">BeamPad controls</string>
+    <string name="widget_description">Volume and play/pause for the connected TV or computer</string>
+    <string name="widget_open">Tap to open BeamPad</string>
+    <string name="widget_not_connected">Not connected. Open BeamPad to connect.</string>
 </resources>
