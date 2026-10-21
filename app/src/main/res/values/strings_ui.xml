@@ -684,4 +684,9 @@
     <string name="set_pad_floating_body">A stick centres where your thumb lands</string>
     <string name="set_pad_tilt">Tilt to steer</string>
     <string name="set_pad_tilt_body">Turn the phone like a steering wheel to move the left stick</string>
+    <string name="pad_close">Close gamepad</string>
+    <string name="pad_close_title">Close the gamepad?</string>
+    <string name="pad_close_body">You go back to your other controls. The device stays connected.</string>
+    <string name="pad_close_action">Close</string>
+    <string name="pad_not_connected">Not connected yet. Connect with the card above the gamepad.</string>
 </resources>

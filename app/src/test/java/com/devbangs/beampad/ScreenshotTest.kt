@@ -327,10 +327,15 @@ class ScreenshotTest {
     @Config(qualifiers = "w852dp-h393dp-land-xhdpi")
     fun gamepad() {
         pro(true)
-        Prefs(app).gamepad = true
         tipSeen("GamepadFragment")
         appearance(Appearance.DARK)
-        shoot(main(ControlMode.GAMEPAD), "land_gamepad")
+        // Before it is turned on: the card, with its button in reach.
+        shoot(main(ControlMode.GAMEPAD), "land_gamepad_setup")
+        Prefs(app).gamepad = true
+        val playing = main(ControlMode.GAMEPAD)
+        shoot(playing, "land_gamepad")
+        playing.findViewById<View>(R.id.padClose).performClick()
+        shootDialog("sheet_gamepad_close")
         appearance(Appearance.LIGHT)
         shoot(main(ControlMode.GAMEPAD), "land_gamepad_light")
         Prefs(app).padLabels = Prefs.PadLabels.PLAYSTATION

@@ -29,6 +29,10 @@ class ControlFragment : Fragment() {
     private var mode: ControlMode? = null
     private var panelId: String? = null
 
+    /** Where the user was before opening the gamepad, to go back on close. */
+    private data class Where(val page: Page?, val mode: ControlMode?, val panelId: String?)
+    private var beforeGamepad: Where? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, state: Bundle?
     ): View {
@@ -104,6 +108,7 @@ class ControlFragment : Fragment() {
             return
         }
         if (mode == next && panelId == null && page == null) return
+        if (next == ControlMode.GAMEPAD) beforeGamepad = Where(page, mode, panelId)
         val from = position()
         page = null
         prefs.lastPage = null
@@ -144,6 +149,25 @@ class ControlFragment : Fragment() {
         val before = Triple(page, mode, panelId)
         block()
         if (Triple(page, mode, panelId) != before) activity?.let { InterstitialAds.onTransition(it) }
+    }
+
+    /**
+     * The gamepad's close button: back to the surface the user came from,
+     * or Home when that is not known (the app was restarted in between).
+     * The user's own move, so it counts as a page change.
+     */
+    fun closeGamepad() {
+        val back = beforeGamepad
+        beforeGamepad = null
+        val context = context ?: return
+        navigate {
+            when {
+                back?.page == Page.LAUNCH -> showLaunch()
+                back?.panelId != null && PanelStore(context).get(back.panelId) != null -> showPanel(back.panelId)
+                back?.mode != null && back.mode != ControlMode.GAMEPAD -> showMode(back.mode)
+                else -> showHome()
+            }
+        }
     }
 
     /** The surface showing now, for routing hardware keys to it. */

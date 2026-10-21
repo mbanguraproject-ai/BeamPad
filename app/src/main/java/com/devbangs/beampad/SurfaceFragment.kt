@@ -55,6 +55,9 @@ abstract class SurfaceFragment : Fragment() {
      */
     protected open val firstTip: Int? = null
 
+    /** What a press says while nothing is connected. */
+    protected open val notConnectedHint: Int = R.string.not_connected_hint
+
     override fun onResume() {
         super.onResume()
         showFirstTip()
@@ -103,7 +106,7 @@ abstract class SurfaceFragment : Fragment() {
             val now = SystemClock.uptimeMillis()
             if (now - lastNudge > NUDGE_INTERVAL_MS) {
                 lastNudge = now
-                context?.let { Toast.makeText(it, R.string.not_connected_hint, Toast.LENGTH_SHORT).show() }
+                context?.let { Toast.makeText(it, notConnectedHint, Toast.LENGTH_SHORT).show() }
             }
         }
         return null

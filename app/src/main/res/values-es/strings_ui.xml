@@ -637,4 +637,9 @@
     <string name="set_pad_floating_body">Un joystick se centra donde apoyas el pulgar</string>
     <string name="set_pad_tilt">Inclinar para girar</string>
     <string name="set_pad_tilt_body">Gira el teléfono como un volante para mover el joystick izquierdo</string>
+    <string name="pad_close">Cerrar mando</string>
+    <string name="pad_close_title">¿Cerrar el mando?</string>
+    <string name="pad_close_body">Vuelves a tus otros controles. El dispositivo sigue conectado.</string>
+    <string name="pad_close_action">Cerrar</string>
+    <string name="pad_not_connected">Aún no está conectado. Conéctate con la tarjeta de encima del mando.</string>
 </resources>

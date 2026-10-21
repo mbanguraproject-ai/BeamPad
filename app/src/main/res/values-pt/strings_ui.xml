@@ -637,4 +637,9 @@
     <string name="set_pad_floating_body">Um analógico se centraliza onde seu polegar toca</string>
     <string name="set_pad_tilt">Inclinar para dirigir</string>
     <string name="set_pad_tilt_body">Gire o celular como um volante para mover o analógico esquerdo</string>
+    <string name="pad_close">Fechar gamepad</string>
+    <string name="pad_close_title">Fechar o gamepad?</string>
+    <string name="pad_close_body">Você volta aos seus outros controles. O dispositivo continua conectado.</string>
+    <string name="pad_close_action">Fechar</string>
+    <string name="pad_not_connected">Ainda não conectado. Conecte pelo cartão acima do gamepad.</string>
 </resources>
