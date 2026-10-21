@@ -94,6 +94,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:25.0.0")
     implementation("com.google.android.ump:user-messaging-platform:3.2.0")
 
+    // The watch remote: messages from the wear module.
+    implementation("com.google.android.gms:play-services-wearable:18.2.0")
+
     // Billing. v8+ is a Play publishing requirement as of Aug 2026.
     implementation("com.android.billingclient:billing:9.1.0")
 

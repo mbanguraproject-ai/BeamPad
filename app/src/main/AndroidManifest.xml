@@ -106,6 +106,19 @@
                 android:value="true" />
         </service>
 
+        <!-- The watch remote's messages (the wear module). -->
+        <service
+            android:name=".WearRemoteService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/beampad"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
         <!-- Home screen widget: state, volume and play/pause. -->
         <receiver
             android:name=".ControlWidget"

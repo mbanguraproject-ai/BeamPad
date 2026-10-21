@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 rootProject.name = "BeamPad"
 
 include(":app")
+include(":wear")

@@ -639,6 +639,7 @@
     <string name="widget_description">Volume and play/pause for the connected TV or computer</string>
     <string name="widget_open">Tap to open BeamPad</string>
     <string name="widget_not_connected">Not connected. Open BeamPad to connect.</string>
+    <string name="wear_open_phone">Open BeamPad on your phone</string>
     <string name="mode_numpad">Numpad</string>
     <string name="mode_gamepad">Gamepad</string>
     <string name="tip_numpad">These are the keypad’s own keys. If they move the cursor instead of typing digits, press Num Lock.</string>

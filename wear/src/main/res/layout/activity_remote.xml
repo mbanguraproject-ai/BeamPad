@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The watch remote: the connection's state, then a 3x3 pad small enough
+     to sit inside a round face (132dp square: its corners clear a 192dp
+     circle). The crown turns the volume. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="124dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:singleLine="true"
+            android:text="@string/connecting"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="132dp"
+            android:layout_height="132dp"
+            android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/back"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/back"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_back"
+                android:tint="@android:color/white" />
+            <ImageButton
+                android:id="@+id/up"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/up"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_up"
+                android:tint="@android:color/white" />
+            <ImageButton
+                android:id="@+id/home"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/home"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_home"
+                android:tint="@android:color/white" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/left"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/left"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_left"
+                android:tint="@android:color/white" />
+            <Button
+                android:id="@+id/ok"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_ok"
+                android:text="@string/ok"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+            <ImageButton
+                android:id="@+id/right"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/right"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_right"
+                android:tint="@android:color/white" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/mute"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/mute"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_mute"
+                android:tint="@android:color/white" />
+            <ImageButton
+                android:id="@+id/down"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/down"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_down"
+                android:tint="@android:color/white" />
+            <ImageButton
+                android:id="@+id/playPause"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_wear_key"
+                android:contentDescription="@string/play_pause"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wear_play_pause"
+                android:tint="@android:color/white" />
+        </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
