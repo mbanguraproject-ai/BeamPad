@@ -1,8 +1,12 @@
 package com.devbangs.beampad
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.StateListDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -19,6 +23,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.devbangs.beampad.databinding.FragmentGamepadBinding
@@ -227,6 +232,16 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         TooltipCompat.setTooltipText(ui.padStatus, if (line.action != null) line.title else null)
     }
 
+    /** A press with nothing connected: the pill, the way to connect, pulses as the hint shows. */
+    override fun onNudged() {
+        val pill = _ui?.padStatus ?: return
+        if (!pill.isVisible || Motion.reduced(pill.context)) return
+        pill.animate().cancel()
+        pill.animate().scaleX(PULSE_SCALE).scaleY(PULSE_SCALE).setDuration(PULSE_MS).withEndAction {
+            pill.animate().scaleX(1f).scaleY(1f).setDuration(PULSE_MS * 2).start()
+        }.start()
+    }
+
     /** "Close the gamepad?": back to the controls the user came from. */
     private fun askClose() {
         val context = context ?: return
@@ -423,6 +438,23 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         button.icon = face.icon?.let { ContextCompat.getDrawable(context, it) }
         button.iconTint = ColorStateList.valueOf(color)
         button.contentDescription = face.description
+        button.background = faceBackground(context, face.color?.let { ContextCompat.getColor(context, it) }
+            ?: context.themeColor(R.attr.bpAccent))
+    }
+
+    /** A round key that lights in the button's own colour while held, as a controller's do. */
+    private fun faceBackground(context: Context, color: Int): Drawable {
+        val stroke = resources.displayMetrics.density.roundToInt().coerceAtLeast(1)
+        fun circle(fill: Int, edge: Int) = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(fill)
+            setStroke(stroke, edge)
+        }
+        val key = context.themeColor(R.attr.bpKey)
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_pressed), circle(ColorUtils.blendARGB(key, color, PRESSED_TINT), color))
+            addState(intArrayOf(), circle(key, context.themeColor(R.attr.bpKeyStroke)))
+        }
     }
 
     private fun axis(value: Float): Int = (value * 127f).roundToInt().coerceIn(-127, 127)
@@ -473,6 +505,13 @@ class GamepadFragment : SurfaceFragment(), SensorEventListener {
         /** Below this height the setup card is drawn compact. */
         const val COMPACT_HEIGHT_DP = 480
         const val ACCESSIBILITY_PRESS_MS = 80L
+
+        /** A held face button: this share of its own colour over the key. */
+        const val PRESSED_TINT = 0.3f
+
+        /** The status pill's pulse: how far it grows, and how fast. */
+        const val PULSE_SCALE = 1.1f
+        const val PULSE_MS = 120L
 
         /** Turning the phone this far is full lock. */
         const val TILT_FULL_DEGREES = 35f

@@ -627,6 +627,7 @@
     <string name="pad_square">Cuadrado</string>
     <string name="pad_triangle">Triángulo</string>
     <string name="pad_tilt">Inclinar para girar</string>
+    <string name="pad_tilt_short">Inclinar</string>
     <string name="pad_tilt_on">Inclinar para girar activado: gira el teléfono como un volante para dirigir con el joystick izquierdo.</string>
     <string name="pad_tilt_off">Inclinar para girar desactivado</string>
     <string name="pad_tilt_none">Este teléfono no tiene sensor de movimiento para girar inclinándolo.</string>

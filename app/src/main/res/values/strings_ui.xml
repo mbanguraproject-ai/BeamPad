@@ -674,6 +674,8 @@
     <string name="pad_square">Square</string>
     <string name="pad_triangle">Triangle</string>
     <string name="pad_tilt">Tilt to steer</string>
+    <!-- On the tilt steering key, beside its wheel. -->
+    <string name="pad_tilt_short">Tilt</string>
     <string name="pad_tilt_on">Tilt to steer on: turn the phone like a wheel to steer with the left stick.</string>
     <string name="pad_tilt_off">Tilt to steer off</string>
     <string name="pad_tilt_none">This phone has no motion sensor for tilt steering.</string>

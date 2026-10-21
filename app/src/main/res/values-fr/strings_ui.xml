@@ -627,6 +627,7 @@
     <string name="pad_square">Carré</string>
     <string name="pad_triangle">Triangle</string>
     <string name="pad_tilt">Inclinaison pour diriger</string>
+    <string name="pad_tilt_short">Inclinaison</string>
     <string name="pad_tilt_on">Inclinaison activée : tournez le téléphone comme un volant pour diriger avec le joystick gauche.</string>
     <string name="pad_tilt_off">Inclinaison désactivée</string>
     <string name="pad_tilt_none">Ce téléphone n’a pas de capteur de mouvement pour diriger par inclinaison.</string>
