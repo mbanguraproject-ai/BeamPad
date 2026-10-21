@@ -13,6 +13,32 @@ object HidReports {
     const val REPORT_ID = 1          // keyboard
     const val REPORT_ID_MOUSE = 2    // mouse
     const val REPORT_ID_CONSUMER = 3 // volume and media keys
+    const val REPORT_ID_GAMEPAD = 4  // gamepad, only when turned on
+
+    // Gamepad buttons, as bits of the report's 16 button bits. Button n is
+    // bit n-1; Android and Linux read buttons 1-15 of a game pad as A, B,
+    // C, X, Y, Z, L1, R1, L2, R2, Select, Start, Mode, L3, R3, so these
+    // land on the right keys there, and on Windows as numbered buttons.
+    const val PAD_A = 1 shl 0
+    const val PAD_B = 1 shl 1
+    const val PAD_X = 1 shl 3
+    const val PAD_Y = 1 shl 4
+    const val PAD_L1 = 1 shl 6
+    const val PAD_R1 = 1 shl 7
+    const val PAD_L2 = 1 shl 8
+    const val PAD_R2 = 1 shl 9
+    const val PAD_SELECT = 1 shl 10
+    const val PAD_START = 1 shl 11
+    const val PAD_HOME = 1 shl 12
+    const val PAD_L3 = 1 shl 13
+    const val PAD_R3 = 1 shl 14
+
+    /** Hat switch (D-pad): 0 up, then clockwise in eighths; 8 is centred. */
+    const val HAT_UP = 0
+    const val HAT_RIGHT = 2
+    const val HAT_DOWN = 4
+    const val HAT_LEFT = 6
+    const val HAT_CENTER = 8
 
     // Consumer Control usage codes (HID usage page 0x0C)
     const val CC_VOLUME_UP = 0x00E9
@@ -81,6 +107,21 @@ object HidReports {
     const val KEY_LEFT: Byte = 0x50
     const val KEY_DOWN: Byte = 0x51
     const val KEY_UP: Byte = 0x52
+
+    // The keypad (number pad), inside the descriptor's 0-0x65 range.
+    const val KP_NUM_LOCK: Byte = 0x53
+    const val KP_DIVIDE: Byte = 0x54
+    const val KP_MULTIPLY: Byte = 0x55
+    const val KP_MINUS: Byte = 0x56
+    const val KP_PLUS: Byte = 0x57
+    const val KP_ENTER: Byte = 0x58
+    const val KP_DOT: Byte = 0x63
+
+    /** Keypad digits: 1 to 9 are 0x59 to 0x61, and 0 comes after them, at 0x62. */
+    fun keypadDigit(d: Int): Byte {
+        require(d in 0..9) { "keypad digit out of range: $d" }
+        return (if (d == 0) 0x62 else 0x59 + d - 1).toByte()
+    }
 
     /** F1 to F12 are usages 0x3A to 0x45, inside the descriptor's 0-0x65 range. */
     fun functionKey(n: Int): Byte {
@@ -166,6 +207,68 @@ object HidReports {
         0x81.toByte(), 0x00,            //   Input (Data,Array)
         0xC0.toByte()                   // End Collection
     )
+
+    /**
+     * The gamepad's collection, Report ID 4: 16 buttons, a hat switch, and
+     * two sticks (X/Y left, Z/Rz right) of -127..127. Appended to
+     * [KEYBOARD_DESCRIPTOR] only when the user turns gamepad support on
+     * ([descriptor]): a host reads the descriptor when pairing, so existing
+     * pairings keep exactly the keyboard and mouse they know.
+     */
+    private val GAMEPAD_COLLECTION = byteArrayOf(
+        0x05, 0x01,                     // Usage Page (Generic Desktop)
+        0x09, 0x05,                     // Usage (Game Pad)
+        0xA1.toByte(), 0x01,            // Collection (Application)
+        0x85.toByte(), 0x04,            //   Report ID (4)
+        0x05, 0x09,                     //   Usage Page (Button)
+        0x19, 0x01,                     //   Usage Min (1)
+        0x29, 0x10,                     //   Usage Max (16)
+        0x15, 0x00,                     //   Logical Min (0)
+        0x25, 0x01,                     //   Logical Max (1)
+        0x75, 0x01,                     //   Report Size (1)
+        0x95.toByte(), 0x10,            //   Report Count (16)
+        0x81.toByte(), 0x02,            //   Input (Data,Var,Abs) - buttons
+        0x05, 0x01,                     //   Usage Page (Generic Desktop)
+        0x09, 0x39,                     //   Usage (Hat switch)
+        0x15, 0x00,                     //   Logical Min (0)
+        0x25, 0x07,                     //   Logical Max (7)
+        0x35, 0x00,                     //   Physical Min (0)
+        0x46, 0x3B, 0x01,               //   Physical Max (315)
+        0x65, 0x14,                     //   Unit (degrees)
+        0x75, 0x04,                     //   Report Size (4)
+        0x95.toByte(), 0x01,            //   Report Count (1)
+        0x81.toByte(), 0x42,            //   Input (Data,Var,Abs,Null) - hat
+        0x65, 0x00,                     //   Unit (none)
+        0x75, 0x04,                     //   Report Size (4)
+        0x95.toByte(), 0x01,            //   Report Count (1)
+        0x81.toByte(), 0x03,            //   Input (Const) - padding
+        0x09, 0x30,                     //   Usage (X)
+        0x09, 0x31,                     //   Usage (Y)
+        0x09, 0x32,                     //   Usage (Z)
+        0x09, 0x35,                     //   Usage (Rz)
+        0x15, 0x81.toByte(),            //   Logical Min (-127)
+        0x25, 0x7F,                     //   Logical Max (127)
+        0x75, 0x08,                     //   Report Size (8)
+        0x95.toByte(), 0x04,            //   Report Count (4)
+        0x81.toByte(), 0x02,            //   Input (Data,Var,Abs) - sticks
+        0xC0.toByte()                   // End Collection
+    )
+
+    /** What to register: keyboard, mouse and media keys, and the gamepad when it is on. */
+    fun descriptor(gamepad: Boolean): ByteArray =
+        if (gamepad) KEYBOARD_DESCRIPTOR + GAMEPAD_COLLECTION else KEYBOARD_DESCRIPTOR
+
+    /** Gamepad report: 16 button bits, the hat (low four bits), then the two sticks. */
+    fun gamepad(buttons: Int, hat: Int, lx: Int, ly: Int, rx: Int, ry: Int): ByteArray =
+        byteArrayOf(
+            (buttons and 0xFF).toByte(),
+            ((buttons shr 8) and 0xFF).toByte(),
+            (hat and 0x0F).toByte(),
+            lx.coerceIn(-127, 127).toByte(),
+            ly.coerceIn(-127, 127).toByte(),
+            rx.coerceIn(-127, 127).toByte(),
+            ry.coerceIn(-127, 127).toByte()
+        )
 
     /** Consumer report: one 16-bit usage code, little endian. */
     fun consumer(usage: Int): ByteArray =

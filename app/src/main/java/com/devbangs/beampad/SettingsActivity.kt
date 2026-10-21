@@ -159,6 +159,16 @@ class SettingsActivity : PageActivity() {
             Prefs.LinkMode.STABLE to getString(R.string.set_link_stable_body)
         )) { prefs.linkMode = it }
         Ui.divider(card)
+        // Changes what devices see when pairing, so it restarts the
+        // connection and needs a new pairing either way.
+        Ui.switchRow(card, getString(R.string.set_gamepad), getString(R.string.set_gamepad_body),
+            R.drawable.ic_game_controller, prefs.gamepad) { on ->
+            prefs.gamepad = on
+            service?.restart()
+            Toast.makeText(this, R.string.set_gamepad_repair, Toast.LENGTH_LONG).show()
+            on
+        }
+        Ui.divider(card)
         Ui.switchRow(card, getString(R.string.settings_screen_on), getString(R.string.set_screen_on_body),
             R.drawable.ic_sun, prefs.keepScreenOn) { prefs.keepScreenOn = it; it }
         Ui.divider(card)

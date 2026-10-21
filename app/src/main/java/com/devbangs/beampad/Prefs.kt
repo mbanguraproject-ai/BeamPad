@@ -148,6 +148,15 @@ class Prefs(context: Context) {
         }
         set(value) = putString(KEY_LINK_MODE, value.name)
 
+    /**
+     * Whether BeamPad also presents itself as a gamepad. Off by default: it
+     * changes what the device sees when pairing, so it takes a new pairing
+     * to use, and existing pairings stay exactly as they were.
+     */
+    var gamepad: Boolean
+        get() = bool(KEY_GAMEPAD, false)
+        set(value) = putBool(KEY_GAMEPAD, value)
+
     // ---- Presentation -----------------------------------------------------
 
     /** Presentation opens in portrait; this turns it sideways for two-thumb use. */
@@ -309,6 +318,7 @@ class Prefs(context: Context) {
         private const val KEY_PINCH_ZOOM = "pinch_zoom"
         private const val KEY_MOMENTUM_SCROLL = "momentum_scroll"
         private const val KEY_LINK_MODE = "link_mode"
+        private const val KEY_GAMEPAD = "gamepad"
         private const val KEY_PRESENT_LANDSCAPE = "present_landscape"
         private const val KEY_PRESENT_ALERT = "present_alert_minutes"
         private const val KEY_GESTURE_PREFIX = "gesture_"

@@ -26,6 +26,7 @@ object Features {
         MACROS("macros"),
         PROFILES("profiles"),
         PRESENTATION("presentation"),
+        GAMEPAD("gamepad"),
         TRACKPAD("trackpad"),
         LIVE_TYPING("live"),
         VOICE("voice"),

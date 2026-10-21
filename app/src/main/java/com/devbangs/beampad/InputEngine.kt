@@ -82,6 +82,7 @@ class InputEngine(
     val keyboard = KeyboardEngine()
     val mouse = MouseEngine()
     private val pump = MotionPump()
+    val gamepad = GamepadEngine()
     val consumer = ConsumerEngine()
     val macros = MacroEngine()
 
@@ -104,11 +105,13 @@ class InputEngine(
         keyboard.cancelTyping()
         macros.cancel()
         mouse.releaseAll()
+        gamepad.reset()
     }
 
     fun shutdown() {
         cancelAll()
         pump.stop()
+        gamepad.stop()
         exec.shutdown()
     }
 
@@ -451,6 +454,143 @@ class InputEngine(
                         wheel = 0
                     }
                 }
+            }
+        }
+    }
+
+    // --------------------------------------------------------------- gamepad
+
+    /**
+     * The gamepad (only registered when the user turns it on). Holds the
+     * pad's current state and sends the latest of it on its own thread, at
+     * the pointer's pace, so a stick moving fast never queues reports. A
+     * button or D-pad tap shorter than one report still goes out: what was
+     * pressed since the last report is added to the next one, and the
+     * release follows in the report after.
+     */
+    inner class GamepadEngine : Runnable {
+        private val lock = ReentrantLock()
+        private val changed = lock.newCondition()
+        private var buttons = 0
+        private var latched = 0
+        private var hat = HidReports.HAT_CENTER
+        private var latchedHat = HidReports.HAT_CENTER
+        private var lx = 0
+        private var ly = 0
+        private var rx = 0
+        private var ry = 0
+        private var dirty = false
+        private var stopped = false
+        private var thread: Thread? = null
+        private var lastSentNs = 0L
+
+        fun press(button: Int) = update {
+            buttons = buttons or button
+            latched = latched or button
+        }
+
+        fun release(button: Int) = update { buttons = buttons and button.inv() }
+
+        /** The D-pad: one of HidReports.HAT_*, or HAT_CENTER when let go. */
+        fun hat(direction: Int) = update {
+            hat = direction
+            if (direction != HidReports.HAT_CENTER) latchedHat = direction
+        }
+
+        /** A stick at -127..127 on each axis; [right] for the right stick. */
+        fun stick(right: Boolean, x: Int, y: Int) = update {
+            if (right) {
+                rx = x
+                ry = y
+            } else {
+                lx = x
+                ly = y
+            }
+        }
+
+        /**
+         * Everything let go: leaving the gamepad, or the link dropping. Sends
+         * nothing when the pad is already at rest, so a device paired without
+         * the gamepad never receives a gamepad report.
+         */
+        fun reset() {
+            lock.withLock {
+                if (stopped) return
+                val atRest = buttons == 0 && latched == 0 &&
+                    hat == HidReports.HAT_CENTER && latchedHat == HidReports.HAT_CENTER &&
+                    lx == 0 && ly == 0 && rx == 0 && ry == 0
+                if (atRest) return
+                buttons = 0
+                latched = 0
+                hat = HidReports.HAT_CENTER
+                latchedHat = HidReports.HAT_CENTER
+                lx = 0
+                ly = 0
+                rx = 0
+                ry = 0
+                wake()
+            }
+        }
+
+        fun stop() {
+            lock.withLock {
+                stopped = true
+                changed.signal()
+            }
+        }
+
+        private fun update(change: () -> Unit) {
+            lock.withLock {
+                if (stopped) return
+                change()
+                wake()
+            }
+        }
+
+        /** Under the lock: marks the state for sending and wakes the sender. */
+        private fun wake() {
+            dirty = true
+            if (thread == null) {
+                thread = Thread(this, "beampad-gamepad").apply {
+                    isDaemon = true
+                    start()
+                }
+            }
+            changed.signal()
+        }
+
+        override fun run() {
+            runCatching { Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY) }
+            try {
+                loop()
+            } catch (_: InterruptedException) {
+                // Only on shutdown.
+            }
+        }
+
+        private fun loop() {
+            while (true) {
+                lock.withLock {
+                    while (!stopped && !dirty) changed.await()
+                    if (stopped) return
+                }
+                val interval = runCatching { pointerIntervalNs() }.getOrDefault(DEFAULT_POINTER_INTERVAL_NS)
+                val wait = lastSentNs + interval - System.nanoTime()
+                if (wait > 0) Thread.sleep(wait / 1_000_000, (wait % 1_000_000).toInt())
+                var report = ByteArray(0)
+                lock.withLock {
+                    if (stopped) return
+                    val sendButtons = buttons or latched
+                    val sendHat = if (hat == HidReports.HAT_CENTER) latchedHat else hat
+                    report = HidReports.gamepad(sendButtons, sendHat, lx, ly, rx, ry)
+                    // A tap already let go goes out once more, released.
+                    dirty = sendButtons != buttons || sendHat != hat
+                    latched = 0
+                    latchedHat = HidReports.HAT_CENTER
+                }
+                lastSentNs = System.nanoTime()
+                val sent = runCatching { sink.send(HidReports.REPORT_ID_GAMEPAD, report) }.getOrDefault(false)
+                if (sent) sentSomething = true
             }
         }
     }

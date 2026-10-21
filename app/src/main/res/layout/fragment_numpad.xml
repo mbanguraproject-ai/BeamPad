@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Number pad: the keypad of a full keyboard, as large keys that fill the
+     surface. Num Lock first, as on the real thing: the computer decides
+     whether the digits type or move the cursor. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/gutter"
+    android:paddingEnd="@dimen/gutter"
+    android:paddingBottom="@dimen/space_sm">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/numLock"
+            style="@style/Key.Stacked"
+            android:layout_height="match_parent"
+            android:text="@string/numpad_num_lock"
+            app:icon="@drawable/ic_lock_simple" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpDivide"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="/"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpMultiply"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="*"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpMinus"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="−"
+            android:textSize="26sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp7"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:text="7"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp8"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="8"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp9"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="9"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpPlus"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="+"
+            android:textSize="26sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp4"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:text="4"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp5"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="5"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp6"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="6"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpBackspace"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:contentDescription="@string/key_backspace"
+            app:icon="@drawable/ic_backspace"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp1"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:text="1"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp2"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="2"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp3"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="3"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpEnter"
+            style="@style/Key.Accent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="@string/numpad_enter" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/gap"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kp0"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="0"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpDot"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="."
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/kpTab"
+            style="@style/Key"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/gap"
+            android:text="@string/numpad_tab" />
+    </LinearLayout>
+</LinearLayout>

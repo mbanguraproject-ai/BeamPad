@@ -105,6 +105,8 @@ jobs:
           mkdir -p dist
           cp app/build/outputs/apk/release/*.apk "dist/BeamPad-$version$suffix.apk"
           cp app/build/outputs/bundle/release/*.aab "dist/BeamPad-$version$suffix.aab"
+          cp wear/build/outputs/apk/release/*.apk "dist/BeamPad-wear-$version$suffix.apk"
+          cp wear/build/outputs/bundle/release/*.aab "dist/BeamPad-wear-$version$suffix.aab"
           ls -l dist
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
@@ -149,7 +151,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Render screens
-        run: ./gradlew --no-daemon testDebugUnitTest --tests "*ScreenshotTest*"
+        run: ./gradlew --no-daemon :app:testDebugUnitTest --tests "*ScreenshotTest*"
 
       - name: Test report on failure
         if: failure()

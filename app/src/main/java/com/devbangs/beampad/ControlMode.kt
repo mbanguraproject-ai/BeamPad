@@ -12,7 +12,9 @@ enum class ControlMode(val labelRes: Int, val iconRes: Int, val pro: Features.Pr
     MEDIA(R.string.mode_media, R.drawable.ic_play_pause, null),
     TRACKPAD(R.string.mode_trackpad, R.drawable.ic_cursor, null),
     MOUSE(R.string.mode_mouse, R.drawable.ic_mouse_simple, null),
-    PRESENTATION(R.string.mode_presentation, R.drawable.ic_presentation, Features.Pro.PRESENTATION);
+    NUMPAD(R.string.mode_numpad, R.drawable.ic_calculator, null),
+    PRESENTATION(R.string.mode_presentation, R.drawable.ic_presentation, Features.Pro.PRESENTATION),
+    GAMEPAD(R.string.mode_gamepad, R.drawable.ic_game_controller, Features.Pro.GAMEPAD);
 
     fun newFragment(): Fragment = when (this) {
         KEYBOARD -> KeyboardFragment()
@@ -20,6 +22,8 @@ enum class ControlMode(val labelRes: Int, val iconRes: Int, val pro: Features.Pr
         MEDIA -> MediaFragment()
         TRACKPAD -> TrackpadFragment()
         MOUSE -> MouseFragment()
+        NUMPAD -> NumpadFragment()
         PRESENTATION -> PresentationFragment()
+        GAMEPAD -> GamepadFragment()
     }
 }

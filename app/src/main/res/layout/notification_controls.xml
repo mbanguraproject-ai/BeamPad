@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The connection notification's controls while connected: the device's
+     state, then volume down, play/pause, volume up and mute for the TV or
+     computer, usable from the lock screen. Drawn by the system, so it uses
+     only framework attributes and the theme-free ic_ctl_ icons. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textAppearance="@android:style/TextAppearance.Material.Notification.Title" />
+
+    <ImageButton
+        android:id="@+id/volumeDown"
+        style="@style/NotificationControl"
+        android:contentDescription="@string/act_vol_down"
+        android:src="@drawable/ic_ctl_volume_down" />
+
+    <ImageButton
+        android:id="@+id/playPause"
+        style="@style/NotificationControl"
+        android:contentDescription="@string/act_play_pause"
+        android:src="@drawable/ic_ctl_play_pause" />
+
+    <ImageButton
+        android:id="@+id/volumeUp"
+        style="@style/NotificationControl"
+        android:contentDescription="@string/act_vol_up"
+        android:src="@drawable/ic_ctl_volume_up" />
+
+    <ImageButton
+        android:id="@+id/mute"
+        style="@style/NotificationControl"
+        android:contentDescription="@string/act_mute"
+        android:src="@drawable/ic_ctl_mute" />
+</LinearLayout>

@@ -20,8 +20,8 @@ android {
         applicationId = "com.devbangs.beampad"
         minSdk = 28
         targetSdk = 36
-        versionCode = 15
-        versionName = "1.4.8"
+        versionCode = 16
+        versionName = "1.5.0"
     }
 
     buildFeatures {
@@ -93,6 +93,9 @@ dependencies {
     // Ads. UMP is required: consent must be collected before any ad request.
     implementation("com.google.android.gms:play-services-ads:25.0.0")
     implementation("com.google.android.ump:user-messaging-platform:3.2.0")
+
+    // The watch remote: messages from the wear module.
+    implementation("com.google.android.gms:play-services-wearable:18.2.0")
 
     // Billing. v8+ is a Play publishing requirement as of Aug 2026.
     implementation("com.android.billingclient:billing:9.1.0")

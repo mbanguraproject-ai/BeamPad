@@ -170,6 +170,7 @@ class HidService : Service() {
         main.post {
             listeners.forEach { it() }
             updateNotification()
+            publishState()
         }
     }
 
@@ -396,7 +397,8 @@ class HidService : Service() {
                 "Phone as keyboard and mouse",
                 "Dev_Bangs",
                 BluetoothHidDevice.SUBCLASS1_COMBO,
-                HidReports.KEYBOARD_DESCRIPTOR
+                // The gamepad only when the user turned it on: see HidReports.descriptor.
+                HidReports.descriptor(gamepad = prefs.gamepad)
             )
             val ok = runCatching {
                 device.registerApp(sdp, null, null, callbackExec, hidCallback)
@@ -424,6 +426,7 @@ class HidService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        running = this
         engine = InputEngine(
             sink = { id, report -> send(id, report) },
             layout = { layout },
@@ -697,12 +700,64 @@ class HidService : Service() {
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_DISCONNECT) disconnect()
+        when (intent?.action) {
+            ACTION_DISCONNECT -> disconnect()
+            else -> intent?.action?.let { remoteKey(it) }
+        }
         return START_STICKY
     }
 
+    /**
+     * A media key from outside the app (the notification's controls, the
+     * home screen widget, the watch). Goes out only while a device is
+     * connected; returns whether it did.
+     */
+    fun remoteKey(action: String): Boolean {
+        val usage = when (action) {
+            ACTION_VOLUME_UP -> HidReports.CC_VOLUME_UP
+            ACTION_VOLUME_DOWN -> HidReports.CC_VOLUME_DOWN
+            ACTION_PLAY_PAUSE -> HidReports.CC_PLAY_PAUSE
+            ACTION_MUTE -> HidReports.CC_MUTE
+            else -> return false
+        }
+        if (!isReady()) return false
+        engine.consumer.press(usage)
+        return true
+    }
+
+    /**
+     * Tells the surfaces outside the app (the Quick Settings tile, the home
+     * screen widget) that the connection changed, so they show it.
+     */
+    private fun publishState() {
+        runCatching { ConnectionTile.refresh(this) }
+        runCatching { ControlWidget.refresh(this) }
+    }
+
+    /** What the tile and the widget show: the connection's state in a few words. */
+    fun shortStatus(): String = statusText()
+
+    private fun controlIntent(action: String, requestCode: Int): PendingIntent =
+        PendingIntent.getService(
+            this, requestCode,
+            Intent(this, HidService::class.java).setAction(action),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+    /** The notification's controls: state, then volume down, play/pause, volume up and mute. */
+    private fun controls(): android.widget.RemoteViews =
+        android.widget.RemoteViews(packageName, R.layout.notification_controls).apply {
+            setTextViewText(R.id.status, statusText())
+            setOnClickPendingIntent(R.id.volumeDown, controlIntent(ACTION_VOLUME_DOWN, 2))
+            setOnClickPendingIntent(R.id.playPause, controlIntent(ACTION_PLAY_PAUSE, 3))
+            setOnClickPendingIntent(R.id.volumeUp, controlIntent(ACTION_VOLUME_UP, 4))
+            setOnClickPendingIntent(R.id.mute, controlIntent(ACTION_MUTE, 5))
+        }
+
     override fun onDestroy() {
         super.onDestroy()
+        if (running === this) running = null
+        publishState()
         main.removeCallbacksAndMessages(null)
         runCatching { unregisterReceiver(btStateReceiver) }
         releaseProxy()
@@ -762,6 +817,13 @@ class HidService : Service() {
             .setOngoing(true)
 
         if (state == State.CONNECTED) {
+            // Volume and play/pause for the device, from the shade or the
+            // lock screen, without opening the app. A custom row, because a
+            // notification shows only three standard actions and Disconnect
+            // keeps its place among them.
+            builder.setStyle(Notification.DecoratedCustomViewStyle())
+                .setCustomContentView(controls())
+                .setCustomBigContentView(controls())
             val disconnect = PendingIntent.getService(
                 this, 1,
                 Intent(this, HidService::class.java).setAction(ACTION_DISCONNECT),
@@ -811,6 +873,18 @@ class HidService : Service() {
         private const val CHANNEL_ID = "beampad_connection"
         private const val NOTIF_ID = 1
         const val ACTION_DISCONNECT = "com.devbangs.beampad.DISCONNECT"
+        const val ACTION_VOLUME_UP = "com.devbangs.beampad.VOLUME_UP"
+        const val ACTION_VOLUME_DOWN = "com.devbangs.beampad.VOLUME_DOWN"
+        const val ACTION_PLAY_PAUSE = "com.devbangs.beampad.PLAY_PAUSE"
+        const val ACTION_MUTE = "com.devbangs.beampad.MUTE"
+
+        /**
+         * The service while it runs, for the surfaces outside the app (Quick
+         * Settings tile, widget, watch), which cannot bind and wait. Main
+         * thread only; null when it is not running.
+         */
+        @Volatile var running: HidService? = null
+            private set
 
         /** Backoff for quietly retrying a dropped connection: TVs take a while to wake. */
         val RETRY_DELAYS_MS = longArrayOf(2_000, 5_000, 10_000, 20_000, 40_000)
