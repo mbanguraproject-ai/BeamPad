@@ -1,20 +1,28 @@
 package com.devbangs.beampad
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityManager
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import com.devbangs.beampad.databinding.ActivityProBinding
 import com.devbangs.beampad.databinding.ItemCompareBinding
@@ -22,6 +30,7 @@ import com.devbangs.beampad.databinding.ItemFeatureBinding
 import com.devbangs.beampad.databinding.ItemPlanBinding
 import java.text.NumberFormat
 import java.util.Currency
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -36,6 +45,11 @@ import kotlin.math.roundToInt
  *
  * Below the plans, free users can also watch a short rewarded ad for a day
  * of Pro features ([ProPass]); a running pass shows what is left of it.
+ *
+ * At the top, free users see Pro's best features one at a time, each with
+ * its icon in the hero ([showcase]): they follow on their own and can be
+ * swiped. New users meet this page once, as onboarding ends; the close
+ * button leads on to their controls.
  */
 class ProActivity : BeamActivity() {
 
@@ -79,6 +93,20 @@ class ProActivity : BeamActivity() {
         Feature(Features.Pro.PRO_KEYS, R.drawable.ic_squares_four, R.string.feat_keys, R.string.feat_keys_body),
         Feature(Features.Pro.SNIPPETS, R.drawable.ic_vault, R.string.feat_snippets, R.string.feat_snippets_body)
     )
+
+    /** The features the top of the page shows one at a time to free users. */
+    private val showcase by lazy {
+        listOf(
+            Features.Pro.GAMEPAD, Features.Pro.FULL_KEYBOARD, Features.Pro.PANELS,
+            Features.Pro.AIR_MOUSE, Features.Pro.PRESENTATION, Features.Pro.NO_ADS
+        ).mapNotNull { which -> features.firstOrNull { it.which == which } }
+    }
+
+    /** Which [showcase] feature shows, and whether the showcase is on at all. */
+    private var shown = 0
+    private var showcasing = false
+    private val showcaseHandler = Handler(Looper.getMainLooper())
+    private val nextFeature = Runnable { showcaseStep(1) }
 
     /** Label, Free value, Pro value. A null value draws a dash, CHECK a tick. */
     private val comparison = listOf(
@@ -134,6 +162,9 @@ class ProActivity : BeamActivity() {
             ui.highlight.text = getString(R.string.pro_highlight, getString(it.title))
             ui.highlight.isVisible = true
         }
+        // Opened from a locked feature: the showcase starts with it.
+        shown = showcase.indexOfFirst { it.which == highlight }.coerceAtLeast(0)
+        setUpShowcase()
 
         buildComparison()
 
@@ -156,11 +187,13 @@ class ProActivity : BeamActivity() {
         billing.refresh()
         // The hours left on a pass move on while the page is away.
         renderPass()
+        scheduleShowcase()
     }
 
     override fun onPause() {
         super.onPause()
         resumed = false
+        showcaseHandler.removeCallbacks(nextFeature)
         // Left while an ad was loading: never start one behind the user's back.
         if (waitingForAd) {
             stopWaitingForAd()
@@ -175,6 +208,7 @@ class ProActivity : BeamActivity() {
         billing.onPurchaseOutcome = null
         if (RewardedAds.onLoaded === adLoadListener) RewardedAds.onLoaded = null
         stopWaitingForAd()
+        showcaseHandler.removeCallbacks(nextFeature)
     }
 
     private fun render() {
@@ -189,6 +223,7 @@ class ProActivity : BeamActivity() {
             else -> getString(R.string.pro_title)
         }
         ui.subtitle.setText(if (pro) R.string.pro_subtitle_active else R.string.pro_subtitle)
+        renderShowcase(pro)
         ui.compareHeader.isVisible = !pro
         ui.compareTable.isVisible = !pro
         ui.restore.isVisible = !pro
@@ -226,6 +261,149 @@ class ProActivity : BeamActivity() {
         }
         buildPlans(plans)
         renderCta()
+    }
+
+    // ---- Showcase ---------------------------------------------------------------
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setUpShowcase() {
+        showcase.indices.forEach { i ->
+            ui.showcaseDots.addView(
+                View(this).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO },
+                LinearLayout.LayoutParams(dp(DOT_DP), dp(DOT_DP)).apply { if (i > 0) marginStart = dp(DOT_DP) }
+            )
+        }
+        // A sideways swipe on the hero or the text moves on or back; an
+        // up or down drag is left to the page, which scrolls.
+        val swipe = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean = showcasing
+
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                if (abs(velocityX) < abs(velocityY)) return false
+                val towardsStart = velocityX < 0 != (ui.root.layoutDirection == View.LAYOUT_DIRECTION_RTL)
+                showcaseStep(if (towardsStart) 1 else -1)
+                return true
+            }
+        })
+        val touch = View.OnTouchListener { _, event -> swipe.onTouchEvent(event) }
+        ui.hero.setOnTouchListener(touch)
+        ui.showcase.setOnTouchListener(touch)
+        ui.showcaseBody.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            // After this pass: measuring sets the text, which asks for another.
+            if (right - left != oldRight - oldLeft) ui.showcaseBody.post { steadyShowcaseHeight() }
+        }
+    }
+
+    /**
+     * On for free users. Not with TalkBack: text that changes by itself
+     * is hard to follow by ear, so the subtitle stays instead, and every
+     * feature is in the list further down.
+     */
+    private fun renderShowcase(pro: Boolean) {
+        val touchExploration = getSystemService(AccessibilityManager::class.java)?.isTouchExplorationEnabled == true
+        val on = !pro && !touchExploration
+        if (on == showcasing) return
+        showcasing = on
+        ui.showcase.isVisible = on
+        ui.subtitle.isVisible = !on
+        if (on) {
+            showFeature(direction = 0)
+        } else {
+            listOf(ui.heroIcon, ui.showcaseTitle, ui.showcaseBody).forEach {
+                it.animate().cancel()
+                it.alpha = 1f
+                it.translationX = 0f
+            }
+            ui.heroIcon.setImageResource(R.drawable.ic_crown_simple_fill)
+        }
+        scheduleShowcase()
+    }
+
+    private fun showcaseStep(delta: Int) {
+        if (!showcasing) return
+        shown = (shown + delta).mod(showcase.size)
+        showFeature(direction = delta)
+        // A swipe restarts the wait, so the next one does not follow at once.
+        scheduleShowcase()
+    }
+
+    private fun scheduleShowcase() {
+        showcaseHandler.removeCallbacks(nextFeature)
+        if (showcasing && resumed) showcaseHandler.postDelayed(nextFeature, SHOWCASE_MS)
+    }
+
+    /** The feature at [shown]: sliding in from the side it comes from, or at once ([direction] 0). */
+    private fun showFeature(direction: Int) {
+        val feature = showcase.getOrNull(shown) ?: return
+        for (i in 0 until ui.showcaseDots.childCount) dot(ui.showcaseDots.getChildAt(i), i == shown)
+        val views = listOf(ui.heroIcon, ui.showcaseTitle, ui.showcaseBody)
+        val apply = {
+            ui.heroIcon.setImageResource(feature.icon)
+            ui.showcaseTitle.setText(feature.title)
+            ui.showcaseBody.setText(feature.body)
+        }
+        views.forEach { it.animate().cancel() }
+        if (direction == 0 || Motion.reduced(this)) {
+            views.forEach {
+                it.alpha = 1f
+                it.translationX = 0f
+            }
+            apply()
+            return
+        }
+        val rtl = ui.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val shift = dp(SLIDE_DP) * (if (direction > 0) 1 else -1) * (if (rtl) -1 else 1)
+        views.forEachIndexed { i, view ->
+            val out = view.animate().alpha(0f).translationX(-shift.toFloat()).setDuration(FADE_OUT_MS)
+            // Once out (the icon's end stands for all three): the new
+            // feature, in from the other side. A cancel skips this, and
+            // whatever cancelled it shows its own feature.
+            if (i == 0) out.withEndAction {
+                apply()
+                views.forEach {
+                    it.translationX = shift.toFloat()
+                    it.animate().alpha(1f).translationX(0f).setDuration(FADE_IN_MS).start()
+                }
+            }
+            out.start()
+        }
+    }
+
+    /** The current feature's dot is longer and in Pro's colours. */
+    private fun dot(view: View, current: Boolean) {
+        view.background = GradientDrawable().apply {
+            cornerRadius = dp(DOT_DP).toFloat() / 2
+            if (current) {
+                orientation = GradientDrawable.Orientation.LEFT_RIGHT
+                colors = intArrayOf(
+                    ContextCompat.getColor(this@ProActivity, R.color.bp_pro_start),
+                    ContextCompat.getColor(this@ProActivity, R.color.bp_pro_end)
+                )
+            } else {
+                setColor(themeColor(R.attr.bpTextFaint))
+            }
+        }
+        view.updateLayoutParams<LinearLayout.LayoutParams> { width = dp(if (current) DOT_CURRENT_DP else DOT_DP) }
+    }
+
+    /**
+     * The description as tall as the longest one at this width, so the
+     * plans below stay put as the features change.
+     */
+    private fun steadyShowcaseHeight() {
+        val body = ui.showcaseBody
+        if (body.width == 0) return
+        val width = View.MeasureSpec.makeMeasureSpec(body.width, View.MeasureSpec.EXACTLY)
+        val height = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        val current = body.text
+        body.minHeight = 0
+        val tallest = showcase.maxOfOrNull { feature ->
+            body.setText(feature.body)
+            body.measure(width, height)
+            body.measuredHeight
+        } ?: 0
+        body.text = current
+        body.minHeight = tallest
     }
 
     private fun buildFeatures(pro: Boolean) {
@@ -664,11 +842,19 @@ class ProActivity : BeamActivity() {
         /** How long a tap on the pass button waits for an ad that was not ready. */
         private const val AD_WAIT_MS = 8_000L
 
+        /** The showcase: how long each feature stays, and how it changes. */
+        private const val SHOWCASE_MS = 3_500L
+        private const val FADE_OUT_MS = 140L
+        private const val FADE_IN_MS = 220L
+        private const val SLIDE_DP = 24
+        private const val DOT_DP = 6
+        private const val DOT_CURRENT_DP = 18
+
+        fun intent(context: Context, feature: Features.Pro?): Intent =
+            Intent(context, ProActivity::class.java).putExtra(EXTRA_FEATURE, feature?.key)
+
         fun open(context: Context, feature: Features.Pro?) {
-            context.startActivity(
-                Intent(context, ProActivity::class.java)
-                    .putExtra(EXTRA_FEATURE, feature?.key)
-            )
+            context.startActivity(intent(context, feature))
         }
     }
 }

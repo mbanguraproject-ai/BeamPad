@@ -19,6 +19,7 @@ import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
 import com.android.billingclient.api.ProductDetails
 import com.google.android.material.navigation.NavigationBarView
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -568,6 +569,22 @@ class ScreenshotTest {
 
     @Test
     fun paywallEnglish() = paywall()
+
+    /** Onboarding ends on the Pro page, with the controls it opens beneath it. */
+    @Test
+    fun onboardingEndsOnPro() {
+        app.getSharedPreferences(Prefs.FILE, Context.MODE_PRIVATE).edit()
+            .putBoolean("onboarding_seen", false)
+            .commit()
+        val onboarding = screen<OnboardingActivity>()
+        onboarding.findViewById<View>(R.id.skip).performClick()
+        val started = generateSequence { shadowOf(onboarding).nextStartedActivity }
+            .mapNotNull { it.component?.className }
+            .toList()
+        assertTrue(started.toString(), ProActivity::class.java.name in started)
+        assertTrue(started.toString(), MainActivity::class.java.name in started)
+        assertTrue(OnboardingActivity.shouldShow(app).not())
+    }
 
     @Test
     @Config(qualifiers = "fr-w393dp-h852dp-xhdpi")

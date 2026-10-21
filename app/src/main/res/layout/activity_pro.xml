@@ -55,7 +55,9 @@
                     android:text="@string/restore_purchases" />
             </LinearLayout>
 
+            <!-- The crown; for free users, the showcased feature's icon. -->
             <FrameLayout
+                android:id="@+id/hero"
                 android:layout_width="match_parent"
                 android:layout_height="118dp"
                 android:clipChildren="false">
@@ -74,6 +76,7 @@
                     android:elevation="8dp">
 
                     <ImageView
+                        android:id="@+id/heroIcon"
                         android:layout_width="38dp"
                         android:layout_height="38dp"
                         android:layout_gravity="center"
@@ -106,6 +109,49 @@
                 android:text="@string/pro_subtitle"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textColor="?attr/bpTextDim" />
+
+            <!-- Pro's best features one at a time, for free users in place
+                 of the subtitle: each follows on its own, or swipe. The
+                 icon above changes with it. -->
+            <LinearLayout
+                android:id="@+id/showcase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/showcaseTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textColor="?attr/bpText"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/showcaseBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="16dp"
+                    android:gravity="center_horizontal|top"
+                    android:lineSpacingExtra="2dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/bpTextDim" />
+
+                <LinearLayout
+                    android:id="@+id/showcaseDots"
+                    android:layout_width="wrap_content"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/highlight"
