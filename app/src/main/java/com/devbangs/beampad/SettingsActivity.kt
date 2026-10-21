@@ -87,6 +87,7 @@ class SettingsActivity : PageActivity() {
         connection(c)
         keyboard(c, pro)
         trackpad(c, pro)
+        gamepad(c)
         remote(c)
         snippets(c)
         appearance(c)
@@ -159,16 +160,6 @@ class SettingsActivity : PageActivity() {
             Prefs.LinkMode.STABLE to getString(R.string.set_link_stable_body)
         )) { prefs.linkMode = it }
         Ui.divider(card)
-        // Changes what devices see when pairing, so it restarts the
-        // connection and needs a new pairing either way.
-        Ui.switchRow(card, getString(R.string.set_gamepad), getString(R.string.set_gamepad_body),
-            R.drawable.ic_game_controller, prefs.gamepad) { on ->
-            prefs.gamepad = on
-            service?.restart()
-            Toast.makeText(this, R.string.set_gamepad_repair, Toast.LENGTH_LONG).show()
-            on
-        }
-        Ui.divider(card)
         Ui.switchRow(card, getString(R.string.settings_screen_on), getString(R.string.set_screen_on_body),
             R.drawable.ic_sun, prefs.keepScreenOn) { prefs.keepScreenOn = it; it }
         Ui.divider(card)
@@ -193,6 +184,33 @@ class SettingsActivity : PageActivity() {
             refresh()
         }
         forget.enabled(prefs.lastHost != null)
+    }
+
+    private fun gamepad(c: ViewGroup) {
+        Ui.section(c, getString(R.string.set_group_gamepad))
+        val card = Ui.card(c)
+        // Changes what devices see when pairing, so it restarts the
+        // connection and needs a new pairing either way.
+        Ui.switchRow(card, getString(R.string.set_gamepad), getString(R.string.set_gamepad_body),
+            R.drawable.ic_game_controller, prefs.gamepad) { on ->
+            prefs.gamepad = on
+            service?.restart()
+            Toast.makeText(this, R.string.set_gamepad_repair, Toast.LENGTH_LONG).show()
+            on
+        }
+        Ui.divider(card)
+        // Controller names, not words: the same in every language.
+        picker(card, R.string.set_pad_labels, R.drawable.ic_game_controller, prefs.padLabels, listOf(
+            Prefs.PadLabels.XBOX to "Xbox",
+            Prefs.PadLabels.PLAYSTATION to "PlayStation",
+            Prefs.PadLabels.NINTENDO to "Nintendo"
+        ), subtitle = getString(R.string.set_pad_labels_body)) { prefs.padLabels = it }
+        Ui.divider(card)
+        Ui.switchRow(card, getString(R.string.set_pad_floating), getString(R.string.set_pad_floating_body),
+            R.drawable.ic_hand_pointing, prefs.padFloating) { prefs.padFloating = it; it }
+        Ui.divider(card)
+        Ui.switchRow(card, getString(R.string.set_pad_tilt), getString(R.string.set_pad_tilt_body),
+            R.drawable.ic_steering_wheel, prefs.padTilt) { prefs.padTilt = it; it }
     }
 
     private fun keyboard(c: ViewGroup, pro: Boolean) {

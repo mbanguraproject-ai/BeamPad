@@ -643,7 +643,7 @@
     <string name="mode_numpad">Numpad</string>
     <string name="mode_gamepad">Gamepad</string>
     <string name="tip_numpad">These are the keypad’s own keys. If they move the cursor instead of typing digits, press Num Lock.</string>
-    <string name="tip_gamepad">Hold buttons as long as you like and press several at once, as on a real pad.</string>
+    <string name="tip_gamepad">Slide up a trigger to press it further, and double-tap a stick to click it. Buttons hold as long as you like, several at once.</string>
     <string name="numpad_num_lock">Num Lock</string>
     <string name="numpad_enter">Enter</string>
     <string name="numpad_tab">Tab</string>
@@ -662,4 +662,26 @@
     <string name="set_gamepad">Gamepad support</string>
     <string name="set_gamepad_body">Lets BeamPad act as a game controller. Changing it restarts the connection, and devices need to pair again to see it.</string>
     <string name="set_gamepad_repair">Remove BeamPad from the device’s Bluetooth list and pair again to apply this.</string>
+    <string name="pad_dpad">D-pad</string>
+    <string name="pad_left_trigger">Left trigger</string>
+    <string name="pad_right_trigger">Right trigger</string>
+    <string name="pad_view">View</string>
+    <string name="pad_menu">Menu</string>
+    <string name="pad_create">Create</string>
+    <string name="pad_options">Options</string>
+    <string name="pad_cross">Cross</string>
+    <string name="pad_circle">Circle</string>
+    <string name="pad_square">Square</string>
+    <string name="pad_triangle">Triangle</string>
+    <string name="pad_tilt">Tilt to steer</string>
+    <string name="pad_tilt_on">Tilt to steer on: turn the phone like a wheel to steer with the left stick.</string>
+    <string name="pad_tilt_off">Tilt to steer off</string>
+    <string name="pad_tilt_none">This phone has no motion sensor for tilt steering.</string>
+    <string name="set_group_gamepad">Gamepad</string>
+    <string name="set_pad_labels">Button labels</string>
+    <string name="set_pad_labels_body">Name the buttons as on the controller your games show</string>
+    <string name="set_pad_floating">Floating sticks</string>
+    <string name="set_pad_floating_body">A stick centres where your thumb lands</string>
+    <string name="set_pad_tilt">Tilt to steer</string>
+    <string name="set_pad_tilt_body">Turn the phone like a steering wheel to move the left stick</string>
 </resources>

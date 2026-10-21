@@ -81,4 +81,13 @@
     <!-- Midpoint of the launcher icon gradient, so the Android 12+ launch
          animation grows out of the icon without a colour jump. -->
     <color name="splash_background">#5F51E4</color>
+
+    <!-- Gamepad face button symbols, in the controllers' own colours,
+         mid-tone so they read on the light and the dark keys. -->
+    <color name="pad_green">#2FA84F</color>
+    <color name="pad_red">#E5484D</color>
+    <color name="pad_blue">#3E7BFA</color>
+    <color name="pad_yellow">#D29B00</color>
+    <color name="pad_teal">#1FA39A</color>
+    <color name="pad_pink">#D45FB0</color>
 </resources>

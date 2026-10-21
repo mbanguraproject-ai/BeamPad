@@ -157,6 +157,21 @@ class Prefs(context: Context) {
         get() = bool(KEY_GAMEPAD, false)
         set(value) = putBool(KEY_GAMEPAD, value)
 
+    /** Which controller's names the gamepad's buttons show. Only the labels change. */
+    var padLabels: PadLabels
+        get() = enumOf(KEY_PAD_LABELS, PadLabels.XBOX)
+        set(value) = putString(KEY_PAD_LABELS, value.name)
+
+    /** The gamepad's sticks centre where the thumb lands. */
+    var padFloating: Boolean
+        get() = bool(KEY_PAD_FLOATING, true)
+        set(value) = putBool(KEY_PAD_FLOATING, value)
+
+    /** Tilting the phone like a wheel moves the left stick left and right. */
+    var padTilt: Boolean
+        get() = bool(KEY_PAD_TILT, false)
+        set(value) = putBool(KEY_PAD_TILT, value)
+
     // ---- Presentation -----------------------------------------------------
 
     /** Presentation opens in portrait; this turns it sideways for two-thumb use. */
@@ -270,6 +285,8 @@ class Prefs(context: Context) {
 
     enum class RemoteLayout { STANDARD, MINIMAL, FULL }
 
+    enum class PadLabels { XBOX, PLAYSTATION, NINTENDO }
+
     /**
      * Pointer report rate. Smooth suits nearly everything; Fast is for PCs
      * and recent TVs; Stable is for older TVs, projectors and TV boxes
@@ -319,6 +336,9 @@ class Prefs(context: Context) {
         private const val KEY_MOMENTUM_SCROLL = "momentum_scroll"
         private const val KEY_LINK_MODE = "link_mode"
         private const val KEY_GAMEPAD = "gamepad"
+        private const val KEY_PAD_LABELS = "pad_labels"
+        private const val KEY_PAD_FLOATING = "pad_floating"
+        private const val KEY_PAD_TILT = "pad_tilt"
         private const val KEY_PRESENT_LANDSCAPE = "present_landscape"
         private const val KEY_PRESENT_ALERT = "present_alert_minutes"
         private const val KEY_GESTURE_PREFIX = "gesture_"

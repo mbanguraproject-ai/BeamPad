@@ -333,6 +333,13 @@ class ScreenshotTest {
         shoot(main(ControlMode.GAMEPAD), "land_gamepad")
         appearance(Appearance.LIGHT)
         shoot(main(ControlMode.GAMEPAD), "land_gamepad_light")
+        Prefs(app).padLabels = Prefs.PadLabels.PLAYSTATION
+        appearance(Appearance.DARK)
+        shoot(main(ControlMode.GAMEPAD), "land_gamepad_playstation")
+        Prefs(app).padLabels = Prefs.PadLabels.NINTENDO
+        appearance(Appearance.LIGHT)
+        shoot(main(ControlMode.GAMEPAD), "land_gamepad_nintendo")
+        Prefs(app).padLabels = Prefs.PadLabels.XBOX
         Prefs(app).gamepad = false
         pro(false)
     }
