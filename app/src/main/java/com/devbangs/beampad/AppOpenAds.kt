@@ -55,8 +55,6 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
      */
     private const val MAX_LATE_WAIT_MS = 4_000L
 
-    /** Covers an ad that is told to show but never reports back. */
-    private const val SHOW_TIMEOUT_MS = 2_500L
 
     /** A return this soon after the app opened a system screen is part of that task. */
     private const val HANDOFF_WINDOW_MS = 5 * 60 * 1000L
@@ -67,6 +65,10 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     private var ad: AppOpenAd? = null
     private var loadedAt = 0L
     private var loading = false
+    private var loadingSince = 0L
+
+    /** Counts loads, so the answer to one given up on cannot overwrite a later one. */
+    private var loadId = 0
 
     /** What the current ad is for, and the screen it shows over; null when idle. */
     private var mode: Mode? = null
@@ -188,7 +190,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         if (activity.isFinishing || activity.isDestroyed) return finish("screen closed")
         when {
             hasFreshAd() -> showWhenResumed(activity)
-            loading -> waitForLoad(MAX_LATE_WAIT_MS)
+            stillLoading() -> waitForLoad(MAX_LATE_WAIT_MS)
             else -> {
                 // The load at launch failed: one more try, inside the same wait.
                 fetch(activity)
@@ -242,9 +244,22 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     private fun hasFreshAd(): Boolean =
         ad != null && SystemClock.elapsedRealtime() - loadedAt < MAX_AD_AGE_MS
 
+    /**
+     * Whether a load is still in flight. One AdMob has not answered for
+     * [AdGate.LOAD_STUCK_MS] is given up, so a lost callback cannot stop
+     * app open ads for the rest of the session.
+     */
+    private fun stillLoading(): Boolean {
+        if (loading && SystemClock.elapsedRealtime() - loadingSince > AdGate.LOAD_STUCK_MS) {
+            loading = false
+            AdGate.log(FORMAT, "load gave no answer; trying again")
+        }
+        return loading
+    }
+
     /** Loads one ahead for the next launch or return, when one may show at all. */
     private fun preload(context: Context) {
-        if (loading || hasFreshAd() || !AdGate.eligible(context)) return
+        if (stillLoading() || hasFreshAd() || !AdGate.eligible(context)) return
         fetch(context)
     }
 
@@ -255,10 +270,12 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
     }
 
     private fun fetch(context: Context) {
-        if (loading || hasFreshAd()) return
+        if (stillLoading() || hasFreshAd()) return
         if (AdGate.adsRemoved(context) || !AdGate.consentAllows(context)) return
         ad = null
         loading = true
+        loadingSince = SystemClock.elapsedRealtime()
+        val id = ++loadId
         Ads.initSdk(context)
         val started = SystemClock.elapsedRealtime()
         runCatching {
@@ -268,6 +285,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
                 AdRequest.Builder().build(),
                 object : AppOpenAd.AppOpenAdLoadCallback() {
                     override fun onAdLoaded(loaded: AppOpenAd) {
+                        if (id != loadId) return
                         loading = false
                         ad = loaded
                         loadedAt = SystemClock.elapsedRealtime()
@@ -283,6 +301,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
                     }
 
                     override fun onAdFailedToLoad(error: LoadAdError) {
+                        if (id != loadId) return
                         loading = false
                         AdGate.log(FORMAT, "load failed ${error.code}: ${error.message}")
                         if (waiting) finish("load failed")
@@ -315,7 +334,7 @@ object AppOpenAds : Application.ActivityLifecycleCallbacks {
         val what = if (mode == Mode.LAUNCH) "launch" else "return"
         val appContext = activity.applicationContext
         AdGate.begin(FORMAT)
-        main.postDelayed(showTimeout, SHOW_TIMEOUT_MS)
+        main.postDelayed(showTimeout, AdGate.SHOW_TIMEOUT_MS)
 
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {

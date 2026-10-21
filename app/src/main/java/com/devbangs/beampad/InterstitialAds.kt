@@ -50,8 +50,6 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
     /** AdMob expires interstitials after an hour. */
     private const val MAX_AD_AGE_MS = 60 * 60 * 1000L
 
-    /** Covers an ad that is told to show but never reports back. */
-    private const val SHOW_TIMEOUT_MS = 3_000L
 
     private val RETRY_DELAYS_MS = longArrayOf(10_000, 30_000, 60_000, 120_000, 300_000)
 
@@ -60,6 +58,8 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
     private var ad: InterstitialAd? = null
     private var loadedAt = 0L
     private var loading = false
+    private var loadingSince = 0L
+    private var loadId = 0
     private var failures = 0
     private var retryAt = 0L
 
@@ -83,9 +83,18 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
     fun isReady(): Boolean =
         ad != null && SystemClock.elapsedRealtime() - loadedAt < MAX_AD_AGE_MS
 
+    /** A load AdMob has not answered for [AdGate.LOAD_STUCK_MS] is given up, so it cannot block loading for good. */
+    private fun stillLoading(): Boolean {
+        if (loading && SystemClock.elapsedRealtime() - loadingSince > AdGate.LOAD_STUCK_MS) {
+            loading = false
+            AdGate.log(FORMAT, "load gave no answer; trying again")
+        }
+        return loading
+    }
+
     /** Loads one ahead, when one may show at all. Ads removed is checked first. */
     fun preload(context: Context) {
-        if (loading || isReady() || !AdGate.eligible(context, GRACE_LAUNCHES)) return
+        if (stillLoading() || isReady() || !AdGate.eligible(context, GRACE_LAUNCHES)) return
         if (SystemClock.elapsedRealtime() < retryAt) return
         fetch(context.applicationContext)
     }
@@ -150,7 +159,7 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
         val mine = ++session
         val appContext = activity.applicationContext
         AdGate.begin(FORMAT)
-        main.postDelayed(showTimeout, SHOW_TIMEOUT_MS)
+        main.postDelayed(showTimeout, AdGate.SHOW_TIMEOUT_MS)
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
                 AdGate.begin(FORMAT)
@@ -196,9 +205,11 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
     }
 
     private fun fetch(context: Context) {
-        if (loading || isReady()) return
+        if (stillLoading() || isReady()) return
         ad = null
         loading = true
+        loadingSince = SystemClock.elapsedRealtime()
+        val id = ++loadId
         Ads.initSdk(context)
         val started = SystemClock.elapsedRealtime()
         runCatching {
@@ -208,6 +219,7 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
                 AdRequest.Builder().build(),
                 object : InterstitialAdLoadCallback() {
                     override fun onAdLoaded(loaded: InterstitialAd) {
+                        if (id != loadId) return
                         loading = false
                         failures = 0
                         retryAt = 0L
@@ -217,6 +229,7 @@ object InterstitialAds : Application.ActivityLifecycleCallbacks {
                     }
 
                     override fun onAdFailedToLoad(error: LoadAdError) {
+                        if (id != loadId) return
                         loading = false
                         retryAt = SystemClock.elapsedRealtime() +
                             RETRY_DELAYS_MS[failures.coerceAtMost(RETRY_DELAYS_MS.size - 1)]

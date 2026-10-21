@@ -2,6 +2,8 @@ package com.devbangs.beampad
 
 import android.app.Activity
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -34,9 +36,32 @@ object RewardedAds {
 
     private var ad: RewardedAd? = null
     private var loadedAt = 0L
+    private var loadingSince = 0L
+    private var loadId = 0
 
     var loading = false
         private set
+
+    private val main = Handler(Looper.getMainLooper())
+
+    /**
+     * Ends the ad on screen, if any, with what it earned. Kept so that the
+     * AdMob screen closing ends it too when the ad never reports its close.
+     */
+    private var finishShowing: (() -> Unit)? = null
+
+    init {
+        AdGate.onAdScreenGone { finishShowing?.invoke() }
+    }
+
+    /** A load AdMob has not answered for [AdGate.LOAD_STUCK_MS] is given up, so it cannot block loading for good. */
+    private fun stillLoading(): Boolean {
+        if (loading && SystemClock.elapsedRealtime() - loadingSince > AdGate.LOAD_STUCK_MS) {
+            loading = false
+            AdGate.log(FORMAT, "load gave no answer; trying again")
+        }
+        return loading
+    }
 
     /**
      * Told when a load ends, with whether an ad arrived. Set by the Pro page
@@ -56,36 +81,47 @@ object RewardedAds {
 
     /** Loads one ad ahead, once consent allows. Nothing happens if one is ready or loading. */
     fun load(activity: Activity) {
-        if (!canOffer(activity) || loading || isReady()) return
+        if (!canOffer(activity) || stillLoading() || isReady()) return
         val app = activity.application as BeamPadApp
         val context = activity.applicationContext
         Ads.whenReady(activity, app.entitlements) { fetch(context) }
     }
 
     private fun fetch(context: Context) {
-        if (loading || isReady()) return
+        if (stillLoading() || isReady()) return
         ad = null
         loading = true
-        RewardedAd.load(
-            context,
-            AD_UNIT,
-            AdRequest.Builder().build(),
-            object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(loaded: RewardedAd) {
-                    AdGate.log(FORMAT, "loaded")
-                    loading = false
-                    ad = loaded
-                    loadedAt = SystemClock.elapsedRealtime()
-                    onLoaded?.invoke(true)
-                }
+        loadingSince = SystemClock.elapsedRealtime()
+        val id = ++loadId
+        runCatching {
+            RewardedAd.load(
+                context,
+                AD_UNIT,
+                AdRequest.Builder().build(),
+                object : RewardedAdLoadCallback() {
+                    override fun onAdLoaded(loaded: RewardedAd) {
+                        if (id != loadId) return
+                        AdGate.log(FORMAT, "loaded")
+                        loading = false
+                        ad = loaded
+                        loadedAt = SystemClock.elapsedRealtime()
+                        onLoaded?.invoke(true)
+                    }
 
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    AdGate.log(FORMAT, "load failed ${error.code}: ${error.message}")
-                    loading = false
-                    onLoaded?.invoke(false)
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        if (id != loadId) return
+                        AdGate.log(FORMAT, "load failed ${error.code}: ${error.message}")
+                        loading = false
+                        onLoaded?.invoke(false)
+                    }
                 }
-            }
-        )
+            )
+        }.onFailure {
+            // Never a crash on the Pro page: the page offers "no ad right now".
+            loading = false
+            AdGate.log(FORMAT, "load threw: ${it.message}")
+            onLoaded?.invoke(false)
+        }
     }
 
     /**
@@ -102,15 +138,29 @@ object RewardedAds {
         val context = activity.applicationContext
         var earned = false
         var done = false
+        var onScreen = false
+        // Ad never reported on screen: free the gate for the other formats.
+        // The outcome still waits for the ad, which may yet show late.
+        val showTimeout = Runnable { if (!onScreen && !done) AdGate.end(FORMAT) }
         fun finish(outcome: Outcome) {
             if (done) return
             done = true
+            main.removeCallbacks(showTimeout)
+            finishShowing = null
             AdGate.end(FORMAT)
             AdGate.log(FORMAT, "ended: ${outcome.name.lowercase()}")
             onDone(outcome)
         }
+        finishShowing = { finish(if (earned) Outcome.EARNED else Outcome.NOT_EARNED) }
 
         current.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdShowedFullScreenContent() {
+                onScreen = true
+                main.removeCallbacks(showTimeout)
+                AdGate.begin(FORMAT)
+                AdGate.log(FORMAT, "shown")
+            }
+
             override fun onAdDismissedFullScreenContent() =
                 finish(if (earned) Outcome.EARNED else Outcome.NOT_EARNED)
 
@@ -130,9 +180,11 @@ object RewardedAds {
             }
         }.isSuccess
         if (!started) {
+            finishShowing = null
             AdGate.end(FORMAT)
             return false
         }
+        main.postDelayed(showTimeout, AdGate.SHOW_TIMEOUT_MS)
         return true
     }
 }

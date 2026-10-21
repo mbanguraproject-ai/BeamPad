@@ -190,12 +190,19 @@ object Ads {
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, widthDp)
     }
 
-    /** Called after a successful purchase: removes the banner immediately. */
+    /**
+     * Removes [slot]'s banner: after a purchase, or as its page closes. Only
+     * the banner in that slot is destroyed: a second Settings page closing
+     * must not take the banner of the one beneath it.
+     */
     fun detach(slot: FrameLayout) {
-        pendingRetry?.let { main.removeCallbacks(it) }
-        pendingRetry = null
-        view?.destroy()
-        view = null
+        val current = view
+        if (current != null && current.parent === slot) {
+            pendingRetry?.let { main.removeCallbacks(it) }
+            pendingRetry = null
+            current.destroy()
+            view = null
+        }
         slot.removeAllViews()
     }
 

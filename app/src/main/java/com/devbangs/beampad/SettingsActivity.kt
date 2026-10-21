@@ -50,7 +50,6 @@ class SettingsActivity : PageActivity() {
             LinearLayout.LayoutParams.WRAP_CONTENT
         ))
         page.footer.isVisible = !app.entitlements.adsRemoved
-        Ads.attach(this, adSlot, app.entitlements)
         // The privacy options row depends on where consent stands; ask if
         // this process has not heard yet, and redraw only if the answer
         // changes what is shown.
@@ -61,6 +60,12 @@ class SettingsActivity : PageActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Attached here rather than once at creation: a banner this page lost
+        // (another Settings page took the shared view, then closed) comes
+        // back when the page is in front again.
+        if (!app.entitlements.adsRemoved && adSlot.childCount == 0) {
+            Ads.attach(this, adSlot, app.entitlements)
+        }
         Ads.resume()
     }
 
